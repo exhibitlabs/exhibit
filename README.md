@@ -21,7 +21,7 @@ Open http://localhost:3000. That's it:
 Try this path:
 
 1. **Disputes** shows the demo merchant's 8 open cases, each with Exhibit's call.
-2. Open **Megan Hale · Item not received**, click **Run Exhibit**, and watch the investigation stream in.
+2. Open **Megan Hale · Item not received**, click **Run Exhibit**, and watch the **evidence graph** fill in: each source lights up as the agent queries it, then the cited records turn into lettered exhibits wired to the verdict. Click any source to see how the agent used it.
 3. Open the evidence packet (**Preview**), then **File evidence with PayPal**.
 4. In **Simulator controls**, click **Rule for merchant**. The case is won.
 5. Back on **Disputes**, click **Simulate new dispute**. A `CUSTOMER.DISPUTE.CREATED` event arrives and Exhibit starts on its own.
@@ -61,6 +61,10 @@ Exhibit runs a tool-using agent on Claude (`claude-opus-5-5`, adaptive thinking)
 | `check_seller_protection` | Deterministic check against PayPal's published US Seller Protection requirements, quoted verbatim |
 | `file_case_brief` | The structured deliverable: decision, win likelihood, reasoning, exhibits, PayPal action, response letter, buyer message |
 
+### Evidence graph
+
+Every case opens with a map of the eight sources Exhibit can check (the PayPal dispute, order and listing, carrier scans, buyer history, checkout signals, buyer messages, store policies and PayPal Seller Protection) around the claim. During a run, the sources being queried animate. When the brief is filed, the hub shows the decision and win likelihood, every cited record carries its exhibit letter, and its line takes the colour of the call it supports. Sources the agent skipped fade out. It is drawn only from evidence refs, so it shows exactly what the agent can and cannot cite.
+
 ### Guardrails
 
 - **Cites, never invents.** Every tool result carries evidence refs (`shipment:SHP-10482`, `policy:returns`). The brief may only cite refs that resolve, and the PDF packet re-reads each ref from source records. The model chooses and explains evidence; it cannot write it.
@@ -86,6 +90,48 @@ Exhibit runs a tool-using agent on Claude (`claude-opus-5-5`, adaptive thinking)
 | `POST /v1/notifications/verify-webhook-signature` | Webhook verification |
 | `POST /v2/checkout/orders`, `…/capture`, `POST /v2/customer-support/process-chargeback` | Sandbox seeding |
 | `POST /v1/customer/disputes/{id}/adjudicate`, `…/require-evidence` | Sandbox lifecycle controls |
+
+## Use Exhibit from any AI agent (MCP)
+
+Exhibit ships an MCP server, so Claude Desktop, Claude Code, ChatGPT connectors or an agent built on [PayPal's Agent Toolkit](https://github.com/paypal/agent-toolkit) can triage and investigate disputes. PayPal's toolkit lets an agent *act* on a dispute (its `accept_dispute_claim` concedes the case); Exhibit lets it *win* one, with evidence, and never moves money without the merchant.
+
+```bash
+npm run dev                                  # Exhibit must be running
+EXHIBIT_URL=http://localhost:3000 npm run mcp   # stdio server: node mcp/server.ts (Node 22.18+, no build)
+```
+
+**Claude Code:** `claude mcp add exhibit -e EXHIBIT_URL=http://localhost:3000 -- node /abs/path/to/exhibit/mcp/server.ts`
+
+**Claude Desktop** (`claude_desktop_config.json`), side by side with PayPal's own server:
+
+```json
+{
+  "mcpServers": {
+    "exhibit": { "command": "node", "args": ["/abs/path/to/exhibit/mcp/server.ts"], "env": { "EXHIBIT_URL": "http://localhost:3000" } },
+    "paypal": { "command": "npx", "args": ["-y", "@paypal/mcp", "--tools=all"], "env": { "PAYPAL_ACCESS_TOKEN": "…", "PAYPAL_ENVIRONMENT": "SANDBOX" } }
+  }
+}
+```
+
+Settings → **Connect an AI agent** shows the same config with your paths filled in.
+
+| Tool | What it does |
+|---|---|
+| `list_disputes` | Open cases (status / reason filters) with Exhibit's call and win likelihood |
+| `investigate_dispute` | Runs the Exhibit agent; returns the brief: decision, likelihood, cited reasoning, exhibits, proposed PayPal action, letter |
+| `get_case_brief` | Latest brief without re-running |
+| `get_evidence_packet` | URL of the PDF evidence packet |
+| `get_prevention_report` | Orders likely to become disputes, with risk scores and fixes |
+| `get_overview` | Recovered, at risk, win rate, fees avoided, dispute rate vs network thresholds |
+| `request_dispute_action` | **Queues** the brief's PayPal action for merchant approval; returns an approval URL |
+| `request_prevention_fix` | **Queues** a prevention fix (tracking, refund, buyer message…) for approval |
+| `get_approval_status` | pending / approved (with the PayPal result) / rejected / failed / stale |
+
+Plus a resource (`exhibit://disputes/open`) and a prompt (`triage_disputes`).
+
+**The approval guarantee.** No MCP tool files with PayPal, moves money or messages a customer. `request_*` tools create a pending approval (`src/lib/approvals.ts`); the merchant sees "An AI agent (Claude Desktop) requests: File evidence with PayPal · Approve / Reject" on the case page and in Settings. Approving runs `executeBriefAction` / `runPreventionFix`, the same code path as the merchant's own button, recorded as `agent:<client> approved by merchant` in PayPal activity. Requests are pinned to the brief they were made against (a re-run expires them), decisions are only accepted from the Exhibit UI (same-origin), and investigations started by an agent never auto-file even when Autopilot would.
+
+`npm run mcp:smoke` (against a demo-mode instance) calls every tool and approves one request end to end; [docs/MCP_DEMO.md](docs/MCP_DEMO.md) is a transcript of Claude using the server on its own (`node mcp/agent-demo.ts`).
 
 ## Architecture
 

@@ -718,7 +718,7 @@ Sample response
 
 ```shell
 curl -X POST https://api-m.sandbox.paypal.com/v1/customer/disputes \
--H 'Authorization: Bearer A21AAItEDV4r4hH1p72Aw8iciCdCyVmIeiXi7XkX8I38AHTDN7Zc4KywkWgsjH8gP4hfQwWFVn8Hj880z_s2ormzjPh80D_5w' \
+-H 'Authorization: Bearer <ACCESS_TOKEN>' \
 -H 'Content-Type: multipart/form-data' \
 -H 'PayPal-Auth-Assertion: eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJBWmdidVpPU1B0YnJIWnNrNFZHeFAxOVFvZFUzVk91R1R5UEhhRTZJNkJVVm9NdTJvSnpIZExGeVc3Rmpvd1labGdVaEk4eWRzcXh6RlAtSSIsImVtYWlsIjoic2ItcmstYnV5ZXJAcGVyc29uYWwuZXhhbXBsZS5jb20ifQ.' \
 -F 'input={

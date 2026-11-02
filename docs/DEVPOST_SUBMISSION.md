@@ -19,6 +19,8 @@ Exhibit connects to a merchant's PayPal account and store. When a dispute opens 
 3. **Builds the case.** It drafts a response letter for PayPal's reviewer and an evidence packet PDF with labelled exhibits (A, B, C…) rendered directly from source records.
 4. **Acts through PayPal.** One click (or Autopilot, within the merchant's limits) calls `provide-evidence` (multipart with the PDF and tracking info), `make-offer`, `accept-claim`, `send-message`, or refunds the capture first and then files `PROOF_OF_REFUND`.
 
+Every case opens with an **evidence graph**: the claim in the centre, eight sources around it. Sources light up as the agent queries them, then cited records become lettered exhibits wired to the verdict, so a merchant (or a PayPal reviewer) can see at a glance what the decision rests on and what the agent skipped.
+
 It also **prevents** disputes: Protection finds shipments whose tracking never reached PayPal and pushes them with the Orders v2 tracking API.
 
 ## How we built it
@@ -38,6 +40,9 @@ It also **prevents** disputes: Protection finds shipments whose tracking never r
 - On the eight demo cases the agent makes the call an experienced ops lead would, including the three where the right answer is *not* to fight.
 - A 30-second investigation produces a reviewer-ready letter and a multi-page evidence packet.
 - The product runs end to end with zero setup, and the same code path runs against PayPal's sandbox.
+
+## Exhibit over MCP (for any AI agent)
+Exhibit is also an MCP server (`node mcp/server.ts`), so Claude Desktop, Claude Code, ChatGPT or an agent built on PayPal's Agent Toolkit can list disputes, run investigations, fetch evidence packets and check prevention risk. PayPal's toolkit lets agents act on disputes; Exhibit lets them win them. Every money-moving or customer-facing step (filing, offers, refunds, buyer messages, prevention fixes) is only a *request*: the merchant approves it in Exhibit, which then executes it through the same audited PayPal code path. `docs/MCP_DEMO.md` is a real transcript of Claude triaging eight disputes and queuing the strongest for approval.
 
 ## What we learned
 The hard part of an AI agent for money isn't the model call. It's the contract around it: what the agent may cite, which actions are legal right now, when a human must approve, and how every step is audited.
