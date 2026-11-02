@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { REASON_LABEL } from "../paypal/types";
 import { caseFile, refreshDispute } from "../disputes";
 import { refs, resolveRef } from "../evidence";
 import { addressesMatch, evaluateSellerProtection, PLAYBOOK } from "./playbook";
@@ -84,7 +85,7 @@ export const TOOLS = [
           : null,
       };
       const due = daysUntil(d.seller_response_due_date);
-      return { output, summary: `${d.reason.replace(/_/g, " ").toLowerCase()} · ${d.dispute_life_cycle_stage.toLowerCase()} · $${d.dispute_amount.value}${due !== null ? ` · due in ${due}d` : ""}` };
+      return { output, summary: `${(REASON_LABEL[d.reason] ?? d.reason.replace(/_/g, " ")).toLowerCase()} · ${d.dispute_life_cycle_stage.toLowerCase()} · $${d.dispute_amount.value}${due !== null ? ` · due in ${due}d` : ""}` };
     },
   }),
   def({
@@ -312,11 +313,13 @@ export function toolByName(name: string) {
 let seq = 0;
 
 /** Validates input, runs the tool, emits call/result events and returns the text sent back to the model. */
-export async function executeTool(name: string, rawInput: unknown, ctx: ToolContext, callId?: string): Promise<{ text: string; isError: boolean }> {
+export async function executeTool(name: string, rawInput: unknown, ctx: ToolContext, callId?: string, dwellMs = 0): Promise<{ text: string; isError: boolean }> {
   const tool = toolByName(name);
   const id = callId ?? `call_${Date.now().toString(36)}_${seq++}`;
   if (!tool) return { text: JSON.stringify({ error: `Unknown tool ${name}` }), isError: true };
   ctx.emit({ t: "tool_call", id, name: tool.name, kind: tool.kind, label: tool.label, input: rawInput, at: new Date().toISOString() });
+  // Replay only: a pause so the UI can show the source being queried. Not counted in the tool's ms.
+  if (dwellMs) await new Promise((r) => setTimeout(r, dwellMs));
   const started = Date.now();
   const parsed = tool.schema.safeParse(rawInput);
   if (!parsed.success) {

@@ -61,7 +61,8 @@ export type RunRow = {
 };
 
 export function latestRun(disputeId: string): (Omit<RunRow, "brief" | "events"> & { brief: CaseBrief | null; events: unknown[] }) | undefined {
-  const row = db().prepare("SELECT * FROM runs WHERE dispute_id = ? ORDER BY started_at DESC LIMIT 1").get(disputeId) as RunRow | undefined;
+  // A failed re-run must not hide the last good brief, so errored runs only show when nothing else exists.
+  const row = db().prepare("SELECT * FROM runs WHERE dispute_id = ? ORDER BY (status = 'error') ASC, started_at DESC LIMIT 1").get(disputeId) as RunRow | undefined;
   if (!row) return undefined;
   return { ...row, brief: row.brief ? (JSON.parse(row.brief) as CaseBrief) : null, events: JSON.parse(row.events) as unknown[] };
 }

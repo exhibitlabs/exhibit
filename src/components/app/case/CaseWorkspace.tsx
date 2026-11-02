@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ArrowLeft, ChevronDown, Play, RotateCw, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronDown, Play, RotateCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,25 +13,18 @@ import type { ActionResult } from "@/lib/actions";
 import type { CaseFile } from "@/lib/disputes";
 import { dateTime, dueLabel, usd } from "@/lib/format";
 import { REASON_LABEL, STAGE_LABEL, STATUS_LABEL, type Dispute } from "@/lib/paypal/types";
+import { ApprovalBanner } from "../AgentApprovals";
 import { Button } from "../../ui/Button";
 import { Chip, outcomeMeta } from "../../ui/Chip";
 import { AgentTrace } from "./AgentTrace";
 import { BriefCard } from "./BriefCard";
 import { CaseFacts } from "./CaseFacts";
+import { EvidenceGraph } from "./EvidenceGraph";
 import { ProtectionCard, ResponsePanel } from "./ResponsePanel";
 
 type ApiLog = { id: number; at: string; message: string; meta: { method: string; path: string; status: number; ms: number; debugId?: string } };
 type ActionRow = { id: string; kind: string; actor: string; status: string; created_at: string; response: unknown };
 type RunState = { id: string; status: string; provider: string; model: string | null; brief: CaseBrief | null; events: RunEvent[] } | null;
-
-const CHECKS = [
-  "Pull the live dispute from the PayPal Disputes API",
-  "Match it to the store order and the product listing",
-  "Read carrier tracking, signatures and delivery photos",
-  "Check the buyer's history, messages and checkout signals",
-  "Test the case against PayPal's Seller Protection requirements",
-  "Write the response and assemble the exhibits",
-];
 
 function readEvents(run: RunState) {
   return (run?.events ?? []) as RunEvent[];
@@ -144,7 +137,7 @@ export function CaseWorkspace({ initial, protection, mode, provider }: { initial
   return (
     <div className="pb-16">
       <div className="border-b border-line px-8 pb-5 pt-6">
-        <Link href="/app" className="mb-4 inline-flex items-center gap-1.5 text-[12.5px] text-muted hover:text-ink">
+        <Link href="/app/disputes" className="mb-4 inline-flex items-center gap-1.5 text-[12.5px] text-muted hover:text-ink">
           <ArrowLeft className="size-3.5" /> Disputes
         </Link>
         <div className="flex items-end justify-between gap-6">
@@ -173,7 +166,7 @@ export function CaseWorkspace({ initial, protection, mode, provider }: { initial
             {hours !== null ? (
               <div className="text-right">
                 <div className="text-[11.5px] text-muted">Response due</div>
-                <div className={clsx("num text-[22px] leading-tight", hours < 48 ? "text-red" : "text-ink")}>{dueLabel(hours)}</div>
+                <div suppressHydrationWarning className={clsx("num text-[22px] leading-tight", hours < 48 ? "text-red" : "text-ink")}>{dueLabel(hours)}</div>
               </div>
             ) : null}
             <Button variant={brief ? "secondary" : "primary"} size="lg" disabled={running} onClick={start}>
@@ -184,6 +177,33 @@ export function CaseWorkspace({ initial, protection, mode, provider }: { initial
         </div>
       </div>
 
+      <ApprovalBanner
+        disputeId={dispute.dispute_id}
+        onDecided={(r) => {
+          if (r) setLastAction(r);
+          void refresh();
+        }}
+      />
+
+      <div className="space-y-2 px-8 pt-6">
+        <EvidenceGraph
+          dispute={dispute}
+          events={events}
+          brief={brief}
+          running={running}
+          action={
+            !brief && !running ? (
+              <Button variant="primary" size="sm" onClick={start}>
+                <Play className="size-3.5" /> Run Exhibit
+              </Button>
+            ) : null
+          }
+        />
+        {!brief && !running && !events.length ? (
+          <p className="-mt-1 px-1 text-[11.5px] text-faint">{provider === "replay" ? "No model key configured: replays a recorded run; every tool call still executes live." : `Live agent · ${provider === "anthropic" ? "Claude API" : "Claude (local login)"}`}</p>
+        ) : null}
+      </div>
+
       <div className="grid grid-cols-[288px_minmax(0,1fr)_372px] gap-5 px-8 pt-6 min-[1600px]:grid-cols-[330px_minmax(0,1fr)_420px]">
         <div className="min-w-0">
           <CaseFacts cf={cf} />
@@ -192,28 +212,6 @@ export function CaseWorkspace({ initial, protection, mode, provider }: { initial
         <div className="min-w-0 space-y-4">
           {error ? <div className="rounded-lg bg-red-soft px-4 py-3 text-[13px] text-red">{error}</div> : null}
           {brief ? <BriefCard brief={brief} amount={amount} expected={expectedRecovery(brief, amount)} ms={doneEvent?.ms} /> : null}
-
-          {!brief && !running && !events.length ? (
-            <div className="card flex flex-col items-center px-8 py-12 text-center">
-              <span className="mb-4 flex size-11 items-center justify-center rounded-xl bg-ink text-white">
-                <Sparkles className="size-5" />
-              </span>
-              <h2 className="display text-[22px]">Let Exhibit build the case</h2>
-              <p className="mt-2 max-w-md text-[13.5px] text-muted">It investigates like a payments ops lead, then hands you a decision, a response and an evidence packet to approve.</p>
-              <ul className="mt-6 grid gap-2 text-left text-[13px] text-ink-2">
-                {CHECKS.map((c, i) => (
-                  <li key={c} className="flex items-center gap-3">
-                    <span className="num flex size-5 items-center justify-center rounded-full border border-line text-[10.5px] text-muted">{i + 1}</span>
-                    {c}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="primary" size="lg" className="mt-7" onClick={start}>
-                <Play className="size-4" /> Run Exhibit
-              </Button>
-              <p className="mt-3 text-[11.5px] text-faint">{provider === "replay" ? "No model key configured: replays a recorded run; every tool call still executes live." : `Live agent · ${provider === "anthropic" ? "Claude API" : "Claude (local login)"}`}</p>
-            </div>
-          ) : null}
 
           {events.length || running ? (
             <section className="card">

@@ -56,18 +56,29 @@ export async function runWithReplay(ctx: ToolContext) {
   const to = { dispute_id: ctx.disputeId, order_id: meta.order_id };
   const r = remap(recording, recording.ids, to) as Replay;
 
+  // Calls the model made back to back (no text between them) ran in parallel, so replay them that way.
+  let batch: Extract<Replay["events"][number], { t: "tool_call" }>[] = [];
+  const flush = async () => {
+    if (!batch.length) return;
+    const calls = batch;
+    batch = [];
+    // Staggered so the evidence graph shows each source being queried, the way a live run reads.
+    await Promise.all(calls.map((c, i) => sleep(i * 260).then(() => executeTool(c.name, c.input, ctx, c.id, 800 + i * 420))));
+    await sleep(180);
+  };
   for (const e of r.events) {
     if (e.t === "thinking" || e.t === "text") {
+      await flush();
       // Re-stream recorded text in small chunks so it reads like live output.
       for (let i = 0; i < e.text.length; i += 24) {
         ctx.emit({ t: e.t, text: e.text.slice(i, i + 24) });
         await sleep(12);
       }
     } else if (e.t === "tool_call" && e.name !== "file_case_brief") {
-      await executeTool(e.name, e.input, ctx, e.id);
-      await sleep(180);
+      batch.push(e);
     }
   }
+  await flush();
   if (!ctx.dispute) throw new Error("Recorded run never fetched the dispute.");
   const problems = validateBrief(r.brief, caseFile(ctx.dispute));
   if (problems.length) throw new Error(`Recorded brief no longer fits this case: ${problems[0]}`);
