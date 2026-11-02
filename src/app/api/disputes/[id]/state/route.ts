@@ -1,3 +1,4 @@
+import { disputeTimeline } from "@/lib/activity";
 import { isRunning } from "@/lib/agent/run";
 import { actionsFor, cachedDispute, latestRun } from "@/lib/disputes";
 import { listActivity } from "@/lib/db";
@@ -12,5 +13,6 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     running: isRunning(id),
     actions: actionsFor(id),
     api: listActivity({ disputeId: id, kind: "api", limit: 60 }),
+    history: disputeTimeline(id),
   });
 }

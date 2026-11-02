@@ -1,15 +1,16 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ArrowRight, Check, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PreventionAction, PreventionFixResult, PreventionOrder, PreventionReport, PreventionSignalKind } from "@/lib/prevention";
 import { PreventionDrawer } from "./PreventionDrawer";
 import { PreventionGrid } from "./PreventionGrid";
 import { BAND, bandOf, money, ScoreRing, SIGNAL_ICON, SignalChip, useTicker } from "./PreventionParts";
 import { PreventionRadar } from "./PreventionRadar";
+import { toast } from "../ui/Toast";
 
-type Toast = { id: number; title: string; sub: string; saved?: number };
+type FixOutcome = { ok: boolean; prevented: boolean; saved: number; paypal: boolean; error?: string };
 
 function Ticker({ value, format }: { value: number; format: (n: number) => string }) {
   const v = useTicker(value);
@@ -128,7 +129,6 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
   const [working, setWorking] = useState<Set<string>>(new Set());
   const [success, setSuccess] = useState<{ orderId: string; saved: number } | null>(null);
-  const [toast, setToast] = useState<Toast | null>(null);
   const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
   const [pushing, setPushing] = useState(false);
   const selectedRef = useRef<string | null>(null);
@@ -142,28 +142,23 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
     selectedRef.current = selectedId;
   }, [selectedId]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast((cur) => (cur?.id === toast.id ? null : cur)), 3400);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  const fix = useCallback(
-    async (orderId: string, action: PreventionAction, message?: { subject?: string; body: string }): Promise<boolean> => {
+  const fixOne = useCallback(
+    async (orderId: string, action: PreventionAction, message?: { subject?: string; body: string }, quiet = false): Promise<FixOutcome> => {
       setWorking((s) => new Set(s).add(orderId));
       try {
         const res = (await fetch("/api/prevention", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ orderId, action, message }) }).then((r) => r.json())) as { result: PreventionFixResult; report: PreventionReport };
         if (!res.result?.ok) {
-          setToast({ id: Date.now(), title: "Fix failed", sub: res.result && "error" in res.result ? res.result.error : "Unexpected response" });
+          const error = res.result && "error" in res.result ? res.result.error : "Unexpected response";
+          if (!quiet) toast({ title: "Fix failed", sub: error, tone: "error" });
           if (res.report) apply(res.report);
-          return false;
+          return { ok: false, prevented: false, saved: 0, paypal: false, error };
         }
         const r = res.result;
         const before = latest.current.orders.find((o) => o.orderId === orderId);
         if (r.prevented) {
           if (selectedRef.current === orderId) setSuccess({ orderId, saved: r.saved });
           setLeaving((s) => new Set(s).add(orderId));
-          setToast({ id: Date.now(), title: "Dispute prevented", sub: `${before?.buyer ?? orderId} · ${orderId}`, saved: r.saved });
+          if (!quiet) toast({ title: "Dispute prevented", value: `${money(r.saved)} saved`, sub: `${before?.buyer ?? orderId} · ${orderId}`, tone: "success" });
           await new Promise((ok) => setTimeout(ok, 700));
           apply(res.report);
           setLeaving((s) => {
@@ -182,9 +177,14 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
           apply(res.report);
           if (action === "dismiss") setSelectedId(null);
           const after = res.report.orders.find((o) => o.orderId === orderId);
-          setToast({ id: Date.now(), title: action === "dismiss" ? "Taken off the radar" : (r.record.paypal ? "Sent to PayPal" : "Done"), sub: action === "dismiss" ? `${before?.buyer} · ${orderId}` : `Risk ${before?.score ?? "–"} → ${after?.score ?? 0} · ${after?.signals.length ?? 0} signal${after?.signals.length === 1 ? "" : "s"} left` });
+          if (!quiet)
+            toast({
+              title: action === "dismiss" ? "Taken off the radar" : r.record.paypal ? "Sent to PayPal" : "Done",
+              sub: action === "dismiss" ? `${before?.buyer} · ${orderId}` : `Risk ${before?.score ?? "–"} → ${after?.score ?? 0} · ${after?.signals.length ?? 0} signal${after?.signals.length === 1 ? "" : "s"} left`,
+            });
         }
-        return true;
+        window.dispatchEvent(new Event("exhibit:nav"));
+        return { ok: true, prevented: r.prevented, saved: r.saved, paypal: !!r.record.paypal };
       } finally {
         setWorking((s) => {
           const n = new Set(s);
@@ -196,21 +196,40 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
     [apply],
   );
 
+  const fix = useCallback(async (orderId: string, action: PreventionAction, message?: { subject?: string; body: string }) => (await fixOne(orderId, action, message)).ok, [fixOne]);
+
+  /** Runs every order's fixes in turn, then reports once: prevented, saved, PayPal calls, failures. */
   const fixAll = async () => {
     const queue = latest.current.atRisk.map((o) => o.orderId);
     setSelectedId(null);
     setBulk({ done: 0, total: queue.length });
+    const tally = { prevented: 0, saved: 0, paypal: 0, failed: 0, fixes: 0 };
     for (const [i, id] of queue.entries()) {
       for (let step = 0; step < 3; step++) {
         const o = latest.current.orders.find((x) => x.orderId === id);
         const next = o?.status === "at_risk" ? o.fixes.find((f) => f.action !== "dismiss" && f.action !== "require_signature") : undefined;
         if (!next) break;
-        const ok = await fix(id, next.action);
-        if (!ok) break;
+        const out = await fixOne(id, next.action, undefined, true);
+        if (!out.ok) {
+          tally.failed++;
+          break;
+        }
+        tally.fixes++;
+        if (out.paypal) tally.paypal++;
+        if (out.prevented) {
+          tally.prevented++;
+          tally.saved += out.saved;
+        }
       }
       setBulk({ done: i + 1, total: queue.length });
     }
     setTimeout(() => setBulk(null), 600);
+    toast({
+      title: tally.prevented ? `${tally.prevented} dispute${tally.prevented === 1 ? "" : "s"} prevented` : "Fixes sent",
+      value: tally.saved ? `${money(tally.saved)} saved` : undefined,
+      sub: `${tally.fixes} fix${tally.fixes === 1 ? "" : "es"} across ${queue.length} orders · ${tally.paypal} PayPal call${tally.paypal === 1 ? "" : "s"}${tally.failed ? ` · ${tally.failed} failed` : ""}`,
+      tone: tally.failed && !tally.prevented ? "error" : "success",
+    });
   };
 
   const pushAll = async () => {
@@ -219,7 +238,7 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
       const res = await fetch("/api/protection", { method: "POST", body: "{}" }).then((r) => r.json());
       const ok = (res.results as { ok: boolean }[]).filter((r) => r.ok).length;
       apply(await fetch("/api/prevention").then((r) => r.json()));
-      setToast({ id: Date.now(), title: `${ok} tracking number${ok === 1 ? "" : "s"} sent to PayPal`, sub: "POST /v2/checkout/orders/{id}/track" });
+      toast({ title: `${ok} tracking number${ok === 1 ? "" : "s"} sent to PayPal`, sub: "POST /v2/checkout/orders/{id}/track", tone: ok ? "success" : "neutral" });
     } finally {
       setPushing(false);
     }
@@ -231,9 +250,9 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
   const preventable = Math.max(t.atRisk ? 1 : 0, Math.round(t.expectedDisputes));
 
   return (
-    <div className="space-y-4 px-8 py-6">
+    <div className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
       {/* Hero strip */}
-      <div className="card grid grid-cols-[1.05fr_1.5fr_1fr] divide-x divide-line">
+      <div className="card grid divide-y divide-line lg:grid-cols-[1.05fr_1.5fr_1fr] lg:divide-x lg:divide-y-0">
         <div className="px-6 py-5">
           <div className="text-[12px] text-muted">At risk right now</div>
           <div className="display num mt-1.5 text-[40px] leading-none tracking-[-0.04em]">
@@ -298,7 +317,7 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
       </div>
 
       {/* Radar + ranked list */}
-      <div className="grid grid-cols-[minmax(0,min(500px,44%))_minmax(0,1fr)] gap-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,min(500px,44%))_minmax(0,1fr)]">
         <div className="card px-5 pb-4 pt-4">
           <div className="flex items-baseline justify-between">
             <h2 className="text-[14px] font-medium">Dispute radar</h2>
@@ -361,26 +380,6 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
           }}
           onFix={(id, a, m) => fix(id, a, m)}
         />
-      ) : null}
-
-      {toast ? (
-        <div key={toast.id} className="pv-toast fixed bottom-6 left-[calc(50%+116px)] z-[60] flex -translate-x-1/2 items-center gap-3 rounded-xl bg-ink py-2.5 pl-2.5 pr-4 text-white shadow-[0_12px_32px_rgb(0_0_0/0.18)]">
-          <span className={clsx("flex size-7 items-center justify-center rounded-full", toast.saved !== undefined ? "bg-[#16a34a]" : toast.title === "Fix failed" ? "bg-[#dc2626]" : "bg-white/15")}>
-            {toast.title === "Fix failed" ? <X className="size-3.5" /> : toast.saved !== undefined ? <Check className="size-4" strokeWidth={2.8} /> : <ArrowRight className="size-3.5" />}
-          </span>
-          <div className="leading-tight">
-            <div className="text-[13.5px] font-medium">
-              {toast.title}
-              {toast.saved !== undefined ? (
-                <>
-                  {" "}
-                  · <span className="num text-[#86efac]">{money(toast.saved)} saved</span>
-                </>
-              ) : null}
-            </div>
-            <div className="mt-0.5 text-[11.5px] text-white/60">{toast.sub}</div>
-          </div>
-        </div>
       ) : null}
     </div>
   );

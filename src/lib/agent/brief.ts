@@ -11,7 +11,7 @@ export const OFFER_TYPES = ["REFUND", "REFUND_WITH_RETURN", "REFUND_WITH_REPLACE
 
 export const CaseBriefSchema = z.object({
   decision: z.enum(DECISIONS).describe("FIGHT = file evidence; OFFER = propose a resolution to the buyer; REFUND = accept or refund now; MESSAGE_BUYER = resolve in conversation first."),
-  headline: z.string().max(120).describe("One line a busy merchant reads first, e.g. 'Signed for at the door — fight with proof of delivery'."),
+  headline: z.string().max(120).describe("One line a busy merchant reads first, e.g. 'Signed for at the door: fight with proof of delivery'."),
   summary: z.string().max(700).describe("Two or three sentences: what happened and why this is the right call."),
   win_likelihood: z.number().int().min(0).max(100).describe("Your estimate (0-100) that PayPal rules for the merchant if they take your recommended action. For REFUND use the likelihood had they fought."),
   confidence: z.enum(["HIGH", "MEDIUM", "LOW"]),

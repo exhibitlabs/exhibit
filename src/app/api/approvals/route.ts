@@ -1,6 +1,6 @@
 import { listApprovals, requestDisputeAction, requestPreventionFix, reviewPath, type ApprovalStatus } from "@/lib/approvals";
 import type { PreventionAction } from "@/lib/prevention";
-import { ensureSeeded } from "@/lib/seed";
+import { demoReady } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +12,14 @@ export const dynamic = "force-dynamic";
  * Creating a request never executes anything; only the merchant's decision does (see [id]/route.ts).
  */
 export async function GET(req: Request) {
-  ensureSeeded();
+  await demoReady();
   const q = new URL(req.url).searchParams;
   const approvals = listApprovals({ status: (q.get("status") as ApprovalStatus | null) ?? undefined, target: q.get("target") ?? undefined });
   return Response.json({ approvals: approvals.map((a) => ({ ...a, reviewPath: reviewPath(a) })) });
 }
 
 export async function POST(req: Request) {
-  ensureSeeded();
+  await demoReady();
   const body = (await req.json().catch(() => ({}))) as { kind?: string; disputeId?: string; orderId?: string; action?: PreventionAction; note?: string; client?: string };
   const client = (body.client ?? "").trim().slice(0, 60) || "An AI agent";
   const r =

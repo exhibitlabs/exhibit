@@ -53,3 +53,8 @@ export function dataDir() {
 export function appUrl() {
   return env.EXHIBIT_APP_URL ?? "http://localhost:3000";
 }
+
+/** True when EXHIBIT_APP_URL names the public URL; otherwise the UI shows the address it was opened on. */
+export function appUrlConfigured() {
+  return !!env.EXHIBIT_APP_URL;
+}

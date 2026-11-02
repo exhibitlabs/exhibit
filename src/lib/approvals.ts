@@ -4,6 +4,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { executeBriefAction } from "./actions";
 import type { ActionType, CaseBrief } from "./agent/brief";
 import { APPROVALS_SCHEMA, db, logActivity, now } from "./db";
+import { markDemoProgress } from "./demo-progress";
 import { cachedDispute, latestRun } from "./disputes";
 import { preventionOrder, runPreventionFix, type PreventionAction } from "./prevention";
 
@@ -258,6 +259,7 @@ export async function approveRequest(id: string): Promise<DecisionResult> {
     logActivity("approval", `Merchant approved ${a.client}'s request: ${a.title}${a.kind === "prevention_fix" ? "" : ` on ${a.target}`}`, subject, { approval: id });
     const result = a.kind === "dispute_action" ? await executeBriefAction(a.target, {}, actor) : await runPreventionFix(a.target, a.action as PreventionAction, { actor });
     decide(id, result.ok ? "approved" : "failed", "merchant", result);
+    if (result.ok) markDemoProgress("approve");
     if (!result.ok) logActivity("action_error", `Approved request failed: ${a.title}: ${result.error}`, subject, { approval: id });
     return result.ok ? { ok: true, approval: getApproval(id)! } : { ok: false, status: 422, error: result.error, approval: getApproval(id) };
   } finally {

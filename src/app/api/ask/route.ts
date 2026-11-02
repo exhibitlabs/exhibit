@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { askIndex, runAsk } from "@/lib/ask/run";
+import { demoReady, touchDemo } from "@/lib/demo";
+import { markDemoProgress } from "@/lib/demo-progress";
 import type { AskEvent } from "@/lib/ask/schema";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +9,7 @@ export const maxDuration = 120;
 
 /** Palette index: cases and at-risk orders for quick navigation, plus the provider label. */
 export async function GET() {
+  await demoReady();
   return Response.json(await askIndex());
 }
 
@@ -20,6 +23,9 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Send { question }." }, { status: 400 });
   const { question, history = [] } = parsed.data;
+  await demoReady();
+  touchDemo();
+  markDemoProgress("ask");
   const encoder = new TextEncoder();
   let closed = false;
   const stream = new ReadableStream({

@@ -51,21 +51,21 @@ export const POLICIES: Policy[] = [
 ];
 
 export const PRODUCTS: Product[] = [
-  { sku: "KA-WKD-COG", name: "The Weekender — Cognac", price: 284, material: "Full-grain vegetable-tanned leather, solid brass hardware", dimensions: "45 × 28 × 24 cm", color: "Cognac",
+  { sku: "KA-WKD-COG", name: "The Weekender in Cognac", price: 284, material: "Full-grain vegetable-tanned leather, solid brass hardware", dimensions: "45 × 28 × 24 cm", color: "Cognac",
     description: "A two-night carry-all with a structured base, interior zip pocket and detachable shoulder strap.", listing_notes: ["Ships with dust bag", "Signature required on delivery"], photos: [{ caption: "Front, daylight", tone: "#9a5b2e" }, { caption: "Interior", tone: "#7a4523" }] },
-  { sku: "KA-TOT-TAN", name: "Market Tote — Tan", price: 142, material: "Full-grain vegetable-tanned leather", dimensions: "38 × 34 × 12 cm", color: "Tan",
+  { sku: "KA-TOT-TAN", name: "Market Tote in Tan", price: 142, material: "Full-grain vegetable-tanned leather", dimensions: "38 × 34 × 12 cm", color: "Tan",
     description: "An unlined everyday tote with hand-stitched handles.", listing_notes: ["Natural leather: tone varies from hide to hide and deepens with use", "Photographed in daylight"], photos: [{ caption: "Front, daylight", tone: "#c08a52" }, { caption: "Hide variation swatches", tone: "#a8743f" }] },
-  { sku: "KA-BRF-ESP", name: "Atelier Briefcase — Espresso", price: 420, material: "Full-grain leather, waxed linen thread", dimensions: "40 × 29 × 9 cm", color: "Espresso",
+  { sku: "KA-BRF-ESP", name: "Atelier Briefcase in Espresso", price: 420, material: "Full-grain leather, waxed linen thread", dimensions: "40 × 29 × 9 cm", color: "Espresso",
     description: "A slim briefcase with a padded 15-inch laptop sleeve and combination clasp.", listing_notes: ["Signature required on delivery"], photos: [{ caption: "Front", tone: "#3b2418" }] },
-  { sku: "KA-WAL-BLK", name: "Bifold Wallet — Black", price: 68, material: "Full-grain leather", dimensions: "11 × 9 cm", color: "Black",
+  { sku: "KA-WAL-BLK", name: "Bifold Wallet in Black", price: 68, material: "Full-grain leather", dimensions: "11 × 9 cm", color: "Black",
     description: "Six card slots and a full-length bill compartment.", listing_notes: [], photos: [{ caption: "Open", tone: "#1c1b1a" }] },
-  { sku: "KA-BLT-COG", name: "Classic Belt — Cognac", price: 96, material: "Bridle leather, solid brass buckle", dimensions: "35 mm width", color: "Cognac",
+  { sku: "KA-BLT-COG", name: "Classic Belt in Cognac", price: 96, material: "Bridle leather, solid brass buckle", dimensions: "35 mm width", color: "Cognac",
     description: "A single-piece bridle leather belt, sized to order.", listing_notes: ["Made to order: ships in 2 business days"], photos: [{ caption: "Coiled", tone: "#9a5b2e" }] },
-  { sku: "KA-CLU-SND", name: "Weekend Clutch — Sand", price: 180, material: "Suede-lined full-grain leather", dimensions: "30 × 20 cm", color: "Sand",
+  { sku: "KA-CLU-SND", name: "Weekend Clutch in Sand", price: 180, material: "Suede-lined full-grain leather", dimensions: "30 × 20 cm", color: "Sand",
     description: "A soft clutch with a magnetic flap.", listing_notes: [], photos: [{ caption: "Front", tone: "#d9c3a0" }] },
-  { sku: "KA-MSG-OLV", name: "Messenger Satchel — Olive", price: 212, material: "Full-grain leather, cotton canvas lining", dimensions: "36 × 27 × 10 cm", color: "Olive",
+  { sku: "KA-MSG-OLV", name: "Messenger Satchel in Olive", price: 212, material: "Full-grain leather, cotton canvas lining", dimensions: "36 × 27 × 10 cm", color: "Olive",
     description: "A cross-body satchel with an adjustable strap and two front pockets.", listing_notes: [], photos: [{ caption: "Front", tone: "#5b5a32" }] },
-  { sku: "KA-DUF-CHS", name: "Travel Duffle — Chestnut", price: 355, material: "Full-grain leather, solid brass rings", dimensions: "52 × 28 × 28 cm", color: "Chestnut",
+  { sku: "KA-DUF-CHS", name: "Travel Duffle in Chestnut", price: 355, material: "Full-grain leather, solid brass rings", dimensions: "52 × 28 × 28 cm", color: "Chestnut",
     description: "A soft duffle with a shoe compartment and detachable strap.", listing_notes: ["Quality-checked and photographed before dispatch"], photos: [{ caption: "Front", tone: "#6b3a1f" }] },
 ];
 
@@ -284,7 +284,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
   return [
     build(c, {
       key: "inr-delivered-signed",
-      title: "Says it never arrived — UPS shows signed delivery",
+      title: "Says it never arrived, but UPS shows a signed delivery",
       disputeId: "PP-D-50211", txn: "4KD68427R6189540B", orderNo: "10482",
       reason: "MERCHANDISE_OR_SERVICE_NOT_RECEIVED", stage: "CHARGEBACK", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 2, dueInDays: 8, sku: "KA-WKD-COG", shipping: hale,
@@ -300,7 +300,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "snad-color",
-      title: "“Darker than the photos” — natural leather variation",
+      title: "“Darker than the photos”: natural leather variation",
       disputeId: "PP-D-50214", txn: "8MN20476KT3315922", orderNo: "10497",
       reason: "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED", stage: "INQUIRY", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 1, dueInDays: 9, sku: "KA-TOT-TAN", shipping: grant, subReasons: ["DIFFERENT"],
@@ -319,7 +319,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "unauth-friendly-fraud",
-      title: "Card “unauthorized” — but AVS, CVV and 3-D Secure all passed",
+      title: "Card “unauthorized”, yet AVS, CVV and 3-D Secure all passed",
       disputeId: "PP-D-50219", txn: "2HT58193LQ0047731", orderNo: "10503",
       reason: "UNAUTHORISED", stage: "CHARGEBACK", status: "WAITING_FOR_SELLER_RESPONSE", channel: "EXTERNAL", externalReasonCode: "10.4",
       createdDaysAgo: 3, dueInDays: 1, sku: "KA-BRF-ESP", shipping: reyes, billing: reyes, funding: "CARD",
@@ -333,7 +333,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "inr-returned-to-sender",
-      title: "Never arrived — and USPS really did return it to us",
+      title: "Never arrived, and USPS really did return it to us",
       disputeId: "PP-D-50223", txn: "6WX14709PA8802164", orderNo: "10511",
       reason: "MERCHANDISE_OR_SERVICE_NOT_RECEIVED", stage: "CHARGEBACK", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 1, dueInDays: 9, sku: "KA-WAL-BLK", shipping: kim,
@@ -349,7 +349,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "duplicate-two-orders",
-      title: "“Charged twice” — two orders, two addresses, both delivered",
+      title: "“Charged twice”: two orders, two addresses, both delivered",
       disputeId: "PP-D-50227", txn: "3FL90265HC7741208", orderNo: "10519",
       reason: "DUPLICATE_TRANSACTION", stage: "CHARGEBACK", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 4, dueInDays: 2, sku: "KA-BLT-COG", shipping: brooksGift,
@@ -364,7 +364,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "credit-not-processed",
-      title: "Return arrived 4 days ago — refund still not issued",
+      title: "Return arrived 4 days ago, refund still not issued",
       disputeId: "PP-D-50231", txn: "7RB33058ND1156690", orderNo: "10466",
       reason: "CREDIT_NOT_PROCESSED", stage: "CHARGEBACK", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 1, dueInDays: 9, sku: "KA-CLU-SND", shipping: patel,
@@ -386,7 +386,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "inquiry-packstation-de",
-      title: "German buyer: “zugestellt” but empty-handed — it's in her Packstation",
+      title: "German buyer says “zugestellt” but empty-handed: it's in her Packstation",
       disputeId: "PP-D-50236", txn: "5JC71842VW2290035", orderNo: "10524",
       reason: "MERCHANDISE_OR_SERVICE_NOT_RECEIVED", stage: "INQUIRY", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 0, dueInDays: 10, sku: "KA-MSG-OLV", shipping: vogel,
@@ -402,7 +402,7 @@ export function buildScenarios(base = new Date()): ScenarioRecords[] {
     }),
     build(c, {
       key: "snad-damaged-ring",
-      title: "Strap ring arrived broken — QC photo shows it was intact",
+      title: "Strap ring arrived broken, but the QC photo shows it intact",
       disputeId: "PP-D-50240", txn: "9QA46620BX5508417", orderNo: "10529",
       reason: "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED", stage: "INQUIRY", status: "WAITING_FOR_SELLER_RESPONSE", channel: "INTERNAL",
       createdDaysAgo: 2, dueInDays: 8, sku: "KA-DUF-CHS", shipping: ortiz, subReasons: ["DAMAGED"],

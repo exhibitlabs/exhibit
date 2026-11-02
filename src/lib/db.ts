@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS approvals (
 CREATE INDEX IF NOT EXISTS approvals_by_target ON approvals (target, status);
 `;
 
+/** Sanitized request and response bodies of PayPal API calls, kept apart so the activity list stays light. */
+export const API_CALLS_SCHEMA = `
+CREATE TABLE IF NOT EXISTS api_calls (activity_id INTEGER PRIMARY KEY, request TEXT, response TEXT);
+`;
+
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS docs (
@@ -35,20 +40,29 @@ CREATE TABLE IF NOT EXISTS activity (
   dispute_id TEXT, message TEXT NOT NULL, meta TEXT
 );
 CREATE INDEX IF NOT EXISTS activity_by_dispute ON activity (dispute_id, id);
-${APPROVALS_SCHEMA}`;
+${APPROVALS_SCHEMA}${API_CALLS_SCHEMA}`;
 
 const globalForDb = globalThis as unknown as { __exhibitDb?: Map<string, DatabaseSync> };
+// Tables added after a long-running dev server opened its connection are created on first use.
+const migrated = new WeakSet<DatabaseSync>();
 
 /** One SQLite file per PayPal mode so demo data never mixes with sandbox data. */
 export function db(): DatabaseSync {
   const mode = paypalMode();
   globalForDb.__exhibitDb ??= new Map();
   const existing = globalForDb.__exhibitDb.get(mode);
-  if (existing) return existing;
+  if (existing) {
+    if (!migrated.has(existing)) {
+      existing.exec(API_CALLS_SCHEMA);
+      migrated.add(existing);
+    }
+    return existing;
+  }
   fs.mkdirSync(dataDir(), { recursive: true });
   const conn = new DatabaseSync(path.join(dataDir(), `exhibit-${mode}.db`));
   conn.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 3000;");
   conn.exec(SCHEMA);
+  migrated.add(conn);
   globalForDb.__exhibitDb.set(mode, conn);
   return conn;
 }
@@ -86,17 +100,43 @@ export function docDeleteKind(kind: string) {
   db().prepare("DELETE FROM docs WHERE kind = ?").run(kind);
 }
 
-export function logActivity(kind: string, message: string, disputeId?: string | null, meta?: unknown) {
-  db()
+/** Appends to the audit log and returns the new row's id. */
+export function logActivity(kind: string, message: string, disputeId?: string | null, meta?: unknown): number {
+  const r = db()
     .prepare("INSERT INTO activity (at, kind, dispute_id, message, meta) VALUES (?, ?, ?, ?, ?)")
     .run(now(), kind, disputeId ?? null, message, meta === undefined ? null : JSON.stringify(meta));
+  return Number(r.lastInsertRowid);
+}
+
+/** One PayPal API call: the audit-log line plus its sanitized request and response bodies. */
+export function logApiCall(message: string, meta: unknown, disputeId: string | null | undefined, bodies: { request: unknown; response: unknown }) {
+  const id = logActivity("api", message, disputeId, meta);
+  db()
+    .prepare("INSERT OR REPLACE INTO api_calls (activity_id, request, response) VALUES (?, ?, ?)")
+    .run(id, bodies.request === undefined ? null : JSON.stringify(bodies.request), bodies.response === undefined ? null : JSON.stringify(bodies.response));
+  return id;
+}
+
+export type ApiCallDetail = ActivityRow & { request: unknown; response: unknown };
+
+/** A logged PayPal API call with its bodies, for the request inspector. */
+export function apiCallDetail(id: number): ApiCallDetail | undefined {
+  const row = db().prepare("SELECT a.*, c.request AS req, c.response AS res FROM activity a LEFT JOIN api_calls c ON c.activity_id = a.id WHERE a.id = ? AND a.kind = 'api'").get(id) as
+    | { id: number; at: string; kind: string; dispute_id: string | null; message: string; meta: string | null; req: string | null; res: string | null }
+    | undefined;
+  if (!row) return undefined;
+  return { id: row.id, at: row.at, kind: row.kind, dispute_id: row.dispute_id, message: row.message, meta: row.meta ? JSON.parse(row.meta) : null, request: row.req ? JSON.parse(row.req) : null, response: row.res ? JSON.parse(row.res) : null };
 }
 
 export type ActivityRow = { id: number; at: string; kind: string; dispute_id: string | null; message: string; meta: unknown };
 
-export function listActivity(opts: { disputeId?: string; kind?: string; limit?: number } = {}): ActivityRow[] {
+export function listActivity(opts: { disputeId?: string; kind?: string; kinds?: string[]; limit?: number } = {}): ActivityRow[] {
   const where: string[] = [];
   const args: (string | number)[] = [];
+  if (opts.kinds?.length) {
+    where.push(`kind IN (${opts.kinds.map(() => "?").join(", ")})`);
+    args.push(...opts.kinds);
+  }
   if (opts.disputeId) {
     where.push("dispute_id = ?");
     args.push(opts.disputeId);
@@ -115,4 +155,5 @@ export function resetDatabase() {
   const conn = db();
   conn.exec("DELETE FROM kv; DELETE FROM docs; DELETE FROM runs; DELETE FROM actions; DELETE FROM activity;");
   conn.exec(`${APPROVALS_SCHEMA} DELETE FROM approvals;`);
+  conn.exec(`${API_CALLS_SCHEMA} DELETE FROM api_calls;`);
 }

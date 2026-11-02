@@ -1,7 +1,8 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { AI_MODEL, aiProvider } from "../config";
-import { db, logActivity, now } from "../db";
+import { db, kvGet, logActivity, now } from "../db";
+import { markDemoProgress } from "../demo-progress";
 import { cachedDispute } from "../disputes";
 import { evaluateAutopilot, type AutopilotVerdict } from "../autopilot";
 import { executeBriefAction, type ActionResult } from "../actions";
@@ -12,6 +13,9 @@ import { runWithReplay, saveReplay } from "./providers/replay";
 import type { AgentEvent, ToolContext } from "./tools";
 
 export type RunEvent = AgentEvent | { t: "autopilot"; verdict: AutopilotVerdict } | { t: "action"; result: ActionResult };
+
+/** What started a run. "seed" runs are prepared from recorded runs when the demo merchant is reset. */
+export type RunTrigger = "manual" | "webhook" | "batch" | "agent" | "seed";
 
 /** Merges streamed deltas so stored runs stay compact. */
 function append(events: RunEvent[], e: RunEvent) {
@@ -41,17 +45,25 @@ export function isRunning(disputeId: string) {
   return running.has(disputeId);
 }
 
+/** True while any investigation is in flight (the demo never resets under a running agent). */
+export function anyRunning() {
+  return running.size > 0;
+}
+
 /**
  * Runs the agent on one dispute. Events stream to `emit` as they happen and are persisted, so a
  * page reload mid-run still shows the trace.
  */
-export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = () => {}, opts: { trigger?: "manual" | "webhook" | "batch" | "agent" } = {}) {
+export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = () => {}, opts: { trigger?: RunTrigger; fast?: boolean } = {}) {
   const existing = running.get(disputeId);
   if (existing) {
     emit({ t: "error", message: "Exhibit is already working on this dispute." });
     return existing;
   }
-  const provider = aiProvider();
+  const trigger = opts.trigger ?? "manual";
+  const seeding = trigger === "seed";
+  // Seed runs always replay a recording: preparing the demo must never spend a live model call.
+  const provider = seeding ? "replay" : aiProvider();
   const runId = `run_${randomUUID().slice(0, 12)}`;
   const started = Date.now();
   const events: RunEvent[] = [];
@@ -75,23 +87,25 @@ export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = 
   };
 
   const work = (async () => {
-    push({ t: "start", run_id: runId, provider, model: provider === "replay" ? "recorded run" : AI_MODEL, at: now(), dispute_id: disputeId });
-    logActivity("agent", `Exhibit started on ${disputeId} (${opts.trigger ?? "manual"}, ${provider})`, disputeId);
+    push({ t: "start", run_id: runId, provider, model: provider === "replay" ? "recorded run" : AI_MODEL, at: now(), dispute_id: disputeId, trigger });
+    if (!seeding) logActivity("agent", `Exhibit started on ${disputeId} (${trigger}, ${provider})`, disputeId);
     const ctx: ToolContext = { disputeId, emit: push };
     try {
-      const { usage } = provider === "anthropic" ? await runWithAnthropic(ctx) : provider === "claude-code" ? await runOnClaudeCli(ctx, events, runId) : await runWithReplay(ctx);
+      const { usage } =
+        provider === "anthropic" ? await runWithAnthropic(ctx) : provider === "claude-code" ? await runOnClaudeCli(ctx, events, runId) : await runWithReplay(ctx, { fast: opts.fast });
       const brief = ctx.brief!;
       push({ t: "brief", brief });
       const ms = Date.now() - started;
       push({ t: "done", ms, usage });
       conn.prepare("UPDATE runs SET status = 'done', finished_at = ?, brief = ?, events = ? WHERE id = ?").run(now(), JSON.stringify(brief), JSON.stringify(events), runId);
-      logActivity("agent", `Brief filed for ${disputeId}: ${brief.decision} (${brief.win_likelihood}%) in ${(ms / 1000).toFixed(1)}s`, disputeId);
+      if (!seeding) logActivity("agent", `Brief filed for ${disputeId}: ${brief.decision} (${brief.win_likelihood}%) in ${(ms / 1000).toFixed(1)}s`, disputeId);
+      if (trigger === "manual" || trigger === "batch") markDemoProgress("run");
 
       if (process.env.EXHIBIT_RECORD_REPLAYS === "1" && provider !== "replay") {
         const meta = store.scenario(disputeId);
         if (meta) {
           const keep = events.filter((e): e is AgentEvent => ["thinking", "text", "tool_call"].includes(e.t));
-          saveReplay({ scenario: meta.key, model: AI_MODEL, recorded_at: now(), ids: { dispute_id: disputeId, order_id: meta.order_id }, events: keep, brief });
+          saveReplay({ scenario: meta.key, model: AI_MODEL, recorded_at: now(), seed_base: meta.base ?? kvGet<string | null>("seeded_at", null) ?? undefined, ids: { dispute_id: disputeId, order_id: meta.order_id }, events: keep, brief });
         }
       }
 
@@ -100,7 +114,8 @@ export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = 
         const verdict = evaluateAutopilot(brief, d);
         push({ t: "autopilot", verdict });
         // Runs started by an external AI agent (MCP) never execute: the merchant approves those in Exhibit.
-        if (verdict.verdict === "AUTO" && opts.trigger !== "agent") {
+        // Briefs prepared at a demo reset never execute either: the visitor decides.
+        if (verdict.verdict === "AUTO" && trigger !== "agent" && !seeding) {
           const result = await executeBriefAction(disputeId, {}, "autopilot");
           push({ t: "action", result });
         }

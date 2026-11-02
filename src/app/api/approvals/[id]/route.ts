@@ -1,4 +1,5 @@
 import { approveRequest, getApproval, rejectRequest } from "@/lib/approvals";
+import { touchDemo } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -19,8 +20,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   const origin = req.headers.get("origin");
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  const sameOrigin = req.headers.get("sec-fetch-site") === "same-origin" || (!!origin && !!host && new URL(origin).host === host);
+  // A missing, "null" or malformed Origin is never same-origin: refuse with 403 rather than throw.
+  const sameOrigin = req.headers.get("sec-fetch-site") === "same-origin" || (!!origin && !!host && URL.canParse(origin) && new URL(origin).host === host);
   if (!sameOrigin) return Response.json({ error: "Approvals are decided by the merchant in the Exhibit app." }, { status: 403 });
+  touchDemo();
   const body = (await req.json().catch(() => ({}))) as { decision?: string; reason?: string };
   const r = body.decision === "approve" ? await approveRequest(id) : body.decision === "reject" ? rejectRequest(id, body.reason) : { ok: false as const, status: 400, error: 'Send { decision: "approve" | "reject" }.' };
   if (!r.ok) return Response.json({ error: r.error, approval: "approval" in r ? r.approval : undefined }, { status: r.status });

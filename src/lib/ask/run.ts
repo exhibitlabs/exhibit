@@ -21,9 +21,9 @@ const MODEL_NAME: Record<string, string> = { "claude-opus-5-5": "Claude Opus 5.5
 
 export function providerLabel(p: AskProviderKind) {
   const name = MODEL_NAME[ASK_MODEL] ?? ASK_MODEL;
-  if (p === "anthropic") return `${name} · live`;
-  if (p === "claude-code") return `${name} · local login`;
-  return "Offline answers · add a Claude key for open questions";
+  if (p === "anthropic") return `${name} · Claude API`;
+  if (p === "claude-code") return `${name} · Claude CLI`;
+  return "Offline answers · sign in to the Claude CLI for open questions";
 }
 
 /** Resolves chip ids to real records so the palette shows what the data says, not what the model wrote. */

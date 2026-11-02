@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FeedItem, Overview, ReasonRow } from "@/lib/overview";
 import { relTime, usd } from "@/lib/format";
 import { Button } from "../../ui/Button";
+import { toast } from "../../ui/Toast";
 import { NeedsYouGrid } from "./NeedsYouGrid";
 import { CardHead, CountUp, EmptyNote, InfoTip, LegendDot, Sparkline } from "./parts";
 
@@ -198,7 +199,6 @@ function RateHealth({ rate }: { rate: Overview["rate"] }) {
 export function CommandCenter({ initial }: { initial: Overview }) {
   const [data, setData] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/overview", { cache: "no-store" });
@@ -210,17 +210,12 @@ export function CommandCenter({ initial }: { initial: Overview }) {
     return () => clearInterval(t);
   }, [load]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 4200);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  const run = async (key: string, fn: () => Promise<string | void>) => {
+  const run = async (key: string, fn: () => Promise<{ title: string; sub?: string } | void>) => {
     setBusy(key);
     try {
       const msg = await fn();
-      if (msg) setToast(msg);
+      if (msg) toast(msg);
+      window.dispatchEvent(new Event("exhibit:nav"));
       await load();
     } finally {
       setBusy(null);
@@ -238,7 +233,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
 
   return (
     <>
-      <header className="flex items-end justify-between gap-6 border-b border-line px-8 pb-5 pt-6">
+      <header className="flex flex-col gap-4 border-b border-line px-4 pb-5 pt-6 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-6 lg:px-8">
         <div className="min-w-0">
           <div className="mb-2 flex items-center gap-2 text-[12px] text-muted">
             <span>Command center</span>
@@ -288,8 +283,8 @@ export function CommandCenter({ initial }: { initial: Overview }) {
               disabled={!!busy}
               onClick={() =>
                 run("incoming", async () => {
-                  const r = await fetch("/api/demo", { method: "POST", body: JSON.stringify({ op: "incoming" }) }).then((x) => x.json());
-                  return `Webhook: CUSTOMER.DISPUTE.CREATED ${r.dispute_id ?? ""} · Exhibit is on it`;
+                  const r = await fetch("/api/demo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ op: "incoming" }) }).then((x) => x.json());
+                  return { title: "Webhook: CUSTOMER.DISPUTE.CREATED", sub: `${r.dispute_id ?? "New dispute"} · Exhibit is investigating it now` };
                 })
               }
             >
@@ -304,7 +299,8 @@ export function CommandCenter({ initial }: { initial: Overview }) {
               onClick={() =>
                 run("batch", async () => {
                   const r = await fetch("/api/batch", { method: "POST" }).then((x) => x.json());
-                  return `Exhibit is investigating ${r.queued?.length ?? unanalyzed} case(s)`;
+                  const n = r.queued?.length ?? unanalyzed;
+                  return { title: `Exhibit is investigating ${n} case${n === 1 ? "" : "s"}`, sub: "Briefs land in Needs you as each one finishes." };
                 })
               }
             >
@@ -318,8 +314,8 @@ export function CommandCenter({ initial }: { initial: Overview }) {
         </div>
       </header>
 
-      <div className="space-y-4 px-8 py-6">
-        <section className="grid grid-cols-5 gap-4">
+      <div className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-5">
           <Kpi
             i={0}
             label="Recovered · 90 days"
@@ -376,8 +372,8 @@ export function CommandCenter({ initial }: { initial: Overview }) {
           />
         </section>
 
-        <section className="grid grid-cols-12 gap-4">
-          <div className="card rise col-span-7 flex flex-col overflow-hidden" style={stagger(5)}>
+        <section className="grid gap-4 xl:grid-cols-12">
+          <div className="card rise flex flex-col overflow-hidden xl:col-span-7" style={stagger(5)}>
             <CardHead
               title="Needs you"
               sub={
@@ -411,7 +407,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
             ) : null}
           </div>
 
-          <div className="card rise col-span-5 flex flex-col" style={stagger(6)}>
+          <div className="card rise flex flex-col xl:col-span-5" style={stagger(6)}>
             <CardHead
               title="Recovered vs. given back"
               tipAlign="right"
@@ -427,8 +423,8 @@ export function CommandCenter({ initial }: { initial: Overview }) {
           </div>
         </section>
 
-        <section className="grid grid-cols-12 gap-4">
-          <div className="card rise col-span-4 flex flex-col" style={stagger(7)}>
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
+          <div className="card rise flex flex-col xl:col-span-4" style={stagger(7)}>
             <CardHead
               title="Outcomes by reason"
               sub="Fights it picks, it wins. Where you were at fault, it refunds."
@@ -437,7 +433,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
             {data.reasons.length ? <ReasonBars reasons={data.reasons} /> : <EmptyNote className="mx-5 mb-5 h-[200px]" title="No resolved cases yet" body="Win rates by dispute reason appear once PayPal resolves a case." />}
           </div>
 
-          <div className="card rise col-span-4 flex flex-col" style={stagger(8)}>
+          <div className="card rise flex flex-col xl:col-span-4" style={stagger(8)}>
             <CardHead
               title="Dispute-rate health"
               sub="Rolling 30 days vs. card-network monitoring lines"
@@ -450,7 +446,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
             <RateHealth rate={data.rate} />
           </div>
 
-          <div className="card rise col-span-4 flex flex-col" style={stagger(9)}>
+          <div className="card rise flex flex-col md:col-span-2 xl:col-span-4" style={stagger(9)}>
             <CardHead
               title="Agent activity"
               sub="Investigations, filings, refunds and PayPal rulings"
@@ -468,7 +464,6 @@ export function CommandCenter({ initial }: { initial: Overview }) {
         </section>
       </div>
 
-      {toast ? <div className="rise fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-ink px-4 py-2.5 text-[13px] text-white shadow-lg">{toast}</div> : null}
     </>
   );
 }

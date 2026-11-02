@@ -4,7 +4,8 @@ import type { Dispute } from "../paypal/types";
 import { MERCHANT, POLICIES, PRODUCTS } from "./scenarios";
 import type { Conversation, Customer, Order, RiskSignals, Shipment } from "./types";
 
-export type ScenarioMeta = { dispute_id: string; key: string; title: string; order_id: string; expectedOutcome: "SELLER_FAVOR" | "BUYER_FAVOR" };
+/** `base` is the clock the case was seeded with; recorded runs shift their dates to match it. */
+export type ScenarioMeta = { dispute_id: string; key: string; title: string; order_id: string; expectedOutcome: "SELLER_FAVOR" | "BUYER_FAVOR"; base?: string };
 export type HistoryCase = { dispute_id: string; reason: Dispute["reason"]; amount: number; outcome: string; closed_at: string; handled_by: string };
 
 export const store = {

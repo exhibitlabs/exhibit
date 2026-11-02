@@ -1,5 +1,6 @@
 import "server-only";
 import { expectedRecovery, type CaseBrief } from "./agent/brief";
+import { allActions } from "./disputes";
 import type { Dispute } from "./paypal/types";
 import { REASON_LABEL, STAGE_LABEL, STATUS_LABEL } from "./paypal/types";
 import { resolvedFromPayPal, resolvedHistory, resolvedTotals } from "./store/history";
@@ -28,9 +29,30 @@ export type InboxRow = {
   expected: number | null;
   outcome: string | null;
   title: string | null;
+  /** The brief's summary, PayPal action, exhibit count and confidence (null before a brief). */
+  summary?: string | null;
+  action?: CaseBrief["paypal_action"]["type"] | null;
+  exhibits?: number;
+  confidence?: CaseBrief["confidence"] | null;
+  /** The PayPal call that answered the case, if one succeeded ("Evidence filed"), and when. */
+  answered?: string | null;
+  answeredAt?: string | null;
+  /** What happens next: Exhibit investigates, the merchant responds, or PayPal/the buyer has it. */
+  nextStep?: "investigate" | "respond" | "waiting" | "resolved";
+};
+
+const ANSWER_LABEL: Record<string, string> = {
+  provide_evidence: "Evidence filed",
+  provide_supporting_info: "Sent to PayPal's review",
+  accept_claim: "Claim accepted",
+  make_offer: "Offer sent",
+  send_message: "Buyer messaged",
+  refund_capture: "Refunded",
 };
 
 export function inboxRows(disputes: Dispute[], briefs: Map<string, CaseBrief>): InboxRow[] {
+  const answers = new Map<string, { kind: string; at: string }>();
+  for (const a of allActions()) if (a.status === "ok" && ANSWER_LABEL[a.kind] && !answers.has(a.dispute_id)) answers.set(a.dispute_id, { kind: a.kind, at: a.created_at });
   return disputes.map((d) => {
     const t = d.disputed_transactions[0];
     const brief = briefs.get(d.dispute_id) ?? null;
@@ -59,6 +81,13 @@ export function inboxRows(disputes: Dispute[], briefs: Map<string, CaseBrief>): 
       expected: brief ? expectedRecovery(brief, amount) : null,
       outcome: d.dispute_outcome?.outcome_code ?? null,
       title: store.scenario(d.dispute_id)?.title ?? null,
+      summary: brief?.summary ?? null,
+      action: brief?.paypal_action.type ?? null,
+      exhibits: brief?.exhibits.length ?? 0,
+      confidence: brief?.confidence ?? null,
+      answered: answers.has(d.dispute_id) ? ANSWER_LABEL[answers.get(d.dispute_id)!.kind] : null,
+      answeredAt: answers.get(d.dispute_id)?.at ?? null,
+      nextStep: d.status === "RESOLVED" ? "resolved" : answers.has(d.dispute_id) || d.status !== "WAITING_FOR_SELLER_RESPONSE" ? (brief ? "waiting" : "investigate") : brief ? "respond" : "investigate",
     };
   });
 }

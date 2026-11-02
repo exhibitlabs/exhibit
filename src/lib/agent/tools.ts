@@ -13,7 +13,7 @@ import type { Dispute } from "../paypal/types";
 export type ToolKind = "paypal" | "store" | "carrier" | "risk" | "policy" | "brief";
 
 export type AgentEvent =
-  | { t: "start"; run_id: string; provider: string; model: string; at: string; dispute_id: string }
+  | { t: "start"; run_id: string; provider: string; model: string; at: string; dispute_id: string; trigger?: string }
   | { t: "thinking"; text: string }
   | { t: "text"; text: string }
   | { t: "tool_call"; id: string; name: string; kind: ToolKind; label: string; input: unknown; at: string }

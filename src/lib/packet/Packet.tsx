@@ -107,7 +107,7 @@ function ExhibitBody({ r }: { r: ResolvedRef }) {
       return (
         <View>
           <View style={s.grid}>
-            <Fact label="Carrier" value={`${sh.carrier.replace(/_/g, " ")} — ${sh.service}`} />
+            <Fact label="Carrier" value={`${sh.carrier.replace(/_/g, " ")} · ${sh.service}`} />
             <Fact label="Tracking number" value={sh.tracking_number} mono />
             <Fact label="Shipped" value={dateTime(sh.shipped_at)} />
             <Fact label="Status" value={sh.status.replace(/_/g, " ")} />

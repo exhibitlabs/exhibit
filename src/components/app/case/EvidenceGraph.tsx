@@ -22,7 +22,7 @@ const SOURCES: { id: SourceId; tool: string; title: string; system: string; icon
 ];
 
 /** Which source an evidence ref came from. Refs are the agent's only way to cite anything. */
-function sourceOf(ref: string): SourceId | null {
+export function sourceOf(ref: string): SourceId | null {
   const [ns, sub] = ref.split(":");
   if (ns === "paypal") return sub === "seller-protection" ? "protection" : "paypal";
   if (ns === "order" || ns === "listing") return "order";
@@ -78,19 +78,30 @@ function buildNodes(events: RunEvent[], brief: CaseBrief | null, done: boolean) 
 
 type Edge = { id: SourceId; d: string };
 
-export function EvidenceGraph({ dispute, events, brief, running, action }: { dispute: Dispute; events: RunEvent[]; brief: CaseBrief | null; running: boolean; action?: React.ReactNode }) {
+export function EvidenceGraph({ dispute, events, brief, running, action, highlight, footer }: { dispute: Dispute; events: RunEvent[]; brief: CaseBrief | null; running: boolean; action?: React.ReactNode; highlight?: string | null; footer?: React.ReactNode }) {
   const done = !running && !!brief;
-  const nodes = useMemo(() => buildNodes(events, brief, done), [events, brief, done]);
+  // Streamed thinking arrives many times a second; only tool calls and results change the graph.
+  const toolCount = useMemo(() => events.reduce((n, e) => n + (e.t === "tool_call" || e.t === "tool_result" ? 1 : 0), 0), [events]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed only when a tool event lands, by design
+  const toolEvents = useMemo(() => events.filter((e) => e.t === "tool_call" || e.t === "tool_result"), [toolCount]);
+  const nodes = useMemo(() => buildNodes(toolEvents, brief, done), [toolEvents, brief, done]);
   const [selected, setSelected] = useState<SourceId | null>(null);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [narrow, setNarrow] = useState(false);
+  const [single, setSingle] = useState(false);
+  const hl = highlight ? sourceOf(highlight) : null;
   const wrap = useRef<HTMLDivElement>(null);
   const hub = useRef<HTMLDivElement>(null);
   const nodeEls = useRef<Partial<Record<SourceId, HTMLButtonElement | null>>>({});
 
   const layout = useCallback(() => {
     const w = wrap.current?.getBoundingClientRect();
+    if (w) {
+      setNarrow(w.width < 760);
+      setSingle(w.width < 520);
+    }
     const h = hub.current?.getBoundingClientRect();
-    if (!w || !h) return;
+    if (!w || !h || w.width < 760) return setEdges([]);
     const cy = h.top + h.height / 2 - w.top;
     const next: Edge[] = [];
     for (const s of SOURCES) {
@@ -146,7 +157,7 @@ export function EvidenceGraph({ dispute, events, brief, running, action }: { dis
         <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden>
           {edges.map((e) => {
             const s = edgeStyle(e.id);
-            const dim = selected && selected !== e.id;
+            const dim = (selected && selected !== e.id) || (hl && hl !== e.id);
             return (
               <path
                 key={e.id}
@@ -163,9 +174,9 @@ export function EvidenceGraph({ dispute, events, brief, running, action }: { dis
           })}
         </svg>
 
-        <div className="relative grid grid-cols-[minmax(0,1fr)_196px_minmax(0,1fr)] items-center gap-x-[clamp(48px,7vw,120px)]">
+        <div className={clsx("relative grid items-center", single ? "grid-cols-1 gap-3" : narrow ? "grid-cols-2 gap-3" : "grid-cols-[minmax(0,1fr)_196px_minmax(0,1fr)] gap-x-[clamp(48px,7vw,120px)]")}>
           {(["l", "r"] as const).map((side) => (
-            <div key={side} className={clsx("grid w-full max-w-[340px] gap-3", side === "l" ? "col-start-1 row-start-1 justify-self-end" : "col-start-3 row-start-1 justify-self-start")}>
+            <div key={side} className={clsx("grid w-full gap-3", single ? "col-span-1" : narrow ? "col-span-1 row-start-2" : "max-w-[340px] row-start-1", !narrow && (side === "l" ? "col-start-1 justify-self-end" : "col-start-3 justify-self-start"))}>
               {SOURCES.filter((s) => s.side === side).map((s) => (
                 <SourceNode
                   key={s.id}
@@ -176,15 +187,15 @@ export function EvidenceGraph({ dispute, events, brief, running, action }: { dis
                   node={nodes[s.id]}
                   tone={tone}
                   done={done}
-                  active={selected === s.id}
-                  dim={!!selected && selected !== s.id}
+                  active={selected === s.id || hl === s.id}
+                  dim={(!!selected && selected !== s.id) || (!!hl && hl !== s.id)}
                   onClick={() => setSelected(selected === s.id ? null : s.id)}
                 />
               ))}
             </div>
           ))}
 
-          <div ref={hub} className="col-start-2 row-start-1 flex flex-col items-center justify-center rounded-2xl border border-line-strong bg-surface px-4 py-5 text-center shadow-[0_8px_30px_rgb(0_0_0/0.06)]">
+          <div ref={hub} className={clsx("flex flex-col items-center justify-center rounded-2xl border border-line-strong bg-surface px-4 py-5 text-center shadow-[0_8px_30px_rgb(0_0_0/0.06)]", single ? "row-start-1" : narrow ? "col-span-2 row-start-1" : "col-start-2 row-start-1")}>
             {brief && !running && verdict ? (
               <>
                 <Ring value={brief.win_likelihood} color={cite} />
@@ -216,6 +227,7 @@ export function EvidenceGraph({ dispute, events, brief, running, action }: { dis
         </div>
       </div>
 
+      {footer}
       <div className="min-h-[68px] border-t border-line px-5 py-3.5">
         {sel && selNode ? (
           <div className="rise grid gap-2 text-[12.5px]">

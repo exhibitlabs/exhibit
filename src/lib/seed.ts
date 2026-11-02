@@ -10,13 +10,13 @@ import { store } from "./store/repo";
 import { buildHistory, buildRecentOrders, buildScenarios, MERCHANT, type ScenarioRecords } from "./store/scenarios";
 import { seedPreventionScenarios } from "./store/prevention-scenarios";
 
-function putScenarioStore(s: ScenarioRecords, disputeId: string) {
+function putScenarioStore(s: ScenarioRecords, disputeId: string, base?: Date) {
   store.putOrder(s.order);
   for (const sh of s.shipments) store.putShipment(sh);
   store.putCustomer(s.customer);
   store.putConversation(s.conversation);
   store.putRisk(s.risk);
-  store.putScenario({ dispute_id: disputeId, key: s.key, title: s.title, order_id: s.order.id, expectedOutcome: s.expectedOutcome });
+  store.putScenario({ dispute_id: disputeId, key: s.key, title: s.title, order_id: s.order.id, expectedOutcome: s.expectedOutcome, base: base?.toISOString() });
 }
 
 /** Resets the demo merchant: simulator disputes, store records, 90-day history and recent orders. */
@@ -27,7 +27,7 @@ export function seedDemo() {
     const d: Dispute = { ...s.dispute };
     d.links = linksFor(d);
     simPut(d);
-    putScenarioStore(s, d.dispute_id);
+    putScenarioStore(s, d.dispute_id, base);
   }
   for (const h of buildHistory(base)) store.putHistory(h);
   for (const { order, shipment } of buildRecentOrders(base)) {
@@ -45,7 +45,7 @@ export function ensureSeeded() {
   if (!kvGet<string | null>("seeded_at", null)) seedDemo();
 }
 
-/** Demo only: a new dispute "arrives" — the same path a CUSTOMER.DISPUTE.CREATED webhook takes. */
+/** Demo only: a new dispute "arrives" by the same path a CUSTOMER.DISPUTE.CREATED webhook takes. */
 export function simulateIncomingDispute(): Dispute | undefined {
   const base = new Date();
   const template = buildScenarios(base).find((s) => s.key === "inr-delivered-signed");
@@ -72,7 +72,7 @@ export function simulateIncomingDispute(): Dispute | undefined {
   d.links = linksFor(d);
   if (simGet(id)) return simulateIncomingDispute();
   simPut(d);
-  putScenarioStore({ ...s, dispute: d }, id);
+  putScenarioStore({ ...s, dispute: d }, id, base);
   logActivity("webhook", `CUSTOMER.DISPUTE.CREATED ${id}`, id);
   return d;
 }

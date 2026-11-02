@@ -25,6 +25,23 @@ export function formatValue(v: number, unit: AnswerChart["unit"], short = false)
   return Math.round(v).toLocaleString("en-US");
 }
 
+/** A tight y axis: about four steps that end just above the data, never far past it. */
+export function niceAxis(maxVal: number, unit: AnswerChart["unit"]) {
+  if (!(maxVal > 0)) return { max: unit === "percent" ? 100 : 1, step: unit === "percent" ? 25 : 0.25 };
+  // Deadlines read in days once they pass three: whole-day steps, so every tick is exact.
+  if (unit === "hours" && maxVal > 72) {
+    const days = (maxVal * 1.02) / 24;
+    const stepDays = [1, 2, 5, 7, 14, 30].find((d) => Math.ceil(days / d) <= 6) ?? 30;
+    return { max: Math.ceil(days / stepDays) * stepDays * 24, step: stepDays * 24 };
+  }
+  // The smallest round step that keeps the axis to six ticks or fewer.
+  const mag = 10 ** Math.floor(Math.log10(maxVal / 6));
+  const step = [1, 2, 2.5, 5, 10, 20].map((m) => m * mag).find((st) => Math.ceil((maxVal * 1.02) / st) <= 6) ?? 20 * mag;
+  let max = Math.ceil((maxVal * 1.02) / step) * step;
+  if (unit === "percent" && maxVal <= 100) max = Math.min(max, 100);
+  return { max, step };
+}
+
 function useTheme(): AgChartTheme {
   return useMemo(() => {
     const font = typeof document !== "undefined" ? getComputedStyle(document.body).fontFamily : "system-ui";
@@ -87,6 +104,10 @@ export function AskChart({ chart, height = 176 }: { chart: AnswerChart; height?:
     }
     const data = chart.labels.map((label, i) => Object.fromEntries([["label", label], ...chart.series.map((s, j) => [`s${j}`, s.values[i] ?? 0])]));
     const multi = chart.series.length > 1;
+    // Stacked bars reach the sum per label; everything else reaches its largest value.
+    const peak = Math.max(0, ...chart.labels.map((_, i) => (chart.type === "bar" && chart.stacked ? chart.series.reduce((a, s) => a + Math.max(0, s.values[i] ?? 0), 0) : Math.max(...chart.series.map((s) => s.values[i] ?? 0)))));
+    const floor = Math.min(0, ...chart.series.flatMap((s) => s.values));
+    const axis = niceAxis(peak, unit);
     const series = chart.series.map((s, j) => {
       const color = TONE[s.tone ?? (j === 0 ? "ink" : "grey")];
       const tooltip = { renderer: ({ datum }: { datum: Record<string, number | string> }) => ({ heading: String(datum.label), data: chart.series.map((x, k) => ({ label: x.name, value: formatValue(Number(datum[`s${k}`]), unit) })) }) };
@@ -117,8 +138,11 @@ export function AskChart({ chart, height = 176 }: { chart: AnswerChart; height?:
           position: "left",
           line: { enabled: false },
           tick: { enabled: false },
-          nice: true,
-          label: { color: "#a1a1a1", fontSize: 10.5, formatter: ({ value }: { value: number }) => formatValue(value, unit, true) },
+          nice: false,
+          min: floor < 0 ? -niceAxis(-floor, unit).max : 0,
+          max: axis.max,
+          interval: { step: axis.step },
+          label: { color: "#a1a1a1", fontSize: 10.5, formatter: ({ value }: { value: number }) => (unit === "hours" && axis.step % 24 === 0 ? `${Math.round(value / 24)}d` : formatValue(value, unit, true)) },
           gridLine: { style: [{ stroke: "#f2f2f2", lineDash: [] }] },
         },
       },

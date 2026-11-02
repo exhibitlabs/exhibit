@@ -1,19 +1,28 @@
+import { AppShell } from "@/components/app/AppShell";
 import { AskPalette } from "@/components/app/ask/AskPalette";
-import { Sidebar } from "@/components/app/Sidebar";
+import { listApprovals } from "@/lib/approvals";
 import { askProvider, providerLabel } from "@/lib/ask/run";
 import { aiProvider, paypalMode } from "@/lib/config";
-import { ensureSeeded } from "@/lib/seed";
+import { demoReady, demoStatus } from "@/lib/demo";
+import { navState } from "@/lib/nav";
 import { store } from "@/lib/store/repo";
 
 export const dynamic = "force-dynamic";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  ensureSeeded();
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Seeds a first demo, or resets one that sat idle, before anything reads demo data.
+  await demoReady();
+  const mode = paypalMode();
   return (
-    <div className="flex min-h-dvh">
-      <Sidebar merchant={store.merchant().name} mode={paypalMode()} provider={aiProvider()} />
-      <main className="min-w-0 flex-1">{children}</main>
-      <AskPalette provider={askProvider()} label={providerLabel(askProvider())} />
-    </div>
+    <AppShell
+      merchant={store.merchant().name}
+      mode={mode}
+      provider={aiProvider()}
+      nav={navState()}
+      demo={mode === "demo" ? demoStatus(listApprovals({ status: "pending" }).length) : null}
+      palette={<AskPalette provider={askProvider()} label={providerLabel(askProvider())} />}
+    >
+      {children}
+    </AppShell>
   );
 }

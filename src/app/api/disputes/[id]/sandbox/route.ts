@@ -2,6 +2,7 @@ import { sandboxDecide, sandboxRequireEvidence } from "@/lib/actions";
 import { paypalMode } from "@/lib/config";
 import { refreshDispute } from "@/lib/disputes";
 import { logActivity } from "@/lib/db";
+import { touchDemo } from "@/lib/demo";
 import { PayPalError } from "@/lib/paypal/client";
 import { simGet, simPut, linksFor } from "@/lib/paypal/simulator";
 
@@ -9,6 +10,7 @@ import { simGet, simPut, linksFor } from "@/lib/paypal/simulator";
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const body = (await req.json()) as { op: "decide" | "require_evidence" | "buyer_accepts_offer"; outcome?: "SELLER_FAVOR" | "BUYER_FAVOR" };
+  touchDemo();
   try {
     if (body.op === "decide") return Response.json({ dispute: await sandboxDecide(id, body.outcome ?? "SELLER_FAVOR") });
     if (body.op === "require_evidence") return Response.json({ dispute: await sandboxRequireEvidence(id) });

@@ -223,7 +223,8 @@ export async function buildOverview(): Promise<Overview> {
 
   // ---- Activity feed: the audit log plus the history's PayPal rulings.
   const ids = new Set(rows.map((r) => r.id));
-  const log = listActivity({ limit: 80 }).filter((a) => !["api", "settings"].includes(a.kind));
+  // The feed tells the merchant's story; system housekeeping (seeding, demo resets) stays in the audit trail.
+  const log = listActivity({ limit: 80 }).filter((a) => !["api", "settings", "system"].includes(a.kind));
   const briefed = new Set(log.filter((a) => a.message.startsWith("Brief filed")).map((a) => a.dispute_id));
   const feed: FeedItem[] = [];
   for (const a of log) {

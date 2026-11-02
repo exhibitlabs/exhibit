@@ -1,6 +1,7 @@
 import "server-only";
 import { PAYPAL_BASE_URL, paypalCredentials, paypalMode } from "../config";
-import { logActivity } from "../db";
+import { logApiCall } from "../db";
+import { fitForLog, redact, SHOWN_HEADERS } from "./redact";
 import { simulatorFetch } from "./simulator";
 import type { AcceptClaimType, Dispute, DisputeSummary, Evidence, Money, OfferType, PayPalErrorBody } from "./types";
 
@@ -63,14 +64,19 @@ export class PayPalClient {
       body: "grant_type=client_credentials",
     });
     const body = (await res.json()) as { access_token?: string; expires_in?: number } & PayPalErrorBody;
-    this.log({ method: "POST", path: "/v1/oauth2/token", status: res.status, ms: Date.now() - started, mode: this.mode });
+    this.log(
+      { method: "POST", path: "/v1/oauth2/token", status: res.status, ms: Date.now() - started, mode: this.mode, debugId: res.headers.get("paypal-debug-id") ?? body.debug_id },
+      undefined,
+      // The client id and secret travel in the Basic Authorization header, which is never stored.
+      { request: { headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: { grant_type: "client_credentials" } }, response: fitForLog(redact(body)) },
+    );
     if (!res.ok || !body.access_token) throw new PayPalError(res.status, body, "POST", "/v1/oauth2/token");
     g.__exhibitPayPalToken = { token: body.access_token, expiresAt: Date.now() + (body.expires_in ?? 3000) * 1000, key };
     return body.access_token;
   }
 
-  private log(meta: ApiCallMeta, disputeId?: string) {
-    logActivity("api", `${meta.method} ${meta.path} → ${meta.status}`, disputeId, meta);
+  private log(meta: ApiCallMeta, disputeId: string | undefined, bodies: { request: unknown; response: unknown }) {
+    logApiCall(`${meta.method} ${meta.path} → ${meta.status}`, meta, disputeId, bodies);
   }
 
   async request<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
@@ -89,9 +95,15 @@ export class PayPalClient {
     const text = await res.text();
     const parsed = text ? safeJson(text) : {};
     const debugId = res.headers.get("paypal-debug-id") ?? (parsed as PayPalErrorBody).debug_id;
+    const shownHeaders = Object.fromEntries(SHOWN_HEADERS.filter((h) => headers[h]).map((h) => [h, headers[h]]));
+    if (opts.form) shownHeaders["Content-Type"] = "multipart/form-data";
     this.log(
       { method, path: url.pathname + url.search, status: res.status, ms: Date.now() - started, debugId: debugId ?? undefined, mode: this.mode, requestId: headers["PayPal-Request-Id"] },
       opts.disputeId,
+      {
+        request: { headers: shownHeaders, body: opts.form ? await describeForm(opts.form) : opts.json === undefined ? undefined : fitForLog(redact(opts.json)) },
+        response: text ? fitForLog(redact(parsed)) : null,
+      },
     );
     if (!res.ok) throw new PayPalError(res.status, parsed as PayPalErrorBody, method, path);
     return parsed as T;
@@ -222,6 +234,17 @@ export type PayPalOrder = {
   }[];
   payment_source?: Record<string, unknown>;
 };
+
+/** Multipart bodies are logged as their parts: the JSON input in full (redacted), files by name and size. */
+async function describeForm(form: FormData) {
+  const parts: Record<string, unknown>[] = [];
+  for (const [name, value] of form.entries()) {
+    if (typeof value === "string") parts.push({ name, value: redact(value, name) });
+    else if (value.type === "application/json") parts.push({ name, contentType: value.type, json: fitForLog(redact(safeJson(await value.text()))) });
+    else parts.push({ name, file: (value as File).name ?? "blob", contentType: value.type, bytes: value.size });
+  }
+  return { multipart: parts };
+}
 
 function safeJson(text: string): unknown {
   try {

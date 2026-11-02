@@ -133,7 +133,7 @@ const EN: Record<MessageSituation, Template> = {
   }),
 };
 
-const DE: Partial<Record<MessageSituation, Template>> = {
+const DE: Record<MessageSituation, Template> = {
   stalled: (c, d) => ({
     subject: `Neuigkeiten zu Ihrer Bestellung ${c.orderId}`,
     body: [
@@ -152,6 +152,33 @@ const DE: Partial<Record<MessageSituation, Template>> = {
       sign(c, "Viele Grüße"),
     ].join("\n\n"),
   }),
+  delivered_not_found: (c, d) => ({
+    subject: `Re: Ihre Bestellung ${c.orderId}`,
+    body: [
+      `Hallo ${c.first},`,
+      `das tut mir leid, das ist ärgerlich. ${c.carrier} hat die Zustellung am ${d(c.deliveredAt)} als „${c.lastScanDescription}“ erfasst. Als zugestellt markierte Pakete tauchen oft innerhalb von 48 Stunden auf. Schauen Sie bitte auch rund ums Haus, bei den Nachbarn oder in der Poststelle Ihres Gebäudes nach.`,
+      `Wir haben heute bei ${c.carrier} einen Nachforschungsantrag gestellt. Ist das Paket bis zum ${d(undefined, 3)} nicht aufgetaucht, antworten Sie einfach hier, dann schicken wir Ersatz oder erstatten Ihnen den Betrag. Sie müssen dafür keinen Fall eröffnen; wir klären das direkt mit Ihnen.`,
+      sign(c, "Vielen Dank für Ihre Geduld"),
+    ].join("\n\n"),
+  }),
+  not_as_expected: (c) => ({
+    subject: `Re: Ihre Bestellung (${c.item})`,
+    body: [
+      `Hallo ${c.first},`,
+      `danke, dass Sie uns Bescheid geben. Jedes Stück wird aus pflanzlich gegerbtem Leder geschnitten, daher hat jede Haut ihren eigenen Farbton. Unsere Fotos entstehen bei Tageslicht; im Innenlicht wirkt das Leder oft eine Nuance dunkler. Könnten Sie uns ein Foto am Fenster schicken? Gern zeigen wir Ihnen auch Tageslichtfotos anderer Häute, die wir vorrätig haben.`,
+      `Wenn es Ihnen trotzdem nicht gefällt, können Sie es innerhalb von 30 Tagen nach der Zustellung zurückschicken und bekommen den vollen Artikelpreis erstattet. Antworten Sie einfach, dann senden wir Ihnen die Rücksendeinformationen; wir erstatten am Tag, an dem die Rücksendung im Atelier eintrifft.`,
+      sign(c, "Herzliche Grüße"),
+    ].join("\n\n"),
+  }),
+  redirected: (c, d) => ({
+    subject: `Ist Ihre Bestellung ${c.orderId} gut angekommen?`,
+    body: [
+      `Hallo ${c.first},`,
+      `laut ${c.carrier} wurde Ihre Bestellung (${c.item}) am ${d(c.deliveredAt)} an ${c.deliveredTo} zugestellt statt an ${c.shipTo}. Könnten Sie uns kurz bestätigen, dass Sie das Paket abgeholt haben und alles unversehrt angekommen ist?`,
+      `Falls Sie die Änderung nicht veranlasst haben oder das Paket nicht finden, sagen Sie uns Bescheid, dann klären wir das sofort mit ${c.carrier}.`,
+      sign(c, "Vielen Dank und viele Grüße"),
+    ].join("\n\n"),
+  }),
   receipt_check: (c, d) => ({
     subject: `Ist Ihre Bestellung ${c.orderId} gut angekommen?`,
     body: [
@@ -161,9 +188,30 @@ const DE: Partial<Record<MessageSituation, Template>> = {
       sign(c, "Vielen Dank und viele Grüße"),
     ].join("\n\n"),
   }),
+  refund_issued: (c, d) => ({
+    subject: `Erstattung für Ihre Bestellung ${c.orderId}`,
+    body: [
+      `Hallo ${c.first},`,
+      `Sie haben recht, und das tut mir leid. Ihre Rücksendung ist am ${d(c.returnAt)} bei uns eingetroffen, und die Erstattung hätte sofort erfolgen müssen. Wir haben Ihnen soeben ${c.amount} über PayPal erstattet${c.refundId ? ` (Erstattung ${c.refundId})` : ""}. Der Betrag erscheint sofort in Ihrem PayPal-Konto; Erstattungen auf eine Karte oder ein Bankkonto können einige Werktage dauern.`,
+      sign(c, "Vielen Dank für Ihren Einkauf"),
+    ].join("\n\n"),
+  }),
+  verify: (c) => ({
+    subject: `Bestätigung Ihrer Bestellung ${c.orderId}`,
+    body: [
+      `Hallo ${c.first},`,
+      `vielen Dank für Ihre Bestellung (${c.qty} × ${c.item}). Bevor wir größere Erstbestellungen versenden, bestätigen wir kurz einige Angaben. Könnten Sie uns von dieser E-Mail-Adresse aus die Rechnungsadresse Ihrer Karte und eine Telefonnummer schicken, unter der wir Sie erreichen?`,
+      `Wir versenden noch an dem Tag, an dem wir von Ihnen hören. Falls Sie diese Bestellung nicht aufgegeben haben, antworten Sie bitte, dann stornieren wir sie und erstatten den Betrag sofort.`,
+      sign(c, "Vielen Dank und viele Grüße"),
+    ].join("\n\n"),
+  }),
+  general: (c) => ({
+    subject: `Re: Ihre Bestellung ${c.orderId}`,
+    body: [`Hallo ${c.first},`, `danke für Ihre Nachricht zu Ihrer Bestellung ${c.orderId}. Wir sehen uns das gerade an und melden uns noch heute mit einer Antwort.`, sign(c, "Viele Grüße")].join("\n\n"),
+  }),
 };
 
-const FR: Partial<Record<MessageSituation, Template>> = {
+const FR: Record<MessageSituation, Template> = {
   stalled: (c, d) => ({
     subject: `Des nouvelles de votre commande ${c.orderId}`,
     body: [
@@ -182,6 +230,33 @@ const FR: Partial<Record<MessageSituation, Template>> = {
       sign(c, "Bien cordialement,"),
     ].join("\n\n"),
   }),
+  delivered_not_found: (c, d) => ({
+    subject: `Re : votre commande ${c.orderId}`,
+    body: [
+      `Bonjour ${c.first},`,
+      `Nous sommes désolés, c'est très contrariant. ${c.carrier} a enregistré la livraison le ${d(c.deliveredAt)} avec la mention « ${c.lastScanDescription} ». Les colis indiqués comme livrés réapparaissent souvent sous 48 heures : n'hésitez pas à vérifier autour de chez vous, auprès de vos voisins ou au local courrier de votre immeuble.`,
+      `Nous avons ouvert aujourd'hui une demande de recherche auprès de ${c.carrier}. Si le colis n'est pas réapparu d'ici le ${d(undefined, 3)}, répondez simplement à ce message et nous vous enverrons un remplacement ou vous rembourserons. Inutile d'ouvrir un litige : nous réglons cela directement avec vous.`,
+      sign(c, "Merci de votre patience,"),
+    ].join("\n\n"),
+  }),
+  not_as_expected: (c) => ({
+    subject: `Re : votre commande (${c.item})`,
+    body: [
+      `Bonjour ${c.first},`,
+      `Merci de nous l'avoir signalé. Chaque pièce est taillée dans un cuir tanné végétal : chaque peau a donc sa propre teinte, et nos photos sont prises à la lumière du jour ; sous un éclairage intérieur, le cuir paraît souvent un peu plus foncé. Pourriez-vous nous envoyer une photo près d'une fenêtre ? Nous pouvons aussi vous montrer des photos en lumière naturelle d'autres peaux disponibles.`,
+      `Si la pièce ne vous convient toujours pas, vous pouvez nous la renvoyer dans les 30 jours suivant la livraison pour un remboursement intégral de l'article. Répondez à ce message et nous vous enverrons les instructions de retour ; nous remboursons le jour même de sa réception à l'atelier.`,
+      sign(c, "Bien chaleureusement,"),
+    ].join("\n\n"),
+  }),
+  redirected: (c, d) => ({
+    subject: `Votre commande ${c.orderId} est-elle bien arrivée ?`,
+    body: [
+      `Bonjour ${c.first},`,
+      `${c.carrier} indique que votre commande (${c.item}) a été livrée le ${d(c.deliveredAt)} à ${c.deliveredTo}, et non à ${c.shipTo}. Pourriez-vous nous confirmer que vous l'avez bien récupérée et qu'elle est arrivée en bon état ?`,
+      `Si vous n'avez pas demandé ce changement ou si vous ne la trouvez pas, dites-le-nous et nous voyons cela immédiatement avec ${c.carrier}.`,
+      sign(c, "Merci et bien cordialement,"),
+    ].join("\n\n"),
+  }),
   receipt_check: (c, d) => ({
     subject: `Votre commande ${c.orderId} est-elle bien arrivée ?`,
     body: [
@@ -190,6 +265,27 @@ const FR: Partial<Record<MessageSituation, Template>> = {
       `Si quelque chose ne va pas, dites-le-nous et nous nous en occupons tout de suite.`,
       sign(c, "Merci et bien cordialement,"),
     ].join("\n\n"),
+  }),
+  refund_issued: (c, d) => ({
+    subject: `Remboursement effectué pour votre commande ${c.orderId}`,
+    body: [
+      `Bonjour ${c.first},`,
+      `Vous avez raison, et nous en sommes désolés. Votre retour nous est parvenu le ${d(c.returnAt)} et le remboursement aurait dû partir à ce moment-là. Nous venons de vous rembourser ${c.amount} via PayPal${c.refundId ? ` (remboursement ${c.refundId})` : ""}. Il apparaît immédiatement sur votre compte PayPal ; un remboursement sur carte ou compte bancaire peut prendre quelques jours ouvrés.`,
+      sign(c, "Merci pour votre commande,"),
+    ].join("\n\n"),
+  }),
+  verify: (c) => ({
+    subject: `Confirmation de votre commande ${c.orderId}`,
+    body: [
+      `Bonjour ${c.first},`,
+      `Merci pour votre commande (${c.qty} × ${c.item}). Avant d'expédier une première commande importante, nous vérifions quelques informations. Pourriez-vous nous répondre depuis cette adresse e-mail en indiquant l'adresse de facturation de votre carte et un numéro de téléphone où vous joindre ?`,
+      `Nous expédions le jour même de votre réponse. Si vous n'êtes pas à l'origine de cette commande, répondez-nous : nous l'annulons et vous remboursons immédiatement.`,
+      sign(c, "Merci et bien cordialement,"),
+    ].join("\n\n"),
+  }),
+  general: (c) => ({
+    subject: `Re : votre commande ${c.orderId}`,
+    body: [`Bonjour ${c.first},`, `Merci pour votre message concernant votre commande ${c.orderId}. Nous regardons cela dès maintenant et revenons vers vous aujourd'hui avec une réponse.`, sign(c, "Bien cordialement,")].join("\n\n"),
   }),
 };
 

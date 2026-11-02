@@ -1,5 +1,5 @@
 import { draftPreventionMessage, preventionOrder, preventionReport, runPreventionFix, type PreventionAction } from "@/lib/prevention";
-import { ensureSeeded } from "@/lib/seed";
+import { demoReady, touchDemo } from "@/lib/demo";
 
 const ACTIONS: PreventionAction[] = ["push_tracking", "refund", "message_buyer", "hold_and_verify", "require_signature", "dismiss"];
 
@@ -9,7 +9,7 @@ const ACTIONS: PreventionAction[] = ["push_tracking", "refund", "message_buyer",
  * POST /api/prevention { orderId, action, message?: { subject?, body } } → { result, report }
  */
 export async function GET(req: Request) {
-  ensureSeeded();
+  await demoReady();
   const orderId = new URL(req.url).searchParams.get("orderId");
   if (orderId) {
     const order = preventionOrder(orderId);
@@ -21,7 +21,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  ensureSeeded();
+  await demoReady();
+  touchDemo();
   const body = (await req.json().catch(() => ({}))) as { orderId?: string; action?: PreventionAction; message?: { subject?: string; body: string }; actor?: string };
   if (!body.orderId || !body.action || !ACTIONS.includes(body.action)) {
     return Response.json({ error: `Send { orderId, action } with action one of ${ACTIONS.join(", ")}.` }, { status: 400 });

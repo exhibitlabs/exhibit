@@ -27,9 +27,32 @@ export type ResolvedCase = {
   refunded: number;
   lost: number;
   source: "demo-history" | "paypal";
+  /** What Exhibit's brief said at the time (demo history): win likelihood, confidence and any offer amount. */
+  likelihood?: number;
+  confidence?: "HIGH" | "MEDIUM" | "LOW";
+  offer?: number;
 };
 
-const KV_KEY = "resolved_history_v7";
+const KV_KEY = "resolved_history_v8";
+
+/** A stable 0..1 number per case id, so the brief fields never disturb the history's own RNG. */
+function hash01(id: string, salt = 0) {
+  let h = 2166136261 ^ salt;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+  return ((h >>> 0) % 10_000) / 10_000;
+}
+
+/** The brief Exhibit would have filed: likelihood follows the playbook branch and how the case ended. */
+function briefFields(id: string, plan: Plan, won: boolean, offer: number) {
+  const h = hash01(id);
+  const likelihood = Math.round(
+    plan.decision === "FIGHT" ? (won ? 72 + h * 24 : 50 + h * 26) : plan.decision === "MESSAGE_BUYER" ? 68 + h * 24 : plan.decision === "OFFER" ? 16 + h * 26 : 3 + h * 19,
+  );
+  const shaky = hash01(id, 7) < 0.09;
+  const confidence: "HIGH" | "MEDIUM" | "LOW" =
+    plan.decision === "REFUND" ? (shaky ? "MEDIUM" : "HIGH") : shaky || likelihood < 58 ? "LOW" : likelihood >= 80 || plan.decision === "OFFER" ? (plan.decision === "OFFER" ? "MEDIUM" : "HIGH") : "MEDIUM";
+  return { likelihood, confidence, offer: plan.decision === "OFFER" ? offer : undefined };
+}
 
 /** Demo merchant's daily order volume, growing slowly: about 2,250 orders a month three months ago, 2,500 now. */
 const demoDailyOrders = (daysAgo: number) => 84.5 - daysAgo * 0.1;
@@ -175,8 +198,10 @@ export function buildResolvedHistory(base = new Date()): ResolvedCase[] {
         lost = amount;
         outcome = "RESOLVED_BUYER_FAVOUR";
       }
+      const id = `PP-D-${seq}`;
       out.push({
-        dispute_id: `PP-D-${seq}`,
+        ...briefFields(id, plan, won, refunded),
+        dispute_id: id,
         reason: m.reason,
         stage,
         amount,

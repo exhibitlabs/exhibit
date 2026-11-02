@@ -171,8 +171,9 @@ async function handle(req: Request): Promise<Response> {
       return json(200, { links: [{ href: `${BASE}/v1/customer/disputes/${id}`, rel: "self", method: "GET" }] });
     }
 
+    // PayPal: when the action's HATEOAS link is not on the dispute, the action is not available.
     if (action === "provide-supporting-info" && method === "POST") {
-      if (d.dispute_life_cycle_stage === "INQUIRY") return wrongStatus(d, "provide supporting info");
+      if (!linksFor(d).some((l) => l.rel === "provide_supporting_info")) return wrongStatus(d, "provide supporting info");
       const form = await req.formData();
       const inputPart = form.get("input");
       const input = inputPart ? (JSON.parse(typeof inputPart === "string" ? inputPart : await inputPart.text()) as { notes?: string }) : {};
@@ -211,7 +212,7 @@ async function handle(req: Request): Promise<Response> {
     }
 
     if (action === "send-message" && method === "POST") {
-      if (d.dispute_life_cycle_stage !== "INQUIRY") return wrongStatus(d, "send a message");
+      if (!linksFor(d).some((l) => l.rel === "send_message")) return wrongStatus(d, "send a message");
       const body = (await readJson(req)) as { message?: string };
       if (!body.message) return error(400, "INVALID_REQUEST", "Request is not well-formed, syntactically incorrect, or violates schema.", "MISSING_REQUIRED_PARAMETER", "message is required.");
       touch(d, { messages: [...(d.messages ?? []), { posted_by: "SELLER", time_posted: now(), content: body.message }] });

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { CaseBrief } from "./agent/brief";
 import { caseFile, latestRun, refreshDispute } from "./disputes";
 import { db, logActivity, now } from "./db";
+import { markDemoProgress } from "./demo-progress";
 import { resolveRef } from "./evidence";
 import { paypal, PayPalError } from "./paypal/client";
 import type { Evidence, Money } from "./paypal/types";
@@ -30,6 +31,11 @@ function record(disputeId: string, kind: string, actor: string, request: unknown
 
 const money = (value: number, currency: string): Money => ({ currency_code: currency, value: value.toFixed(2) });
 
+/** Demo guide: a filing a person made (directly, or by approving an agent's request). */
+const filed = (actor: string) => {
+  if (actor === "merchant" || actor.endsWith("approved by merchant")) markDemoProgress("file");
+};
+
 /** Carries out the brief's PayPal action. Every call goes through the PayPal REST API (or the simulator in demo mode). */
 export async function executeBriefAction(disputeId: string, overrides: ActionOverrides = {}, actor = "merchant"): Promise<ActionResult> {
   const run = latestRun(disputeId);
@@ -56,7 +62,7 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
         record(disputeId, "refund_capture", actor, refundReq, refund, "ok");
         refundIds = [refund.id];
         store.putOrder({ ...cf.order, refunds: [...(cf.order.refunds ?? []), { id: refund.id, amount: refundAmount, at: now() }] });
-        logActivity("action", `Refunded ${refundAmount.toFixed(2)} ${currency} on capture ${cf.order.paypal.capture_id} (${refund.id})`, disputeId);
+        logActivity("action", `Refunded ${refundAmount.toFixed(2)} ${currency} on capture ${cf.order.paypal.capture_id} (${refund.id})`, disputeId, { actor });
       }
       // PayPal accepts the evidence types it requested; anything else (a signature, say) rides in the packet.
       const requested = (d.evidences ?? []).filter((e) => e.source === "REQUESTED_FROM_SELLER").map((e) => e.evidence_type);
@@ -83,8 +89,9 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
       request = { evidences, files: [{ name: packetFilename(disputeId), bytes: pdf.byteLength }] };
       const res = await pp.provideEvidence(disputeId, evidences, [{ name: packetFilename(disputeId), contentType: "application/pdf", data: new Uint8Array(pdf) }]);
       record(disputeId, "provide_evidence", actor, request, res, "ok");
-      logActivity("action", `Filed ${types.join(" + ")} with a ${brief.exhibits.length}-exhibit packet`, disputeId);
+      logActivity("action", `Filed ${types.join(" + ")} with a ${brief.exhibits.length}-exhibit packet`, disputeId, { actor });
       await refreshDispute(disputeId);
+      filed(actor);
       return { ok: true, kind: a.type, detail: `Evidence filed with PayPal: ${types.join(", ")} and a ${Math.round(pdf.byteLength / 1024)} KB packet.`, response: res };
     }
 
@@ -93,8 +100,9 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
       request = { notes: letter, files: [{ name: packetFilename(disputeId), bytes: pdf.byteLength }] };
       const res = await pp.provideSupportingInfo(disputeId, letter, [{ name: packetFilename(disputeId), contentType: "application/pdf", data: new Uint8Array(pdf) }]);
       record(disputeId, "provide_supporting_info", actor, request, res, "ok");
-      logActivity("action", `Sent supporting info with a ${brief.exhibits.length}-exhibit packet`, disputeId);
+      logActivity("action", `Sent supporting info with a ${brief.exhibits.length}-exhibit packet`, disputeId, { actor });
       await refreshDispute(disputeId);
+      filed(actor);
       return { ok: true, kind: a.type, detail: `Response and a ${Math.round(pdf.byteLength / 1024)} KB evidence packet sent to PayPal's chargeback review.`, response: res };
     }
 
@@ -111,8 +119,9 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
       request = body;
       const res = await pp.makeOffer(disputeId, body);
       record(disputeId, "make_offer", actor, body, res, "ok");
-      logActivity("action", `Offered ${body.offer_type.replace(/_/g, " ").toLowerCase()}${body.offer_amount ? ` ${body.offer_amount.value} ${currency}` : ""}`, disputeId);
+      logActivity("action", `Offered ${body.offer_type.replace(/_/g, " ").toLowerCase()}${body.offer_amount ? ` ${body.offer_amount.value} ${currency}` : ""}`, disputeId, { actor });
       await refreshDispute(disputeId);
+      filed(actor);
       return { ok: true, kind: a.type, detail: `Offer sent to the buyer through PayPal.`, response: res };
     }
 
@@ -121,8 +130,9 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
       request = body;
       const res = await pp.acceptClaim(disputeId, body);
       record(disputeId, "accept_claim", actor, body, res, "ok");
-      logActivity("action", `Accepted the claim; PayPal refunds the buyer`, disputeId);
+      logActivity("action", `Accepted the claim; PayPal refunds the buyer`, disputeId, { actor });
       await refreshDispute(disputeId);
+      filed(actor);
       return { ok: true, kind: a.type, detail: "Claim accepted. PayPal processes the refund to the buyer and closes the case.", response: res };
     }
 
@@ -131,15 +141,16 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
       request = { message: buyerText };
       const res = await pp.sendMessage(disputeId, buyerText);
       record(disputeId, "send_message", actor, request, res, "ok");
-      logActivity("action", `Messaged the buyer through PayPal`, disputeId);
+      logActivity("action", `Messaged the buyer through PayPal`, disputeId, { actor });
       await refreshDispute(disputeId);
+      filed(actor);
       return { ok: true, kind: a.type, detail: "Message delivered to the buyer in the PayPal Resolution Center.", response: res };
     }
     return { ok: false, kind: a.type, error: `Unsupported action ${a.type}` };
   } catch (e) {
     const err = e instanceof PayPalError ? { error: e.message, issue: e.issue, debugId: e.debugId, status: e.status } : { error: e instanceof Error ? e.message : String(e) };
     record(disputeId, a.type, actor, request ?? null, err, "error");
-    logActivity("action_error", `${a.type} failed: ${err.error}`, disputeId, err);
+    logActivity("action_error", `${a.type} failed: ${err.error}`, disputeId, { ...err, actor });
     return { ok: false, kind: a.type, ...err };
   }
 }
@@ -148,7 +159,7 @@ export async function executeBriefAction(disputeId: string, overrides: ActionOve
 export async function sandboxDecide(disputeId: string, outcome: "SELLER_FAVOR" | "BUYER_FAVOR") {
   const res = await paypal().adjudicate(disputeId, outcome);
   record(disputeId, "adjudicate", "sandbox", { adjudication_outcome: outcome }, res, "ok");
-  logActivity("sandbox", `PayPal adjudicated in ${outcome === "SELLER_FAVOR" ? "the merchant's" : "the buyer's"} favour`, disputeId);
+  logActivity("sandbox", `PayPal ruled in ${outcome === "SELLER_FAVOR" ? "the merchant's" : "the buyer's"} favour (adjudicate)`, disputeId);
   return refreshDispute(disputeId);
 }
 
@@ -174,6 +185,6 @@ export async function syncTrackingToPayPal(shipmentIds?: string[]) {
     }
   }
   const ok = results.filter((r) => r.ok).length;
-  if (results.length) logActivity("action", `Synced tracking for ${ok}/${results.length} shipment(s) to PayPal`);
+  if (results.length) logActivity("action", `Synced tracking for ${ok}/${results.length} shipment(s) to PayPal`, null, { actor: "merchant" });
   return results;
 }

@@ -15,6 +15,7 @@ import { randomUUID } from "node:crypto";
 import { syncTrackingToPayPal } from "./actions";
 import { paypalMode } from "./config";
 import { docGet, docList, docPut, kvGet, kvSet, logActivity, now } from "./db";
+import { markDemoProgress } from "./demo-progress";
 import { cachedDisputes } from "./disputes";
 import { paypal, PayPalError } from "./paypal/client";
 import type { DisputeReason } from "./paypal/types";
@@ -688,7 +689,7 @@ export async function runPreventionFix(orderId: string, action: PreventionAction
     const err = e instanceof PayPalError ? { error: e.message, issue: e.issue, debugId: e.debugId } : { error: e instanceof Error ? e.message : String(e) };
     doc.actions.push({ id: `pv_${randomUUID().slice(0, 10)}`, at: stamp, action, actor, ok: false, detail: err.error, addressed: [], before: { score: before.score, signals: before.signals.map((s) => s.kind) }, after: { score: before.score, signals: before.signals.map((s) => s.kind) }, saved: 0, paypal: paypalCall, error: err.error });
     docPut("prevention", orderId, doc);
-    logActivity("action_error", `Prevention: ${FIX[action].label} failed on ${orderId}: ${err.error}`, null, { orderId, action, ...err });
+    logActivity("action_error", `Prevention: ${FIX[action].label} failed on ${orderId}: ${err.error}`, null, { orderId, action, actor, ...err });
     return { ok: false, orderId, action, ...err };
   }
 
@@ -717,6 +718,7 @@ export async function runPreventionFix(orderId: string, action: PreventionAction
   const priorRefundOwed = doc.actions.some((x) => x.ok && x.action === "refund" && x.addressed.includes("refund_overdue"));
   record.saved = prevented ? r2(Math.max(0, (action === "refund" ? saved : priorRefundOwed ? before.fee : before.exposure) - priorSaved)) : 0;
   docPut("prevention", orderId, doc);
-  logActivity("action", `Prevention · ${orderId}: ${detail} Risk ${before.score} → ${record.after.score}.`, null, { orderId, action, before: record.before, after: record.after, saved: record.saved });
+  logActivity("action", `Prevention · ${orderId}: ${detail} Risk ${before.score} → ${record.after.score}.`, null, { orderId, action, actor, before: record.before, after: record.after, saved: record.saved });
+  if (action !== "dismiss") markDemoProgress("prevent");
   return { ok: true, orderId, action, detail, saved: record.saved, record, order: preventionOrder(orderId), prevented };
 }

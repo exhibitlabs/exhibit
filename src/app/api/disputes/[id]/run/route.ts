@@ -1,4 +1,5 @@
 import { runAgent, type RunEvent } from "@/lib/agent/run";
+import { touchDemo } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -7,6 +8,7 @@ export const maxDuration = 300;
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const trigger = new URL(req.url).searchParams.get("trigger") === "agent" ? "agent" : "manual";
+  touchDemo();
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
