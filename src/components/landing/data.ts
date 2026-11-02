@@ -1,50 +1,85 @@
-import "server-only";
-import fs from "node:fs";
-import path from "node:path";
-import type { CaseBrief } from "@/lib/agent/brief";
-import type { AgentEvent } from "@/lib/agent/tools";
+// Everything the public site states as a fact lives here or in ./records (exported from real runs by
+// ./records/export.mjs). Edit these constants rather than the components.
 
-export type Replay = { scenario: string; ids: { dispute_id: string; order_id: string }; events: AgentEvent[]; brief: CaseBrief };
+export const SITE_URL = "https://exhibit.9to5code.com";
+export const GITHUB_URL = "https://github.com/shvuuuu/exhibit";
+export const FOUNDER_GITHUB_URL = "https://github.com/shvuuuu";
+export const DEMO_URL = "/app";
 
-export function loadReplay(key: string): Replay | null {
-  const p = path.join(process.cwd(), "replays", `${key}.json`);
-  return fs.existsSync(p) ? (JSON.parse(fs.readFileSync(p, "utf8")) as Replay) : null;
-}
+/**
+ * The demo video (YouTube). Leave empty and the "Watch the demo" button is hidden.
+ * Example: "https://www.youtube.com/watch?v=XXXXXXXXXXX"
+ */
+export const DEMO_VIDEO_URL = "";
 
-export type ToolStep = { name: string; label: string; kind: string; arg: string };
+/**
+ * Evaluation on labelled cases. Leave null until it has been measured; the block renders only
+ * when this is filled in. Every field must come from a real, reproducible run.
+ */
+export const EVALUATION: null | {
+  /** Number of labelled cases. */
+  cases: number;
+  /** Share of cases where Exhibit's decision matched the label, 0 to 100. */
+  agreementRate: number;
+  /** Median minutes from "Run" to a finished, validated brief. */
+  minutesPerCase: number;
+  /** Share of should-refund cases that Exhibit refunded, 0 to 100. Optional. */
+  correctlyRefunded?: number;
+  /** One sentence on how the cases and labels were made, e.g. "30 synthetic cases, labels written before the run". */
+  method: string;
+  /** Where the method and raw results live, e.g. a file on GitHub. */
+  url?: string;
+} = null;
 
-/** The tool calls a recorded run made, in order, with the one argument worth showing. */
-export function toolSteps(r: Replay): ToolStep[] {
-  return r.events
-    .filter((e): e is Extract<AgentEvent, { t: "tool_call" }> => e.t === "tool_call")
-    .map((e) => {
-      const input = (e.input ?? {}) as Record<string, unknown>;
-      const first = Object.entries(input).find(([, v]) => typeof v === "string" && (v as string).length < 40);
-      return { name: e.name, label: e.label, kind: e.kind, arg: first ? String(first[1]) : "" };
-    });
-}
+/** PayPal's agent tools reference, retrieved 2026-11-03. Dispute tools, quoted. */
+export const PAYPAL_AGENT_TOOLS = {
+  url: "https://developer.paypal.com/ai-tools/agent-tools/",
+  retrieved: "2026-11-03",
+  tools: [
+    { name: "list_disputes", description: "Retrieve a summary of all disputes with optional filtering." },
+    { name: "get_dispute", description: "Retrieve detailed information about a specific dispute." },
+    { name: "accept_dispute_claim", description: "Accept a dispute claim, resolving it in favor of the buyer." },
+  ],
+};
 
-/** Demo-merchant cases shown on the page: the buyer's claim as filed, and the disputed amount. */
-export const CASES: { key: string; claim: string; amount: number; reason: string }[] = [
-  { key: "inr-delivered-signed", claim: "“I never received my bag.”", amount: 284, reason: "Item not received" },
-  { key: "unauth-friendly-fraud", claim: "Card chargeback: “unauthorized”", amount: 420, reason: "Unauthorized" },
-  { key: "duplicate-two-orders", claim: "“I was charged twice.”", amount: 96, reason: "Duplicate" },
-  { key: "inr-returned-to-sender", claim: "“Never got my wallet.”", amount: 68, reason: "Item not received" },
-  { key: "credit-not-processed", claim: "“Returned it, no refund.”", amount: 180, reason: "Credit not processed" },
-  { key: "inquiry-packstation-de", claim: "„Mein Paket ist nie angekommen.“", amount: 236, reason: "Item not received" },
-  { key: "snad-damaged-ring", claim: "“Strap ring arrived broken.”", amount: 355, reason: "Not as described" },
-  { key: "snad-color", claim: "“Darker than the photos.”", amount: 166, reason: "Not as described" },
-];
+/**
+ * PayPal's own published rule for its MCP gateway, quoted verbatim from the live post (retrieved
+ * 2026-11-03). The post was first shared at /community/blog/One_connection_2000_tools; that address
+ * now redirects to the blog index, and the current text is what is quoted here.
+ */
+export const PAYPAL_MCP_QUOTE = {
+  text: "Authorization is checked again before a selected tool is executed.",
+  title: "What We Learned Building PayPal's MCP Gateway",
+  author: "PayPal Cosmos.AI Agentic Platform Team",
+  date: "Oct 8, 2026",
+  url: "https://developer.paypal.com/community/blog/PayPal_MCP_Gateway",
+};
 
-/** The agent's nine tools, as named in src/lib/agent/tools.ts. */
-export const ALL_TOOLS: { name: string; label: string }[] = [
-  { name: "get_paypal_dispute", label: "PayPal Disputes API" },
-  { name: "lookup_order", label: "Store orders" },
-  { name: "get_carrier_tracking", label: "Carrier tracking" },
-  { name: "get_customer_history", label: "Customer history" },
-  { name: "get_support_conversation", label: "Support inbox" },
-  { name: "get_payment_risk_signals", label: "Risk signals" },
-  { name: "get_store_policies", label: "Store policies" },
-  { name: "check_seller_protection", label: "PayPal Seller Protection" },
-  { name: "file_case_brief", label: "Case brief" },
-];
+/**
+ * PayPal US business fees page ("Last Updated: October 1, 2026"). First read 2026-10-21 (docs/sources), checked
+ * again 2026-11-03. The old /us/webapps/mpp/merchant-fees address redirects here.
+ */
+export const PAYPAL_FEES = {
+  url: "https://www.paypal.com/us/business/paypal-business-fees",
+  updated: "Oct 1, 2026",
+  retrieved: "Nov 3, 2026",
+  quote: "We may charge a Dispute Fee when a buyer files a dispute claim or chargeback …",
+  fees: [
+    { amount: 15, label: "Standard dispute fee", note: "PayPal checkout payments" },
+    { amount: 30, label: "High-volume dispute fee", note: "Sellers over PayPal's high-volume threshold" },
+    { amount: 20, label: "Card chargeback fee", note: "Card payments not made through a PayPal account" },
+  ],
+};
+
+export const PRICING = {
+  label: "Planned pricing",
+  line: "Free to try. Then a share of what Exhibit recovers. If it recovers nothing, you pay nothing.",
+  note: "Exhibit is not on sale yet. This is the model we plan to launch with.",
+};
+
+export const FOUNDER = {
+  name: "Shivansh Dwivedi",
+  role: "Founder, KaDeep AI",
+  city: "Mumbai",
+  firstCommit: "Oct 20, 2026",
+};

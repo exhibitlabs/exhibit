@@ -1,0 +1,523 @@
+{
+  "fight": {
+    "disputeId": "PP-R-EGO-10193744",
+    "runId": "run_0c8cd432-b18",
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "startedAt": "2026-10-21T00:35:48.370Z",
+    "finishedAt": "2026-10-21T00:36:24.007Z",
+    "durationMs": 35636,
+    "briefAt": 33627,
+    "claim": {
+      "reason": "UNAUTHORISED",
+      "stage": "CHARGEBACK",
+      "status": "UNDER_REVIEW",
+      "reasonCode": "1040",
+      "amount": 420,
+      "currency": "USD",
+      "buyer": "Daniel Reyes",
+      "item": "Atelier Briefcase — Espresso",
+      "orderId": "KA-10503",
+      "allowedActions": [
+        "adjudicate",
+        "require_evidence",
+        "provide_supporting_info"
+      ]
+    },
+    "steps": [
+      {
+        "node": "paypal",
+        "tool": "get_paypal_dispute",
+        "arg": "dispute_id: PP-R-EGO-10193744",
+        "at": 4373,
+        "ms": 686,
+        "ok": true,
+        "summary": "unauthorized · chargeback · $420.00"
+      },
+      {
+        "node": "order",
+        "tool": "lookup_order",
+        "arg": "transaction_id: 2GW87112CH2430330",
+        "at": 7042,
+        "ms": 2,
+        "ok": true,
+        "summary": "KA-10503 · Atelier Briefcase — Espresso · $420.00"
+      },
+      {
+        "node": "protection",
+        "tool": "check_seller_protection",
+        "arg": "dispute_id: PP-R-EGO-10193744",
+        "at": 7539,
+        "ms": 515,
+        "ok": true,
+        "summary": "likely eligible · 8/9 requirements met"
+      },
+      {
+        "node": "customer",
+        "tool": "get_customer_history",
+        "arg": null,
+        "at": 8093,
+        "ms": 0,
+        "ok": true,
+        "summary": "3 order(s) · LTV $664 · 0 prior dispute(s)"
+      },
+      {
+        "node": "carrier",
+        "tool": "get_carrier_tracking",
+        "arg": "order_id: KA-10503",
+        "at": 10166,
+        "ms": 2,
+        "ok": true,
+        "summary": "UPS 1Z84V6A90298355102 · delivered 2026-09-28 · signed D REYES"
+      },
+      {
+        "node": "risk",
+        "tool": "get_payment_risk_signals",
+        "arg": "order_id: KA-10503",
+        "at": 10538,
+        "ms": 2,
+        "ok": true,
+        "summary": "AVS Y · CVV M · 3DS authenticated · IP Columbus (4 km)"
+      },
+      {
+        "node": "inbox",
+        "tool": "get_support_conversation",
+        "arg": "order_id: KA-10503",
+        "at": 10655,
+        "ms": 1,
+        "ok": true,
+        "summary": "2 message(s), last from merchant"
+      }
+    ],
+    "brief": {
+      "decision": "FIGHT",
+      "headline": "Signed for by D REYES, 3DS-authenticated, buyer praised it in chat — fight the unauthorized chargeback",
+      "summary": "The cardholder filed an unauthorized-transaction chargeback (code 1040) for a $420 briefcase. The records show it was authorized and received: 3-D Secure authenticated, AVS/CVV matched, checkout came from the buyer's known device and Columbus IP, UPS got a signature from D REYES at the transaction address, and the buyer messaged the store the next day saying the briefcase \"arrived, it's beautiful.\" Seller Protection checks show it is likely eligible. PayPal is already reviewing, so the case goes in through provide_supporting_info.",
+      "winLikelihood": 88,
+      "confidence": "HIGH",
+      "reasoning": [
+        {
+          "point": "Seller Protection is likely eligible: PayPal flags the payment as eligible for unauthorized claims, the item shipped to the transaction address with verifiable UPS tracking, and it shipped 1 day after payment.",
+          "refs": [
+            "paypal:seller-protection:PP-R-EGO-10193744",
+            "shipment:SHP-10503"
+          ]
+        },
+        {
+          "point": "UPS 2nd Day Air with signature required delivered on 2026-09-28 to 481 Oak Park Ave, Columbus OH 43215, signed by D REYES. This matches the transaction shipping and billing address.",
+          "refs": [
+            "shipment:SHP-10503",
+            "order:KA-10503"
+          ]
+        },
+        {
+          "point": "Payment authentication was strong: 3-D Secure AUTHENTICATED, AVS Y, CVV M. The checkout IP was in Columbus, 4 km from the shipping address, on a device first seen 2026-02-02. The email is 3,400 days old.",
+          "refs": [
+            "risk:KA-10503"
+          ]
+        },
+        {
+          "point": "After delivery, the buyer confirmed receipt in chat on 2026-09-29: 'Briefcase arrived, it's beautiful' and asked about the lock code.",
+          "refs": [
+            "msg:MSG-10503-1",
+            "conversation:KA-10503"
+          ]
+        },
+        {
+          "point": "This is an established customer: 3 orders since Feb 2026 (KA-9466, KA-9603), $664 lifetime value, no prior disputes.",
+          "refs": [
+            "customer:history"
+          ]
+        },
+        {
+          "point": "Status is UNDER_REVIEW and only provide_supporting_info is open to the seller. Proof of fulfillment is already on file, so the response adds the authentication and post-purchase evidence.",
+          "refs": [
+            "paypal:dispute:PP-R-EGO-10193744"
+          ]
+        }
+      ],
+      "risks": [
+        "Card-network chargebacks are decided by the issuer, so Seller Protection may not fully apply to an external chargeback. The issuer could still side with the cardholder.",
+        "The cardholder may argue a household member placed the order. The signature and chat show the goods reached and were used by the account holder's household, but this is not airtight.",
+        "There is no delivery photo. The proof rests on the UPS signature and tracking."
+      ],
+      "exhibits": [
+        {
+          "label": "A",
+          "title": "UPS tracking — delivered and signed by D REYES",
+          "ref": "shipment:SHP-10503",
+          "node": "carrier",
+          "why": "Signature-required UPS delivery on 2026-09-28 to the exact transaction address, signed by D REYES. Tracking was synced to PayPal."
+        },
+        {
+          "label": "B",
+          "title": "Order record — matching shipping and billing address",
+          "ref": "order:KA-10503",
+          "node": "order",
+          "why": "Shipping and billing addresses are identical (481 Oak Park Ave, Columbus OH). Shows checkout IP, policy acceptance and the item description."
+        },
+        {
+          "label": "C",
+          "title": "Checkout authentication and risk signals",
+          "ref": "risk:KA-10503",
+          "node": "risk",
+          "why": "3-D Secure authenticated, AVS Y, CVV M, Columbus IP 4 km from the address, known device since Feb 2026, 1 order in 24h."
+        },
+        {
+          "label": "D",
+          "title": "Buyer's chat confirming receipt",
+          "ref": "msg:MSG-10503-1",
+          "node": "inbox",
+          "why": "The day after delivery the buyer wrote 'Briefcase arrived, it's beautiful' and asked about the lock code. This shows he knew of and benefited from the purchase."
+        },
+        {
+          "label": "E",
+          "title": "Customer history — repeat buyer, no disputes",
+          "ref": "customer:history",
+          "node": "customer",
+          "why": "Three orders since Feb 2026 from the same customer, $664 lifetime value, zero prior disputes."
+        },
+        {
+          "label": "F",
+          "title": "Seller Protection eligibility check",
+          "ref": "paypal:seller-protection:PP-R-EGO-10193744",
+          "node": "protection",
+          "why": "PayPal's flag marks the payment eligible for unauthorized claims, and every published requirement passes."
+        }
+      ],
+      "action": {
+        "type": "provide_supporting_info"
+      },
+      "letterOpening": "Kora Atelier contests this unauthorized-transaction chargeback: the account holder authorized this $420.00 purchase (order KA-10503, capture 2GW87112CH2430330), received the item and confirmed receipt in writing.",
+      "buyerMessage": null
+    }
+  },
+  "refund": {
+    "disputeId": "PP-R-KHB-10193747",
+    "runId": "run_51f69bbf-9e9",
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "startedAt": "2026-10-20T13:52:41.022Z",
+    "finishedAt": "2026-10-20T13:53:09.937Z",
+    "durationMs": 28914,
+    "briefAt": 26907,
+    "claim": {
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+      "stage": "CHARGEBACK",
+      "status": "WAITING_FOR_SELLER_RESPONSE",
+      "reasonCode": "1310",
+      "amount": 68,
+      "currency": "USD",
+      "buyer": "Jordan Kim",
+      "item": "Bifold Wallet — Black",
+      "orderId": "KA-10511",
+      "allowedActions": [
+        "accept_claim",
+        "provide_evidence"
+      ]
+    },
+    "steps": [
+      {
+        "node": "paypal",
+        "tool": "get_paypal_dispute",
+        "arg": "dispute_id: PP-R-KHB-10193747",
+        "at": 3472,
+        "ms": 1196,
+        "ok": true,
+        "summary": "merchandise or service not received · chargeback · $68.00 · due in 10d"
+      },
+      {
+        "node": "order",
+        "tool": "lookup_order",
+        "arg": "transaction_id: 57002361HH0398920",
+        "at": 7709,
+        "ms": 1,
+        "ok": true,
+        "summary": "KA-10511 · Bifold Wallet — Black · $68.00"
+      },
+      {
+        "node": "protection",
+        "tool": "check_seller_protection",
+        "arg": "dispute_id: PP-R-KHB-10193747",
+        "at": 7715,
+        "ms": 809,
+        "ok": true,
+        "summary": "not applicable · 0/2 requirements met"
+      },
+      {
+        "node": "customer",
+        "tool": "get_customer_history",
+        "arg": null,
+        "at": 8530,
+        "ms": 0,
+        "ok": true,
+        "summary": "1 order(s) · LTV $68 · 0 prior dispute(s)"
+      },
+      {
+        "node": "carrier",
+        "tool": "get_carrier_tracking",
+        "arg": "order_id: KA-10511",
+        "at": 10230,
+        "ms": 0,
+        "ok": true,
+        "summary": "USPS 9400111899223847569021 · returned to sender"
+      },
+      {
+        "node": "inbox",
+        "tool": "get_support_conversation",
+        "arg": "order_id: KA-10511",
+        "at": 10336,
+        "ms": 0,
+        "ok": true,
+        "summary": "1 message(s), last from customer"
+      }
+    ],
+    "brief": {
+      "decision": "REFUND",
+      "headline": "Wallet returned to sender as undeliverable and never refunded: accept the $68 chargeback",
+      "summary": "Jordan Kim's $68 Bifold Wallet (KA-10511) shipped by USPS on Sept 23. On Sept 28 USPS marked it \"Undeliverable as addressed — no such number\" and returned it to Kora Atelier on Oct 6. The buyer emailed on Oct 8 asking where it was, no refund was issued, and they then filed a card chargeback for item not received. The buyer never received the item and the merchant has it back, so this can't be won. Accept the claim and offer to reship once the buyer confirms their address.",
+      "winLikelihood": 3,
+      "confidence": "HIGH",
+      "reasoning": [
+        {
+          "point": "USPS tracking shows the parcel was never delivered. It was marked undeliverable (no such number) in Portland on Sept 28 and delivered back to the sender in Brooklyn on Oct 6.",
+          "refs": [
+            "shipment:SHP-10511"
+          ]
+        },
+        {
+          "point": "No refund has been issued on the order, so we cannot provide PROOF_OF_REFUND, and PROOF_OF_FULFILLMENT would only show a return to sender.",
+          "refs": [
+            "order:KA-10511",
+            "paypal:dispute:PP-R-KHB-10193747"
+          ]
+        },
+        {
+          "point": "Seller Protection does not apply: item-not-received chargebacks filed with the card issuer are excluded. The playbook also says to refund, not fight, when an item is returned to sender.",
+          "refs": [
+            "paypal:seller-protection:PP-R-KHB-10193747"
+          ]
+        },
+        {
+          "point": "The buyer asked about the parcel on Oct 8, two days after it came back, and the record shows no reply. This is a first-time customer with no prior disputes, so it looks like a real failed delivery, not abuse.",
+          "refs": [
+            "msg:MSG-10511-1",
+            "customer:history"
+          ]
+        },
+        {
+          "point": "The address problem (possibly a typo by the buyer at checkout) doesn't change the outcome. The merchant has the wallet back, so it can be restocked and the only loss is shipping.",
+          "refs": [
+            "order:KA-10511",
+            "shipment:SHP-10511"
+          ]
+        }
+      ],
+      "risks": [
+        "Accepting the claim may not reverse the chargeback fee. Fighting would add costs and almost certainly lose.",
+        "If the buyer also gets a refund some other way, make sure no second refund is issued outside this chargeback."
+      ],
+      "exhibits": [
+        {
+          "label": "A",
+          "title": "USPS tracking: undeliverable, returned to sender",
+          "ref": "shipment:SHP-10511",
+          "node": "carrier",
+          "why": "Shows the parcel was never delivered to the buyer and came back to Kora Atelier on Oct 6, 2026."
+        },
+        {
+          "label": "B",
+          "title": "Order KA-10511 with no refunds",
+          "ref": "order:KA-10511",
+          "node": "order",
+          "why": "Confirms the $68 charge and that no refund has been issued yet."
+        },
+        {
+          "label": "C",
+          "title": "Seller Protection check",
+          "ref": "paypal:seller-protection:PP-R-KHB-10193747",
+          "node": "protection",
+          "why": "Card-issuer item-not-received chargebacks are excluded from Seller Protection."
+        }
+      ],
+      "action": {
+        "type": "accept_claim",
+        "amount": 68
+      },
+      "letterOpening": "Kora Atelier accepts this claim and refunds the full $68.00. Order KA-10511 (Bifold Wallet, Black) shipped by USPS Ground Advantage on September 23, 2026, tracking 9400111899223847569021. On September 28 USPS marked the parcel undeliverable as addressed and returned it to our Brooklyn studio on October 6, 2026 (Exhibit A). The buyer did not receive the item and no refund had been issued (Exhibit B), so we are refunding the full amount. We have contacted the buyer to offer to reship to a corrected address.",
+      "buyerMessage": {
+        "language": "en",
+        "text": "Hi Jordan,\n\nI'm sorry we didn't answer your email about your wallet sooner. USPS couldn't deliver the parcel to 77 Ridgewood Ct, Portland, OR 97205. They marked it \"no such number\" and sent it back to our studio on October 6. We've accepted your claim, so the full $68.00 is coming back to your card.\n\nIf you'd still like the Black Bifold Wallet, reply with your correct address and we'll set up a new order and ship it right away.\n\nWarm regards,\nKora Atelier"
+      }
+    }
+  },
+  "refund2": {
+    "disputeId": "PP-R-XTI-10193748",
+    "runId": "run_a960c2d1-70b",
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "startedAt": "2026-10-20T13:52:41.034Z",
+    "finishedAt": "2026-10-20T13:54:04.442Z",
+    "durationMs": 83408,
+    "briefAt": 81403,
+    "claim": {
+      "reason": "CREDIT_NOT_PROCESSED",
+      "stage": "CHARGEBACK",
+      "status": "WAITING_FOR_SELLER_RESPONSE",
+      "reasonCode": "1360",
+      "amount": 180,
+      "currency": "USD",
+      "buyer": "Priya Patel",
+      "item": "Weekend Clutch — Sand",
+      "orderId": "KA-10466",
+      "allowedActions": [
+        "accept_claim",
+        "provide_evidence"
+      ]
+    },
+    "steps": [
+      {
+        "node": "paypal",
+        "tool": "get_paypal_dispute",
+        "arg": "dispute_id: PP-R-XTI-10193748",
+        "at": 46909,
+        "ms": 633,
+        "ok": true,
+        "summary": "credit not processed · chargeback · $180.00 · due in 10d"
+      },
+      {
+        "node": "order",
+        "tool": "lookup_order",
+        "arg": "transaction_id: 1P876401S2873814W",
+        "at": 53199,
+        "ms": 1,
+        "ok": true,
+        "summary": "KA-10466 · Weekend Clutch — Sand · $180.00"
+      },
+      {
+        "node": "customer",
+        "tool": "get_customer_history",
+        "arg": null,
+        "at": 53284,
+        "ms": 0,
+        "ok": true,
+        "summary": "5 order(s) · LTV $905 · 0 prior dispute(s)"
+      },
+      {
+        "node": "policies",
+        "tool": "get_store_policies",
+        "arg": null,
+        "at": 53320,
+        "ms": 1,
+        "ok": true,
+        "summary": "3 policies · accepted at checkout 2026-09-15"
+      },
+      {
+        "node": "carrier",
+        "tool": "get_carrier_tracking",
+        "arg": "order_id: KA-10466",
+        "at": 56331,
+        "ms": 1,
+        "ok": true,
+        "summary": "UPS 1Z84V6A90277390018 · delivered 2026-09-19 · +1 more"
+      },
+      {
+        "node": "inbox",
+        "tool": "get_support_conversation",
+        "arg": "order_id: KA-10466",
+        "at": 56428,
+        "ms": 0,
+        "ok": true,
+        "summary": "3 message(s), last from customer"
+      }
+    ],
+    "brief": {
+      "decision": "REFUND",
+      "headline": "Return received Oct 16, no refund issued yet — accept the $180 chargeback, don't fight",
+      "summary": "Priya Patel returned the Weekend Clutch on a prepaid UPS label we sent her. UPS shows it delivered to the studio on Oct 16, signed by K. Nair. The order shows no refund, so her card issuer opened a \"credit not processed\" chargeback on Oct 20. We have no proof of refund, so this can't be won. Accepting the $180 claim refunds a loyal 5-order customer and avoids paying her twice.",
+      "winLikelihood": 5,
+      "confidence": "HIGH",
+      "reasoning": [
+        {
+          "point": "The buyer asked to return the item on Oct 10, within 30 days of the Sep 19 delivery. The merchant agreed, sent a prepaid label and promised a refund within 3 business days of the return arriving.",
+          "refs": [
+            "msg:MSG-10466-1",
+            "msg:MSG-10466-2",
+            "policy:returns",
+            "shipment:SHP-10466"
+          ]
+        },
+        {
+          "point": "UPS return tracking shows the parcel delivered to Kora Atelier on 2026-10-16, received by K. NAIR.",
+          "refs": [
+            "shipment:RTN-10466"
+          ]
+        },
+        {
+          "point": "The order record shows no refunds. The buyer followed up on Oct 18 and got no reply. The chargeback was filed on Oct 20.",
+          "refs": [
+            "order:KA-10466",
+            "msg:MSG-10466-3",
+            "paypal:dispute:PP-R-XTI-10193748"
+          ]
+        },
+        {
+          "point": "PayPal wants PROOF_OF_REFUND for a credit-not-processed claim, and we can't provide it. The 3-business-day window runs to about Oct 21, so the buyer filed slightly early. Even so, the merchant owes this refund, and fighting would only add fees and lose the customer.",
+          "refs": [
+            "paypal:dispute:PP-R-XTI-10193748",
+            "policy:returns"
+          ]
+        },
+        {
+          "point": "This is a good long-term customer: 5 orders, $905 lifetime value and no earlier disputes.",
+          "refs": [
+            "customer:history"
+          ]
+        }
+      ],
+      "risks": [
+        "Do not also refund the capture by hand in PayPal or the shop. That would pay the buyer twice on top of the chargeback.",
+        "Nobody has inspected the returned clutch yet (no QC photo). If it comes back damaged or used, that is a separate matter and does not change this chargeback."
+      ],
+      "exhibits": [
+        {
+          "label": "A",
+          "title": "UPS return delivered to studio Oct 16",
+          "ref": "shipment:RTN-10466",
+          "node": "carrier",
+          "why": "Shows the merchant received the returned clutch, so a refund is owed."
+        },
+        {
+          "label": "B",
+          "title": "Return approval and refund promise",
+          "ref": "msg:MSG-10466-2",
+          "node": "inbox",
+          "why": "Merchant sent a prepaid label and promised a refund within 3 business days of receipt."
+        },
+        {
+          "label": "C",
+          "title": "Returns policy accepted at checkout",
+          "ref": "policy:returns",
+          "node": "policies",
+          "why": "30-day full refund for unused items, refunded within 3 business days of arrival."
+        },
+        {
+          "label": "D",
+          "title": "Order record: no refunds issued",
+          "ref": "order:KA-10466",
+          "node": "order",
+          "why": "Confirms no credit was processed before the chargeback."
+        }
+      ],
+      "action": {
+        "type": "accept_claim",
+        "amount": 180
+      },
+      "letterOpening": "Kora Atelier accepts this claim and is refunding the full USD 180.00. On 2026-10-10 the customer asked to return order KA-10466 under our 30-day returns policy (Exhibit C). We approved the return the same day and emailed a prepaid UPS label (Exhibit B). UPS delivered the return to our Brooklyn studio on 2026-10-16 (Exhibit A, tracking 1Z84V6A99013377240). Our policy promises a refund within 3 business days of the return arriving. No refund had been processed when this chargeback was filed (Exhibit D). We are accepting the claim so the cardholder gets the full amount back, and we will not issue a separate refund on the capture.",
+      "buyerMessage": {
+        "language": "en",
+        "text": "Hi Priya,\n\nThank you for sending the Weekend Clutch back, and I'm sorry you had to chase us. UPS delivered it to our studio on October 16. Your bank opened a dispute about the refund, and we've accepted it, so the full $180.00 is coming back to your card. You don't need to do anything else, and please don't expect a second refund from us directly.\n\nWe're sorry the clutch was too small for your phone. If you'd like help finding a larger piece, just reply to this email.\n\nWarmly,\nKora Atelier"
+      }
+    }
+  }
+}

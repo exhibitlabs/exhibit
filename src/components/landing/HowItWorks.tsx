@@ -1,132 +1,134 @@
-"use client";
-
 import { clsx } from "clsx";
-import { BookCheck, Check, FileSearch, Gavel, Webhook } from "lucide-react";
-import { useState } from "react";
+import { FileText } from "lucide-react";
+import type { ReactNode } from "react";
+import { RUNS } from "./hero-data";
+import { Container, Heading, Panel, Provenance, Section, utcDateTime } from "./Primitives";
+import proof from "./records/proof.json";
 
-export type HowData = {
-  disputeId: string;
-  tools: { name: string; label: string }[];
-  headline: string;
-  likelihood: number;
-  exhibits: { label: string; title: string }[];
-  letter: string;
-};
+const run = RUNS.fight;
+const filings = proof.writes.filter((w) => w.disputeId === run.disputeId && w.status < 400);
+const dispute = proof.disputes.find((d) => d.id === run.disputeId);
 
-const STEPS = [
-  { icon: Webhook, title: "A dispute lands", body: "PayPal's CUSTOMER.DISPUTE.CREATED webhook arrives. Exhibit verifies the signature with PayPal and starts immediately." },
-  { icon: FileSearch, title: "Exhibit investigates", body: "Nine tools pull the live dispute, the order and listing, carrier scans, the buyer's history and messages, checkout signals and PayPal's Seller Protection rules." },
-  { icon: BookCheck, title: "It builds the case", body: "A decision with a win likelihood, cited reasoning, a letter for PayPal's reviewer and a PDF of labelled exhibits rendered from your records." },
-  { icon: Gavel, title: "It files with PayPal", body: "One click, or Autopilot within your limits, calls the right PayPal API: evidence, supporting info, an offer, a refund or a message." },
-];
-
-function Code({ children }: { children: React.ReactNode }) {
-  return <pre className="num overflow-x-auto whitespace-pre rounded-xl border border-line bg-sunken p-5 text-[12.5px] leading-[1.7] text-ink-2">{children}</pre>;
-}
-
-function Panel({ i, d }: { i: number; d: HowData }) {
-  if (i === 0)
-    return (
-      <div className="space-y-4">
-        <Code>{`POST /api/webhooks/paypal
-{
-  "event_type": "CUSTOMER.DISPUTE.CREATED",
-  "resource": {
-    "dispute_id": "${d.disputeId}",
-    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
-    "dispute_amount": { "currency_code": "USD", "value": "284.00" }
-  }
-}`}</Code>
-        <div className="flex items-center gap-2 text-[13px] text-muted">
-          <Check className="size-4 text-green" /> Verified with <span className="num text-[12px] text-ink-2">POST /v1/notifications/verify-webhook-signature</span>
-        </div>
-      </div>
-    );
-  if (i === 1)
-    return (
-      <ul className="grid gap-2 sm:grid-cols-2">
-        {d.tools.map((t, k) => (
-          <li key={t.name} className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3">
-            <span className="num text-[11px] text-faint">{String(k + 1).padStart(2, "0")}</span>
-            <div className="min-w-0">
-              <div className="text-[13.5px] font-medium">{t.label}</div>
-              <div className="num truncate text-[11px] text-faint">{t.name}</div>
-            </div>
-          </li>
-        ))}
-      </ul>
-    );
-  if (i === 2)
-    return (
-      <div className="rounded-xl border border-line bg-white p-5">
-        <div className="flex items-center gap-2">
-          <span className="rounded-md bg-ink px-2 py-0.5 text-[12px] font-medium text-white">Fight</span>
-          <span className="num text-[12px] text-muted">{d.likelihood}% win likelihood</span>
-        </div>
-        <div className="mt-3 text-[19px] font-semibold leading-snug tracking-[-0.02em]">{d.headline}</div>
-        <ul className="mt-4 space-y-2">
-          {d.exhibits.map((e) => (
-            <li key={e.label} className="flex items-start gap-2.5 text-[13px]">
-              <span className="flex size-5 shrink-0 items-center justify-center rounded bg-ink text-[11px] font-semibold text-white">{e.label}</span>
-              {e.title}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 line-clamp-3 border-t border-line pt-4 text-[13px] leading-relaxed text-muted">{d.letter}</p>
-      </div>
-    );
+function Step({ n, title, body, children, className }: { n: string; title: string; body: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <Code>{`POST /v1/customer/disputes/${d.disputeId}/provide-evidence
-Content-Type: multipart/form-data
-
-input = {
-  "evidences": [{
-    "evidence_type": "PROOF_OF_FULFILLMENT",
-    "evidence_info": { "tracking_info": [{
-      "carrier_name": "UPS", "tracking_number": "1Z84V6A90392847516"
-    }]},
-    "notes": "Kora Atelier shipped and delivered this order…"
-  }]
-}
-evidence-file = exhibit-evidence-packet.pdf
-
-→ 200 OK`}</Code>
+    <li className={clsx("flex min-w-0 flex-col", className)}>
+      <div className="flex items-baseline gap-3">
+        <span className="num text-[12px] text-muted">{n}</span>
+        <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-ink">{title}</h3>
+      </div>
+      <p className="mt-2 max-w-[480px] text-[14.5px] leading-relaxed text-muted">{body}</p>
+      <div className="mt-5 flex-1">{children}</div>
+    </li>
   );
 }
 
-export function HowItWorks({ data }: { data: HowData }) {
-  const [active, setActive] = useState(0);
+function Field({ k, v, mono = true }: { k: string; v: ReactNode; mono?: boolean }) {
   return (
-    <div className="mt-12 grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-10">
-      <div role="tablist" aria-label="How Exhibit works" className="flex flex-col gap-2">
-        {STEPS.map((s, i) => (
-          <button
-            key={s.title}
-            type="button"
-            role="tab"
-            aria-selected={active === i}
-            onClick={() => setActive(i)}
-            className={clsx(
-              "group rounded-2xl border p-5 text-left transition-colors",
-              active === i ? "border-ink bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]" : "border-line bg-white hover:border-line-strong hover:bg-[#fafafa]",
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <span className={clsx("flex size-8 items-center justify-center rounded-lg", active === i ? "bg-ink text-white" : "bg-sunken text-ink-2")}>
-                <s.icon className="size-4" strokeWidth={1.9} />
-              </span>
-              <span className="num text-[11px] text-faint">0{i + 1}</span>
-              <span className="text-[15.5px] font-semibold tracking-[-0.01em]">{s.title}</span>
-            </div>
-            <p className={clsx("mt-3 text-[14px] leading-relaxed text-muted", active === i ? "block" : "hidden lg:block")}>{s.body}</p>
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel" className="min-w-0 self-start rounded-2xl border border-line bg-[#fafafa] p-4 md:p-6 lg:sticky lg:top-24">
-        <div key={active} className="motion-safe:[animation:landing-rise_0.45s_ease-out_both]">
-          <Panel i={active} d={data} />
-        </div>
-      </div>
+    <div className="flex items-baseline justify-between gap-4 border-b border-line py-2 last:border-0">
+      <dt className="shrink-0 text-[12.5px] text-muted">{k}</dt>
+      <dd className={clsx("min-w-0 truncate text-right text-[12.5px] text-ink", mono && "num")}>{v}</dd>
     </div>
+  );
+}
+
+const REF_TONE: Record<string, string> = { shipment: "Carrier", order: "Order", risk: "Checkout", msg: "Message", conversation: "Messages", customer: "Customer", paypal: "PayPal", policy: "Policy", listing: "Listing" };
+
+export function HowItWorks() {
+  const reasoning = [run.brief.reasoning[1], run.brief.reasoning[2], run.brief.reasoning[3]];
+  return (
+    <Section id="how" label="How it works" className="border-t border-line bg-[#fafafa]">
+      <Container>
+        <Heading
+          kicker="How it works"
+          title="One real case, start to finish."
+          rest="On the PayPal sandbox."
+          lede={`${run.claim.buyer}'s card issuer says he never authorized a $${run.claim.amount} briefcase. Here is what Exhibit did with the chargeback, from the first API call to the filing.`}
+        />
+
+        <ol className="mt-14 grid grid-cols-1 gap-x-10 gap-y-14 md:grid-cols-2">
+          <Step n="01" title="PayPal opens a chargeback" body="Exhibit pulls the case from the Disputes API, including the actions PayPal allows on it right now. It will only ever propose one of those.">
+            <Panel>
+              <div className="flex items-center justify-between border-b border-line px-4 py-3">
+                <span className="text-[12.5px] font-medium text-ink">PayPal dispute</span>
+                <span className="num text-[12px] text-muted">{run.disputeId}</span>
+              </div>
+              <dl className="px-4 py-1.5">
+                <Field k="Reason" v={`${run.claim.reason} · code ${run.claim.reasonCode}`} />
+                <Field k="Stage" v={run.claim.stage} />
+                <Field k="Amount" v={`$${run.claim.amount.toFixed(2)} ${run.claim.currency}`} />
+                <Field k="Status" v={run.claim.status} />
+                <Field k="Seller can" v={<span className="rounded bg-sunken px-1.5 py-0.5">provide_supporting_info</span>} />
+              </dl>
+            </Panel>
+          </Step>
+
+          <Step n="02" title="It checks every claim against a record" body="Each point in the brief cites the records it rests on. A brief that cites anything its tools never returned is rejected, and the agent has to fix it.">
+            <Panel className="divide-y divide-line">
+              {reasoning.map((r) => (
+                <div key={r.point} className="px-4 py-3.5">
+                  <p className="text-[13px] leading-relaxed text-ink-2">{r.point}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {r.refs.map((ref) => (
+                      <span key={ref} className="num inline-flex items-center gap-1 rounded-md border border-line bg-[#fafafa] px-1.5 py-0.5 text-[11px] text-ink-2">
+                        <span className="text-muted">{REF_TONE[ref.split(":")[0]] ?? "Record"}</span>
+                        {ref}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </Panel>
+          </Step>
+
+          <Step n="03" title="It builds the evidence packet" body="A letter for PayPal's reviewer and a PDF of lettered exhibits. Exhibits are rendered from your records, never from the model's text.">
+            <Panel className="p-5">
+              <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+                <FileText className="size-3.5" aria-hidden /> Response to PayPal · {run.disputeId}
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-ink">{run.brief.letterOpening}</p>
+              <ul className="mt-4 grid gap-1.5 border-t border-line pt-4">
+                {run.brief.exhibits.map((x) => (
+                  <li key={x.label} className="flex min-w-0 items-center gap-2.5 text-[12.5px]">
+                    <span className="num flex size-[18px] shrink-0 items-center justify-center rounded bg-ink text-[10px] font-semibold text-white">{x.label}</span>
+                    <span className="truncate text-ink-2">{x.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          </Step>
+
+          <Step n="04" title="You approve. It files." body="Nothing reaches PayPal until you approve. Then Exhibit files through the API and keeps the status, latency and PayPal debug id of every call.">
+            <Panel>
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-3">
+                <span className="text-[12.5px] font-medium text-ink">Filed on the sandbox</span>
+                <span className="flex items-center gap-1.5 text-[12px] text-muted">
+                  <span className="size-1.5 rounded-full bg-green" aria-hidden /> PayPal status: {dispute?.status ?? "UNDER_REVIEW"}
+                </span>
+              </div>
+              <ul className="divide-y divide-line">
+                {filings.map((f) => (
+                  <li key={f.debugId} className="px-4 py-3">
+                    <div className="num flex items-center gap-2 text-[12px]">
+                      <span className="font-medium text-ink">POST</span>
+                      <span className="min-w-0 truncate text-ink-2">…/disputes/{"{id}"}/{f.path.split("/").at(-1)}</span>
+                      <span className="ml-auto shrink-0 rounded bg-green-soft px-1.5 py-0.5 font-medium text-green">{f.status}</span>
+                    </div>
+                    <div className="num mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-muted">
+                      <span>{utcDateTime(f.at)}</span>
+                      <span>{f.ms.toLocaleString("en-US")} ms</span>
+                      <span>debug id {f.debugId}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          </Step>
+        </ol>
+
+        <Provenance className="mt-12">
+          Every value above comes from Exhibit&apos;s records for dispute {run.disputeId}. The brief is from its latest run, on Oct 21; the filings on Oct 20 came from earlier runs on the same case. Store, carrier and buyer records belong to Kora Atelier, a demo merchant.
+        </Provenance>
+      </Container>
+    </Section>
   );
 }

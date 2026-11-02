@@ -1,0 +1,89 @@
+{
+  "question": "How much is at stake in my PayPal disputes, and what does Exhibit recommend for each?",
+  "capturedAt": "2026-11-02T22:43:58Z",
+  "provider": "claude-code",
+  "model": "claude-opus-5-5",
+  "mode": "sandbox",
+  "ms": 16128,
+  "steps": [
+    {
+      "name": "list_disputes",
+      "label": "Querying disputes",
+      "summary": "Queried 3 open disputes · sorted by deadline",
+      "ms": 5
+    },
+    {
+      "name": "dispute_stats",
+      "label": "Aggregating the dispute book",
+      "summary": "Grouped 3 open disputes by decision",
+      "ms": 0
+    }
+  ],
+  "answer": {
+    "text": "**$668 is at stake across 3 open PayPal disputes.** All three are chargebacks PayPal is now reviewing, and none needs anything from you right now.\n- Daniel Reyes, $420, Unauthorized: **FIGHT** (88% win likelihood, about $369.60 expected back). He signed for it as D REYES, the payment was 3DS-authenticated, and he praised the briefcase in chat.\n- Priya Patel, $180, Credit not processed: **REFUND**. You received her return on Oct 16 but never refunded her, so accept the chargeback.\n- Jordan Kim, $68, Item not received: **REFUND**. The wallet came back to you as undeliverable and was never refunded, so accept the chargeback.\nOnly the Reyes case is likely to bring money back. PayPal makes the final call on all three.",
+    "chart": {
+      "type": "bar",
+      "title": "Open disputes by Exhibit's call ($)",
+      "unit": "usd",
+      "labels": [
+        "FIGHT",
+        "REFUND"
+      ],
+      "series": [
+        {
+          "name": "Amount at stake",
+          "values": [
+            420,
+            248
+          ],
+          "tone": "ink"
+        },
+        {
+          "name": "Expected recovery",
+          "values": [
+            369.6,
+            0
+          ],
+          "tone": "green"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "id": "PP-R-EGO-10193744",
+        "buyer": "Daniel Reyes",
+        "reason": "Unauthorized",
+        "amount": 420,
+        "currency": "USD",
+        "status": "PayPal reviewing",
+        "decision": "FIGHT",
+        "note": "$420 fight, 88% win likelihood"
+      },
+      {
+        "id": "PP-R-XTI-10193748",
+        "buyer": "Priya Patel",
+        "reason": "Credit not processed",
+        "amount": 180,
+        "currency": "USD",
+        "status": "PayPal reviewing",
+        "decision": "REFUND",
+        "note": "$180 refund, return not refunded"
+      },
+      {
+        "id": "PP-R-KHB-10193747",
+        "buyer": "Jordan Kim",
+        "reason": "Item not received",
+        "amount": 68,
+        "currency": "USD",
+        "status": "PayPal reviewing",
+        "decision": "REFUND",
+        "note": "$68 refund, returned undeliverable"
+      }
+    ],
+    "followups": [
+      "Which recent orders are likely to become disputes?",
+      "What's my win rate this quarter?",
+      "How can I avoid unrefunded returns turning into chargebacks?"
+    ]
+  }
+}

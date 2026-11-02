@@ -1,0 +1,53 @@
+{
+  "source": "replays/*.json: recorded Claude runs on the demo merchant's eight open cases",
+  "cases": [
+    {
+      "scenario": "credit-not-processed",
+      "decision": "REFUND",
+      "winLikelihood": 3,
+      "headline": "Return arrived Oct 16 and no refund issued yet — accept and refund $180"
+    },
+    {
+      "scenario": "duplicate-two-orders",
+      "decision": "FIGHT",
+      "winLikelihood": 78,
+      "headline": "Not a duplicate: second belt was a gift to his brother in Denver, delivered — fight"
+    },
+    {
+      "scenario": "inquiry-packstation-de",
+      "decision": "MESSAGE_BUYER",
+      "winLikelihood": 80,
+      "headline": "Waiting in Packstation 128 for pickup. Tell the buyer in German before the 7-day hold runs out"
+    },
+    {
+      "scenario": "inr-delivered-signed",
+      "decision": "FIGHT",
+      "winLikelihood": 88,
+      "headline": "Signed for by M. HALE at the matching Austin address — fight with UPS proof of delivery"
+    },
+    {
+      "scenario": "inr-returned-to-sender",
+      "decision": "REFUND",
+      "winLikelihood": 5,
+      "headline": "USPS returned the wallet to us undelivered. Refund the $68; the wallet is back in stock"
+    },
+    {
+      "scenario": "snad-color",
+      "decision": "OFFER",
+      "winLikelihood": 35,
+      "headline": "Colour complaint, item as listed. Offer a full refund on return, as the 30-day policy allows"
+    },
+    {
+      "scenario": "snad-damaged-ring",
+      "decision": "OFFER",
+      "winLikelihood": 20,
+      "headline": "Strap ring cracked in transit — offer a free replacement, don't fight"
+    },
+    {
+      "scenario": "unauth-friendly-fraud",
+      "decision": "FIGHT",
+      "winLikelihood": 88,
+      "headline": "Signed for by D REYES, 3DS-authenticated, buyer chatted about the item — fight"
+    }
+  ]
+}

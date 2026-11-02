@@ -1,0 +1,639 @@
+{
+  "source": "Demo merchant (Kora Atelier), PayPal simulator",
+  "save": {
+    "orderId": "KA-10561",
+    "buyer": "Lena Hoffmann",
+    "country": "DE",
+    "item": "Travel Duffle — Chestnut",
+    "amount": 379,
+    "currency": "USD",
+    "funding": "PAYPAL",
+    "placedAt": "2026-10-11T15:12:00Z",
+    "shipment": {
+      "carrier": "DHL Express",
+      "tracking": "4518230917",
+      "shippedAt": "2026-10-12T08:00:00Z",
+      "status": "IN_TRANSIT",
+      "onPayPal": true,
+      "lastScan": {
+        "at": "2026-10-15T14:51:00Z",
+        "location": "Leipzig Hub, DE",
+        "description": "Customs status updated: clearance processing"
+      },
+      "scans": 4
+    },
+    "risk": {
+      "avs": "Y",
+      "cvv": "M",
+      "ipCity": "Berlin",
+      "ipCountry": "DE",
+      "ipToShippingKm": 6
+    },
+    "history": {
+      "orders": 1,
+      "priorDisputes": 0
+    },
+    "buyerMessage": {
+      "at": "2026-10-19T07:14:00Z",
+      "language": "de",
+      "subject": "Bestellung KA-10561",
+      "body": "Hallo, wo ist meine Bestellung? Die Sendungsverfolgung zeigt seit fast einer Woche nichts Neues, nur „Verzollung“. Die Tasche war ein Geschenk für Samstag. Wenn ich bis Ende der Woche nichts höre, eröffne ich einen Konflikt bei PayPal. Viele Grüße, Lena Hoffmann"
+    },
+    "fix": {
+      "at": "2026-10-21T00:45:28.887Z",
+      "action": "message_buyer",
+      "before": {
+        "score": 84,
+        "signals": [
+          "buyer_waiting",
+          "tracking_stalled"
+        ]
+      },
+      "after": {
+        "score": 0,
+        "signals": []
+      },
+      "saved": 394,
+      "message": {
+        "language": "de",
+        "subject": "Neuigkeiten zu Ihrer Bestellung KA-10561",
+        "body": "Hallo Lena,\n\ndanke für Ihre Nachricht, und entschuldigen Sie bitte die Wartezeit. Ihre Bestellung (Travel Duffle — Chestnut) hat unser Atelier in Brooklyn am 12. Oktober mit DHL Express verlassen (Sendungsnummer 4518230917). Der letzte Scan stammt vom 15. Oktober aus Leipzig Hub, DE, seitdem gibt es keine Bewegung. Wir haben deshalb heute einen Nachforschungsauftrag bei DHL Express eröffnet. Die Sendung liegt in der Zollabfertigung; das dauert manchmal einige Tage länger.\n\nWir melden uns innerhalb von 48 Stunden mit dem Ergebnis. Ist das Paket bis zum 26. Oktober nicht unterwegs, schicken wir Ihnen sofort Ersatz per Express oder erstatten den vollen Betrag, ganz wie Sie möchten. Sie müssen dafür nichts weiter tun.\n\nHerzliche Grüße\nKora Atelier · studio@koraatelier.example"
+      }
+    }
+  },
+  "radar": {
+    "capturedAt": "2026-11-02T22:32:36.621Z",
+    "totals": {
+      "watched": 22,
+      "atRisk": 17,
+      "exposure": 4973,
+      "expectedDisputes": 11.66,
+      "high": 12,
+      "elevated": 3,
+      "watch": 2,
+      "prevented": 1,
+      "saved": 394,
+      "feesAvoided": 15
+    },
+    "bySignal": [
+      {
+        "kind": "tracking_stalled",
+        "label": "Tracking stalled",
+        "reason": "Item not received",
+        "count": 9,
+        "exposure": 2452
+      },
+      {
+        "kind": "tracking_not_on_paypal",
+        "label": "Tracking not on PayPal",
+        "reason": "Item not received",
+        "count": 7,
+        "exposure": 1756
+      },
+      {
+        "kind": "weak_checkout",
+        "label": "Weak checkout",
+        "reason": "Unauthorized",
+        "count": 1,
+        "exposure": 860
+      },
+      {
+        "kind": "buyer_waiting",
+        "label": "Buyer waiting",
+        "reason": "Item not received",
+        "count": 3,
+        "exposure": 745
+      },
+      {
+        "kind": "unsigned_high_value",
+        "label": "No signature",
+        "reason": "Item not received",
+        "count": 1,
+        "exposure": 370
+      },
+      {
+        "kind": "address_mismatch",
+        "label": "Address mismatch",
+        "reason": "Item not received",
+        "count": 1,
+        "exposure": 299
+      },
+      {
+        "kind": "refund_overdue",
+        "label": "Refund overdue",
+        "reason": "Credit not processed",
+        "count": 1,
+        "exposure": 299
+      }
+    ],
+    "orders": [
+      {
+        "id": "KA-10562",
+        "buyer": "Priya Nair",
+        "country": "US",
+        "item": "The Weekender — Cognac",
+        "amount": 284,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 299,
+        "status": "at_risk",
+        "band": "high",
+        "score": 98,
+        "signal": {
+          "kind": "refund_overdue",
+          "label": "Refund overdue",
+          "detail": "The return reached the studio 19 days ago and no refund has gone out; the returns policy promises one within 3 business days.",
+          "reason": "Credit not processed"
+        },
+        "fix": {
+          "action": "refund",
+          "label": "Refund $284.00",
+          "channel": "paypal",
+          "api": "POST /v2/payments/captures/{id}/refund"
+        }
+      },
+      {
+        "id": "KA-10568",
+        "buyer": "Thomas Wright",
+        "country": "GB",
+        "item": "Weekend Clutch — Sand",
+        "amount": 204,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 219,
+        "status": "at_risk",
+        "band": "high",
+        "score": 90,
+        "signal": {
+          "kind": "buyer_waiting",
+          "label": "Buyer waiting",
+          "detail": "Thomas is unhappy with the item; unanswered for 14 days.",
+          "reason": "Not as described"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10563",
+        "buyer": "Jordan Reyes",
+        "country": "US",
+        "item": "2 × Atelier Briefcase — Espresso",
+        "amount": 840,
+        "funding": "CARD",
+        "fee": 20,
+        "exposure": 860,
+        "status": "at_risk",
+        "band": "high",
+        "score": 85,
+        "signal": {
+          "kind": "weak_checkout",
+          "label": "Weak checkout",
+          "detail": "$840 first order, not shipped yet: AVS mismatch, no 3-D Secure, IP in Lagos, 9,120 km from the shipping address, email created 2 days ago, 3 orders in 24h, billing and shipping addresses differ.",
+          "reason": "Unauthorized"
+        },
+        "fix": {
+          "action": "hold_and_verify",
+          "label": "Hold & verify buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10565",
+        "buyer": "Ryan Patel",
+        "country": "US",
+        "item": "Messenger Satchel — Olive",
+        "amount": 212,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 227,
+        "status": "at_risk",
+        "band": "high",
+        "score": 85,
+        "signal": {
+          "kind": "buyer_waiting",
+          "label": "Buyer waiting",
+          "detail": "Ryan mentions opening a dispute; unanswered for 14 days.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10564",
+        "buyer": "Marcus Bell",
+        "country": "US",
+        "item": "Atelier Briefcase — Espresso",
+        "amount": 420,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 435,
+        "status": "at_risk",
+        "band": "high",
+        "score": 82,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No UPS scan for 13 days, and the promised delivery date (Oct 25) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10546",
+        "buyer": "Chloé Martin",
+        "country": "FR",
+        "item": "Travel Duffle — Chestnut",
+        "amount": 379,
+        "funding": "CARD",
+        "fee": 20,
+        "exposure": 399,
+        "status": "at_risk",
+        "band": "high",
+        "score": 82,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No DHL Express scan for 13 days, and the promised delivery date (Oct 27) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10548",
+        "buyer": "Emma Johnson",
+        "country": "US",
+        "item": "The Weekender — Cognac",
+        "amount": 284,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 299,
+        "status": "at_risk",
+        "band": "high",
+        "score": 82,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No USPS scan for 15 days, and the promised delivery date (Oct 26) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10541",
+        "buyer": "Noah Williams",
+        "country": "US",
+        "item": "Market Tote — Tan",
+        "amount": 142,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 157,
+        "status": "at_risk",
+        "band": "high",
+        "score": 82,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No UPS scan for 14 days, and the promised delivery date (Oct 27) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10547",
+        "buyer": "Lucas Meyer",
+        "country": "DE",
+        "item": "Atelier Briefcase — Espresso",
+        "amount": 444,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 459,
+        "status": "at_risk",
+        "band": "high",
+        "score": 70,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No DHL Express scan for 14 days, and the promised delivery date (Oct 26) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10540",
+        "buyer": "Ava Chen",
+        "country": "US",
+        "item": "The Weekender — Cognac",
+        "amount": 284,
+        "funding": "CARD",
+        "fee": 20,
+        "exposure": 304,
+        "status": "at_risk",
+        "band": "high",
+        "score": 70,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No USPS scan for 13 days, and the promised delivery date (Oct 28) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10567",
+        "buyer": "Olivia Brooks",
+        "country": "US",
+        "item": "Market Tote — Tan",
+        "amount": 142,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 157,
+        "status": "at_risk",
+        "band": "high",
+        "score": 70,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No USPS scan for 20 days, and the promised delivery date (Oct 16) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10542",
+        "buyer": "Mia Rossi",
+        "country": "IT",
+        "item": "Bifold Wallet — Black",
+        "amount": 92,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 107,
+        "status": "at_risk",
+        "band": "high",
+        "score": 70,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "No DHL Express scan for 15 days, and the promised delivery date (Oct 25) has passed.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10569",
+        "buyer": "Sophie Laurent",
+        "country": "FR",
+        "item": "Classic Belt — Cognac",
+        "amount": 120,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 135,
+        "status": "at_risk",
+        "band": "elevated",
+        "score": 55,
+        "signal": {
+          "kind": "tracking_stalled",
+          "label": "Tracking stalled",
+          "detail": "DHL Express reported a delivery exception 15 days ago in Lyon, FR.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10566",
+        "buyer": "Hannah Kim",
+        "country": "US",
+        "item": "The Weekender — Cognac",
+        "amount": 284,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 299,
+        "status": "at_risk",
+        "band": "elevated",
+        "score": 45,
+        "signal": {
+          "kind": "address_mismatch",
+          "label": "Address mismatch",
+          "detail": "Delivered to 1600 Champa St, Denver, not the PayPal transaction address (2245 Lawrence St, Apt 5, Denver). PayPal Seller Protection requires delivery to the transaction address.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10560",
+        "buyer": "Daniel Okafor",
+        "country": "US",
+        "item": "Travel Duffle — Chestnut",
+        "amount": 355,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 370,
+        "status": "at_risk",
+        "band": "elevated",
+        "score": 40,
+        "signal": {
+          "kind": "unsigned_high_value",
+          "label": "No signature",
+          "detail": "$355 delivered 13 days ago with no signature, though the shipping policy promises signature confirmation over $250.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "message_buyer",
+          "label": "Message buyer",
+          "channel": "inbox",
+          "api": null
+        }
+      },
+      {
+        "id": "KA-10543",
+        "buyer": "Liam O'Connor",
+        "country": "IE",
+        "item": "Classic Belt — Cognac",
+        "amount": 120,
+        "funding": "CARD",
+        "fee": 20,
+        "exposure": 140,
+        "status": "at_risk",
+        "band": "watch",
+        "score": 30,
+        "signal": {
+          "kind": "tracking_not_on_paypal",
+          "label": "Tracking not on PayPal",
+          "detail": "DHL Express 5500073801 shipped 16 days ago and PayPal has never seen it.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10550",
+        "buyer": "Zoe Ahmed",
+        "country": "GB",
+        "item": "Bifold Wallet — Black",
+        "amount": 92,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 107,
+        "status": "at_risk",
+        "band": "watch",
+        "score": 30,
+        "signal": {
+          "kind": "tracking_not_on_paypal",
+          "label": "Tracking not on PayPal",
+          "detail": "DHL Express 5500073850 shipped 17 days ago and PayPal has never seen it.",
+          "reason": "Item not received"
+        },
+        "fix": {
+          "action": "push_tracking",
+          "label": "Push tracking to PayPal",
+          "channel": "paypal",
+          "api": "POST /v2/checkout/orders/{id}/track"
+        }
+      },
+      {
+        "id": "KA-10561",
+        "buyer": "Lena Hoffmann",
+        "country": "DE",
+        "item": "Travel Duffle — Chestnut",
+        "amount": 379,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 394,
+        "status": "prevented",
+        "band": "clear",
+        "score": 0,
+        "signal": null,
+        "fix": null
+      },
+      {
+        "id": "KA-10544",
+        "buyer": "Sofia Garcia",
+        "country": "US",
+        "item": "Messenger Satchel — Olive",
+        "amount": 212,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 227,
+        "status": "clear",
+        "band": "clear",
+        "score": 0,
+        "signal": null,
+        "fix": null
+      },
+      {
+        "id": "KA-10545",
+        "buyer": "Ethan Wright",
+        "country": "US",
+        "item": "Weekend Clutch — Sand",
+        "amount": 180,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 195,
+        "status": "clear",
+        "band": "clear",
+        "score": 0,
+        "signal": null,
+        "fix": null
+      },
+      {
+        "id": "KA-10549",
+        "buyer": "Kai Tanaka",
+        "country": "US",
+        "item": "Market Tote — Tan",
+        "amount": 142,
+        "funding": "CARD",
+        "fee": 20,
+        "exposure": 162,
+        "status": "clear",
+        "band": "clear",
+        "score": 0,
+        "signal": null,
+        "fix": null
+      },
+      {
+        "id": "KA-10551",
+        "buyer": "Ben Carter",
+        "country": "US",
+        "item": "Classic Belt — Cognac",
+        "amount": 96,
+        "funding": "PAYPAL",
+        "fee": 15,
+        "exposure": 111,
+        "status": "clear",
+        "band": "clear",
+        "score": 0,
+        "signal": null,
+        "fix": null
+      }
+    ],
+    "fee": {
+      "PAYPAL": 15,
+      "CARD": 20,
+      "source": "https://www.paypal.com/us/webapps/mpp/merchant-fees",
+      "retrieved": "2026-10-21",
+      "note": "Standard Dispute Fee $15.00 for PayPal checkout transactions; $20.00 chargeback fee for card transactions. The $30 High Volume fee is not modelled."
+    }
+  }
+}
