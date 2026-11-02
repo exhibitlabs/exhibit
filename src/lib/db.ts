@@ -4,6 +4,16 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { dataDir, paypalMode } from "./config";
 
+/** Requests from external AI agents (MCP) waiting for the merchant; see approvals.ts. */
+export const APPROVALS_SCHEMA = `
+CREATE TABLE IF NOT EXISTS approvals (
+  id TEXT PRIMARY KEY, kind TEXT NOT NULL, target TEXT NOT NULL, action TEXT NOT NULL, title TEXT NOT NULL,
+  detail TEXT NOT NULL, amount REAL, currency TEXT, moves_money INTEGER NOT NULL DEFAULT 0, client TEXT NOT NULL,
+  note TEXT, status TEXT NOT NULL, run_id TEXT, created_at TEXT NOT NULL, decided_at TEXT, decided_by TEXT, result TEXT
+);
+CREATE INDEX IF NOT EXISTS approvals_by_target ON approvals (target, status);
+`;
+
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS docs (
@@ -25,7 +35,7 @@ CREATE TABLE IF NOT EXISTS activity (
   dispute_id TEXT, message TEXT NOT NULL, meta TEXT
 );
 CREATE INDEX IF NOT EXISTS activity_by_dispute ON activity (dispute_id, id);
-`;
+${APPROVALS_SCHEMA}`;
 
 const globalForDb = globalThis as unknown as { __exhibitDb?: Map<string, DatabaseSync> };
 
@@ -104,4 +114,5 @@ export function listActivity(opts: { disputeId?: string; kind?: string; limit?: 
 export function resetDatabase() {
   const conn = db();
   conn.exec("DELETE FROM kv; DELETE FROM docs; DELETE FROM runs; DELETE FROM actions; DELETE FROM activity;");
+  conn.exec(`${APPROVALS_SCHEMA} DELETE FROM approvals;`);
 }

@@ -4,8 +4,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 /** Streams the agent run as server-sent events. */
-export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
+  const trigger = new URL(req.url).searchParams.get("trigger") === "agent" ? "agent" : "manual";
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
@@ -15,7 +16,7 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
       };
       const ping = setInterval(() => !closed && controller.enqueue(encoder.encode(`: ping\n\n`)), 15000);
-      runAgent(id, send, { trigger: "manual" }).finally(() => {
+      runAgent(id, send, { trigger }).finally(() => {
         clearInterval(ping);
         if (!closed) {
           closed = true;

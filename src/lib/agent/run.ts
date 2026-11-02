@@ -20,7 +20,10 @@ function append(events: RunEvent[], e: RunEvent) {
   else events.push(structuredClone(e));
 }
 
-const running = new Map<string, Promise<void>>();
+// Shared through globalThis: in development the API routes and pages can load separate copies of
+// this module, and a case page opened mid-run (after a webhook, say) must still see the run.
+const g = globalThis as typeof globalThis & { __exhibitRuns?: Map<string, Promise<void>> };
+const running = (g.__exhibitRuns ??= new Map<string, Promise<void>>());
 
 export function isRunning(disputeId: string) {
   return running.has(disputeId);
@@ -30,7 +33,7 @@ export function isRunning(disputeId: string) {
  * Runs the agent on one dispute. Events stream to `emit` as they happen and are persisted, so a
  * page reload mid-run still shows the trace.
  */
-export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = () => {}, opts: { trigger?: "manual" | "webhook" | "batch" } = {}) {
+export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = () => {}, opts: { trigger?: "manual" | "webhook" | "batch" | "agent" } = {}) {
   const existing = running.get(disputeId);
   if (existing) {
     emit({ t: "error", message: "Exhibit is already working on this dispute." });
@@ -85,7 +88,8 @@ export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = 
       if (d) {
         const verdict = evaluateAutopilot(brief, d);
         push({ t: "autopilot", verdict });
-        if (verdict.verdict === "AUTO") {
+        // Runs started by an external AI agent (MCP) never execute: the merchant approves those in Exhibit.
+        if (verdict.verdict === "AUTO" && opts.trigger !== "agent") {
           const result = await executeBriefAction(disputeId, {}, "autopilot");
           push({ t: "action", result });
         }

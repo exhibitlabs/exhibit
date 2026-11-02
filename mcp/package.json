@@ -1,0 +1,5 @@
+{
+  "//": "Lets Node run the MCP server as ES modules with native type stripping (no build step).",
+  "type": "module",
+  "private": true
+}

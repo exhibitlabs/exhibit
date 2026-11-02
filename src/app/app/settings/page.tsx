@@ -1,3 +1,4 @@
+import path from "node:path";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SettingsView } from "@/components/app/SettingsView";
 import { AI_MODEL, aiProvider, appUrl, paypalCredentials, paypalMode } from "@/lib/config";
@@ -11,7 +12,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader eyebrow="Connections" title="Settings" subtitle="Where Exhibit gets its facts and how it reaches PayPal." />
-      <SettingsView mode={paypalMode()} provider={aiProvider()} model={AI_MODEL} clientId={masked} webhookUrl={`${appUrl()}/api/webhooks/paypal`} webhookIdSet={!!webhookId} />
+      <SettingsView mode={paypalMode()} provider={aiProvider()} model={AI_MODEL} clientId={masked} webhookUrl={`${appUrl()}/api/webhooks/paypal`} webhookIdSet={!!webhookId} mcpServerPath={path.join(process.cwd(), "mcp", "server.ts")} />
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Check, Copy, ExternalLink, Loader2, Plug, RefreshCw, Sprout, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AgentConnectCard } from "./AgentApprovals";
 import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
 
@@ -28,7 +29,7 @@ function Line({ k, v }: { k: string; v: React.ReactNode }) {
 
 type Seed = { key: string; title: string; buyer: string; amount: string; order_id: string; approve_url?: string; status: "awaiting_buyer" | "disputed" | "error"; dispute_id?: string; error?: string };
 
-export function SettingsView({ mode, provider, model, clientId, webhookUrl, webhookIdSet }: { mode: string; provider: string; model: string; clientId: string; webhookUrl: string; webhookIdSet: boolean }) {
+export function SettingsView({ mode, provider, model, clientId, webhookUrl, webhookIdSet, mcpServerPath }: { mode: string; provider: string; model: string; clientId: string; webhookUrl: string; webhookIdSet: boolean; mcpServerPath?: string }) {
   const [check, setCheck] = useState<{ ok: boolean | null; error?: string | null } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [seeds, setSeeds] = useState<Seed[]>([]);
@@ -122,6 +123,8 @@ export function SettingsView({ mode, provider, model, clientId, webhookUrl, webh
         <Line k="Checkout signals" v="AVS, CVV, 3-D Secure, IP, device" />
         <p className="mt-3 text-[12.5px] text-muted">Connectors for Shopify, WooCommerce and carrier APIs plug in behind the same tools the agent already uses.</p>
       </Card>
+
+      {mcpServerPath ? <AgentConnectCard serverPath={mcpServerPath} /> : null}
 
       {mode === "sandbox" ? (
         <div className="col-span-2">
