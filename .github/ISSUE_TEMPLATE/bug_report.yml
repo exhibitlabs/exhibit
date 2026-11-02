@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in Exhibit does not work as it should
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please do not paste PayPal credentials, API keys or real customer data.
+        A way around one of Exhibit's guardrails (approvals, citations, allowed actions) is a security issue: see the security policy instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the demo and go to ...
+        2. Click ...
+    validations:
+      required: true
+  - type: dropdown
+    id: paypal-mode
+    attributes:
+      label: PayPal mode
+      options:
+        - Demo (built-in simulator)
+        - Sandbox (PayPal sandbox credentials)
+    validations:
+      required: true
+  - type: dropdown
+    id: ai-provider
+    attributes:
+      label: How the agent ran
+      options:
+        - Recorded runs (no AI configured)
+        - Claude CLI login
+        - Anthropic API key
+        - Not applicable
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Output of `node -v`, your OS, and the commit you are on.
+      placeholder: "v24.1.0, macOS 15, 1a2b3c4"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Terminal output, the browser console, or a screenshot. Remove anything private.
+      render: shell

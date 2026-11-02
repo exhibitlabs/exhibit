@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest an improvement or a new capability
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Who is affected (a merchant, an agent developer, a contributor) and what do they do today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dispute agent and briefs
+        - PayPal integration (Disputes, Orders, Payments APIs)
+        - MCP server for AI agents
+        - Prevention radar
+        - Autopilot
+        - Ask Exhibit
+        - App and UI
+        - Docs and tooling
+    validations:
+      required: true
+  - type: checkboxes
+    id: guardrails
+    attributes:
+      label: Guardrails
+      options:
+        - label: This does not let an AI agent act without the merchant's approval, and does not weaken the citation or allowed-action checks.
+          required: true

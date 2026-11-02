@@ -1,5 +1,7 @@
 # Exhibit
 
+[![CI](https://github.com/shvuuuu/exhibit/actions/workflows/ci.yml/badge.svg)](https://github.com/shvuuuu/exhibit/actions/workflows/ci.yml)
+
 **The AI dispute agent for PayPal merchants.** Exhibit investigates every PayPal dispute the moment it opens, decides whether to fight, offer, refund or message the buyer, builds an evidence packet from the merchant's own records, and files the response through the PayPal API. When a case can't be won, it says so and refunds instead.
 
 Built for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/).
