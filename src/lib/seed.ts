@@ -5,8 +5,10 @@ import { docDeleteKind, kvGet, kvSet, logActivity, now, resetDatabase } from "./
 import { paypal, PayPalError } from "./paypal/client";
 import { linksFor, simGet, simPut } from "./paypal/simulator";
 import type { Dispute } from "./paypal/types";
+import { seedResolvedHistory } from "./store/history";
 import { store } from "./store/repo";
 import { buildHistory, buildRecentOrders, buildScenarios, MERCHANT, type ScenarioRecords } from "./store/scenarios";
+import { seedPreventionScenarios } from "./store/prevention-scenarios";
 
 function putScenarioStore(s: ScenarioRecords, disputeId: string) {
   store.putOrder(s.order);
@@ -32,7 +34,9 @@ export function seedDemo() {
     store.putOrder(order);
     store.putShipment(shipment);
   }
+  seedPreventionScenarios(base);
   kvSet("seeded_at", base.toISOString());
+  seedResolvedHistory(base);
   logActivity("system", `Demo merchant ${MERCHANT.name} seeded with ${buildScenarios(base).length} open disputes`);
 }
 
