@@ -152,3 +152,178 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+/* Evidence graph: data flowing along an edge while a source is queried; the verdict ring fills once. */
+@keyframes edge-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+.edge-flow {
+  animation: edge-flow 0.7s linear infinite;
+}
+@keyframes ring-fill {
+  from {
+    stroke-dashoffset: 163.4;
+  }
+}
+.ring-fill {
+  animation: ring-fill 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Command center: sparklines draw in once, segment bars grow from the left. */
+@keyframes spark-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.spark-draw {
+  animation: spark-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spark-draw,
+  .bar-grow,
+  .rise {
+    animation: none;
+  }
+}
+
+/* Prevention radar: sweep, selection ping, drawer, toast, and the row that slides out once fixed. */
+@keyframes pv-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pv-sweep {
+  animation: pv-sweep 7s linear infinite;
+}
+@keyframes pv-ping {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.pv-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pv-ping 1.6s ease-out infinite;
+}
+@keyframes pv-drawer {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+}
+.pv-drawer {
+  animation: pv-drawer 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pv-fade {
+  from {
+    opacity: 0;
+  }
+}
+.pv-fade {
+  animation: pv-fade 0.25s ease-out both;
+}
+@keyframes pv-pop {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+}
+.pv-pop {
+  animation: pv-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pv-check {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+.pv-check {
+  stroke-dasharray: 24;
+  animation: pv-check 0.45s 0.1s ease-out both;
+}
+@keyframes pv-toast {
+  from {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+.pv-toast {
+  animation: pv-toast 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pv-row {
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.45s 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s 0.25s,
+    transform 0.45s 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pv-row-leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateX(32px);
+}
+.pv-seg:hover {
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+}
+.ag-theme-exhibit .pv-row-done {
+  background: #fcfffd;
+}
+
+/* Ask Exhibit palette: open, fade and the streaming caret. */
+@keyframes ask-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ask-in {
+  animation: ask-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes ask-fade {
+  from {
+    opacity: 0;
+  }
+}
+.ask-fade {
+  animation: ask-fade 0.16s ease-out both;
+}
+@keyframes ask-caret {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.ask-caret {
+  animation: ask-caret 1s infinite;
+}

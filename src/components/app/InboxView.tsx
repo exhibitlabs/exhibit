@@ -72,7 +72,7 @@ export function InboxView({ initialRows, initialStats, mode }: { initialRows: In
         <Stat label="Open disputes · at risk" value={usd(stats.atRisk, 0)} hint={`${stats.openCount} open · ${stats.needsResponse} need a response`} emphasis />
         <Stat label="Due in the next 72 hours" value={String(stats.dueSoon)} hint="PayPal closes unanswered cases for the buyer" />
         <Stat label="Expected recovery" value={usd(stats.expected, 0)} hint={`${stats.analyzed} of ${stats.openCount} open cases analyzed`} />
-        <Stat label="Recovered · last 90 days" value={usd(stats.recovered, 0)} hint={stats.winRate !== null ? `${stats.winRate}% won across ${stats.decided} decided cases` : undefined} />
+        <Stat label="Recovered · last 90 days" value={usd(stats.recovered, 0)} hint={stats.winRate !== null ? `${stats.winRate}% won across ${stats.decided} fought cases` : undefined} />
       </div>
 
       <div className="flex items-center justify-between">
