@@ -1,4 +1,6 @@
 import "server-only";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 export type PayPalMode = "demo" | "sandbox";
@@ -25,16 +27,21 @@ export function paypalCredentials() {
   };
 }
 
+/** A Claude Code login on this machine lets the agent run live with no API key. Set EXHIBIT_ALLOW_CLAUDE_CODE=0 to opt out. */
+function hasClaudeLogin() {
+  if (env.EXHIBIT_ALLOW_CLAUDE_CODE === "0") return false;
+  return env.EXHIBIT_ALLOW_CLAUDE_CODE === "1" || fs.existsSync(path.join(/*turbopackIgnore: true*/ os.homedir(), ".claude"));
+}
+
 /**
- * AI provider order: an Anthropic API key wins; otherwise a local Claude Code login
- * (development); otherwise recorded runs are replayed so the demo still works offline.
+ * AI provider order: an Anthropic API key wins; otherwise the local Claude CLI login; otherwise
+ * recorded runs are replayed so the demo still works with nothing installed.
  */
 export function aiProvider(): AiProvider {
   const forced = env.EXHIBIT_AI_PROVIDER as AiProvider | undefined;
   if (forced === "anthropic" || forced === "claude-code" || forced === "replay") return forced;
   if (env.ANTHROPIC_API_KEY || env.ANTHROPIC_AUTH_TOKEN) return "anthropic";
-  if (env.EXHIBIT_ALLOW_CLAUDE_CODE === "1") return "claude-code";
-  return "replay";
+  return hasClaudeLogin() ? "claude-code" : "replay";
 }
 
 export const AI_MODEL = env.EXHIBIT_MODEL ?? "claude-opus-5-5";

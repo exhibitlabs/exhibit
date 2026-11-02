@@ -1,6 +1,6 @@
 import "server-only";
-// Development provider: runs the same agent and tools through the Claude Agent SDK, authenticated
-// by the developer's local Claude Code login. Enabled with EXHIBIT_ALLOW_CLAUDE_CODE=1.
+// Claude CLI provider: runs the same agent and tools through the Claude Agent SDK, authenticated by
+// the local Claude Code login, so no API key is needed. Set EXHIBIT_ALLOW_CLAUDE_CODE=0 to turn it off.
 
 import { createSdkMcpServer, query, tool } from "@anthropic-ai/claude-agent-sdk";
 import { AI_MODEL } from "../../config";

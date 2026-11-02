@@ -25,6 +25,18 @@ function append(events: RunEvent[], e: RunEvent) {
 const g = globalThis as typeof globalThis & { __exhibitRuns?: Map<string, Promise<void>> };
 const running = (g.__exhibitRuns ??= new Map<string, Promise<void>>());
 
+/** Runs on the Claude CLI. If the CLI can't start (no login, say), a recorded run keeps the demo working, and the trace says so. */
+async function runOnClaudeCli(ctx: ToolContext, events: RunEvent[], runId: string) {
+  try {
+    return await runWithClaudeCode(ctx);
+  } catch (e) {
+    if (events.some((x) => x.t === "tool_call") || !store.scenario(ctx.disputeId)) throw e;
+    db().prepare("UPDATE runs SET provider = 'replay', model = 'recorded' WHERE id = ?").run(runId);
+    ctx.emit({ t: "text", text: "The Claude CLI isn't available on this machine, so this is a recorded run. Every tool call still executes live.\n" });
+    return runWithReplay(ctx);
+  }
+}
+
 export function isRunning(disputeId: string) {
   return running.has(disputeId);
 }
@@ -67,8 +79,7 @@ export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = 
     logActivity("agent", `Exhibit started on ${disputeId} (${opts.trigger ?? "manual"}, ${provider})`, disputeId);
     const ctx: ToolContext = { disputeId, emit: push };
     try {
-      const { usage } =
-        provider === "anthropic" ? await runWithAnthropic(ctx) : provider === "claude-code" ? await runWithClaudeCode(ctx) : await runWithReplay(ctx);
+      const { usage } = provider === "anthropic" ? await runWithAnthropic(ctx) : provider === "claude-code" ? await runOnClaudeCli(ctx, events, runId) : await runWithReplay(ctx);
       const brief = ctx.brief!;
       push({ t: "brief", brief });
       const ms = Date.now() - started;
