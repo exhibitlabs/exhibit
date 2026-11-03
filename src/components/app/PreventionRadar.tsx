@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PreventionOrder, PreventionSignalKind } from "@/lib/prevention";
-import { BAND, bandOf, money, SIGNAL_ICON, SIGNAL_ORDER } from "./PreventionParts";
+import { BAND, bandOf, money, SIGNAL_ORDER } from "./PreventionParts";
 
 const W = 520;
 const H = 420;
@@ -53,6 +53,16 @@ export function PreventionRadar({
   leaving: Set<string>;
 }) {
   const [hover, setHover] = useState<string | null>(null);
+  // The drawing scales with its card; its words don't. fs converts 12px on screen into the drawing's units.
+  const box = useRef<HTMLDivElement>(null);
+  const [fs, setFs] = useState(1);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => el.clientWidth && setFs(Math.max(1, W / el.clientWidth)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const counts = useMemo(() => {
     const m = new Map<PreventionSignalKind, number>();
     for (const o of orders) if (o.status === "at_risk") for (const s of o.signals) m.set(s.kind, (m.get(s.kind) ?? 0) + 1);
@@ -87,19 +97,8 @@ export function PreventionRadar({
   const hovered = dots.find((d) => d.o.orderId === hover);
 
   return (
-    <div className="relative mx-auto w-full max-w-[520px] select-none">
+    <div ref={box} className="relative mx-auto w-full max-w-[520px] select-none">
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full">
-        <defs>
-          <radialGradient id="pv-core">
-            <stop offset="0%" stopColor="#dc2626" stopOpacity="0.09" />
-            <stop offset="100%" stopColor="#dc2626" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="pv-sweep" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#0a0a0a" stopOpacity="0" />
-            <stop offset="100%" stopColor="#0a0a0a" stopOpacity="0.07" />
-          </linearGradient>
-        </defs>
-
         {/* Sector highlight for the active filter */}
         {SIGNAL_ORDER.map((k, i) => {
           if (filter !== k) return null;
@@ -108,34 +107,29 @@ export function PreventionRadar({
           return <path key={k} d={`M${CX},${CY} L${a0.x},${a0.y} A${R},${R} 0 0 1 ${a1.x},${a1.y} Z`} fill="#0a0a0a" fillOpacity="0.035" />;
         })}
 
-        <circle cx={CX} cy={CY} r={RING.high} fill="url(#pv-core)" />
         {[RING.high, RING.elevated, RING.watch].map((r, i) => (
-          <circle key={r} cx={CX} cy={CY} r={r} fill="none" stroke={i === 0 ? "#f3d0d0" : "#ebebeb"} strokeDasharray={i === 2 ? "2 4" : undefined} />
+          <circle key={r} cx={CX} cy={CY} r={r} fill="none" stroke={i === 0 ? "#eccaca" : "#e6e6e4"} strokeDasharray={i === 2 ? "2 4" : undefined} />
         ))}
-        <circle cx={CX} cy={CY} r={RING.prevented} fill="none" stroke="#dcfce7" strokeWidth="7" />
-        <circle cx={CX} cy={CY} r={R} fill="none" stroke="#e5e5e5" />
+        <circle cx={CX} cy={CY} r={RING.prevented} fill="none" stroke="#e3f1e7" strokeWidth="6" />
+        <circle cx={CX} cy={CY} r={R} fill="none" stroke="#e3e3e1" />
 
         {SIGNAL_ORDER.map((k, i) => {
           const p = polar(-90 + i * SPAN, R);
-          return <line key={k} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="#f0f0f0" />;
+          return <line key={k} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="#efefed" />;
         })}
 
         {/* Band labels along the 12 o'clock spoke */}
-        {[
-          ["HIGH", RING.high],
-          ["ELEVATED", RING.elevated],
-          ["WATCH", RING.watch],
-        ].map(([label, r]) => (
-          <text key={label} x={CX + 4} y={CY - (r as number) + 11} className="num" fontSize="8.5" letterSpacing="0.08em" fill={label === "HIGH" ? "#d48a8a" : "#b5b5b5"}>
+        {(
+          [
+            ["High", RING.high],
+            ["Elevated", RING.elevated],
+            ["Watch", RING.watch],
+          ] as const
+        ).map(([label, r]) => (
+          <text key={label} x={CX - 6} y={CY - r + 12 * fs + 1} textAnchor="end" fontSize={11 * fs} fill={label === "High" ? "#b91c1c" : "#737371"}>
             {label}
           </text>
         ))}
-
-        {/* Sweep */}
-        <g className="pv-sweep" style={{ transformOrigin: `${CX}px ${CY}px` }}>
-          <path d={`M${CX},${CY} L${polar(-40, R).x},${polar(-40, R).y} A${R},${R} 0 0 1 ${polar(0, R).x},${polar(0, R).y} Z`} fill="url(#pv-sweep)" />
-          <line x1={CX} y1={CY} x2={polar(0, R).x} y2={polar(0, R).y} stroke="#0a0a0a" strokeOpacity="0.12" />
-        </g>
 
         {/* Sector labels */}
         {SIGNAL_ORDER.map((k, i) => {
@@ -147,9 +141,9 @@ export function PreventionRadar({
           const active = filter === k;
           return (
             <g key={k} className="cursor-pointer" onClick={() => onFilter(active ? null : k)}>
-              <text x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle" fontSize="11.5" fontWeight={active ? 600 : 500} fill={active ? "#0a0a0a" : n ? "#3f3f3f" : "#b5b5b5"}>
+              <text x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle" fontSize={12 * fs} fontWeight={active ? 600 : 400} fill={active ? "#0a0a0a" : n ? "#3d3d3c" : "#8f8f8c"} textDecoration={active ? "underline" : undefined}>
                 {RADAR_LABEL[k]}
-                <tspan className="num" dx="5" fill={n ? (active ? "#0a0a0a" : "#a1a1a1") : "#d4d4d4"}>
+                <tspan dx="5" fill={n ? (active ? "#0a0a0a" : "#737371") : "#a3a3a1"}>
                   {n}
                 </tspan>
               </text>
@@ -171,8 +165,7 @@ export function PreventionRadar({
               onMouseLeave={() => setHover(null)}
               onClick={() => d.o.status === "at_risk" && onSelect(d.o.orderId)}
             >
-              {selected ? <circle r={d.r + 7} fill="none" stroke={d.color} strokeOpacity="0.5" className="pv-ping" /> : null}
-              {d.o.band === "high" && d.o.status === "at_risk" ? <circle r={d.r + 4} fill={d.color} fillOpacity="0.12" /> : null}
+              {selected ? <circle r={d.r + 5} fill="none" stroke="#0a0a0a" strokeWidth="1.5" /> : null}
               <circle r={d.r} fill={d.color} stroke="#fff" strokeWidth="2" style={{ transition: "r 0.6s, fill 0.4s" }} />
               {d.o.status === "prevented" ? <path d="M-2.2,0.2 L-0.6,1.8 L2.4,-1.6" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> : null}
             </g>
@@ -182,38 +175,32 @@ export function PreventionRadar({
 
       {hovered ? (
         <div
-          className="pointer-events-none absolute z-10 w-[220px] -translate-x-1/2 -translate-y-[calc(100%+14px)] rounded-lg border border-line bg-surface px-3 py-2.5 shadow-[0_8px_24px_rgb(0_0_0/0.08)]"
+          className="pointer-events-none absolute z-10 w-[230px] -translate-x-1/2 -translate-y-[calc(100%+14px)] rounded-[8px] bg-ink px-3 py-2.5 text-white shadow-[0_8px_24px_rgb(0_0_0/0.18)]"
           style={{ left: `${(hovered.x / W) * 100}%`, top: `${(hovered.y / H) * 100}%` }}
         >
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-[13px] font-medium">{hovered.o.buyer}</span>
-            <span className="num text-[12px]" style={{ color: hovered.o.status === "prevented" ? BAND.prevented.text : BAND[bandOf(hovered.o)].text }}>
-              {hovered.o.status === "prevented" ? "prevented" : hovered.o.score}
-            </span>
+            <span className="num text-[12px] text-white/80">{hovered.o.status === "prevented" ? "prevented" : `risk ${hovered.o.score}`}</span>
           </div>
-          <div className="num mt-0.5 text-[11px] text-faint">
-            {hovered.o.orderId} · {money(hovered.o.exposure)} exposure
+          <div className="mt-0.5 text-[12px] text-white/65">
+            <span className="mono">{hovered.o.orderId}</span> · {money(hovered.o.exposure)} exposure
           </div>
           {hovered.o.top ? (
-            <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-ink-2">
-              {(() => {
-                const Icon = SIGNAL_ICON[hovered.o.top.kind];
-                return <Icon className="size-3.5 text-muted" />;
-              })()}
+            <div className="mt-1.5 text-[12px] text-white/85">
               {hovered.o.top.label} → {hovered.o.top.reasonLabel}
             </div>
           ) : null}
         </div>
       ) : null}
 
-      <div className="-mt-1 flex justify-center gap-4 text-[11.5px] text-muted">
+      <div className="-mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-muted">
         {(["high", "elevated", "watch", "prevented"] as const).map((b) => (
           <span key={b} className="inline-flex items-center gap-1.5">
             <span className="size-2 rounded-full" style={{ background: BAND[b].color }} />
             {BAND[b].label}
           </span>
         ))}
-        <span className="text-faint">· size = $ exposure</span>
+        <span>· dot size is exposure</span>
       </div>
     </div>
   );

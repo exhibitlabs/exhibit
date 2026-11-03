@@ -1,26 +1,19 @@
 "use client";
 
 import { clsx } from "clsx";
-import { AlertTriangle, CircleHelp, History } from "lucide-react";
+import { AlertTriangle, CircleHelp } from "lucide-react";
 import type { CaseBrief } from "@/lib/agent/brief";
 import { usd } from "@/lib/format";
 import { refLabel } from "@/lib/reflabel";
 import { Chip, DECISION_META, type Tone } from "../../ui/Chip";
 import { Tip } from "../../ui/Tooltip";
+import { plain } from "@/lib/plain";
 
-function Gauge({ value, tone }: { value: number; tone: string }) {
-  const r = 26;
-  const c = 2 * Math.PI * r;
+function Stat({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="relative size-[68px]">
-      <svg viewBox="0 0 64 64" className="size-full -rotate-90">
-        <circle cx="32" cy="32" r={r} fill="none" stroke="#ececec" strokeWidth="5" />
-        <circle cx="32" cy="32" r={r} fill="none" stroke={tone} strokeWidth="5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - value / 100)} className="ring-fill" />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="num text-[17px]">{value}</span>
-        <span className="num text-[10px] text-muted">%</span>
-      </div>
+    <div className={clsx("px-5 py-3", className)}>
+      <div className="text-[12px] text-muted">{label}</div>
+      <div className="mt-1 text-[16px] leading-6 text-ink">{children}</div>
     </div>
   );
 }
@@ -51,114 +44,98 @@ export function BriefCard({
   onHoverRef?: (ref: string | null) => void;
 }) {
   const m = DECISION_META[brief.decision];
-  const tone = brief.decision === "FIGHT" ? "var(--green)" : brief.decision === "REFUND" ? "var(--red)" : "var(--ink)";
   return (
-    <section className={clsx("card rise overflow-hidden transition-opacity", stale && "opacity-60")} aria-label="Exhibit's brief">
-      <div className="flex items-start gap-5 border-b border-line p-5">
-        <div className="min-w-0 flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <Chip tone={m.tone}>{m.label}</Chip>
-            <span className="text-[12px] text-muted">
-              {brief.confidence.toLowerCase()} confidence
-              {replayed && !prepared ? " · recorded run, replayed" : ms && !prepared ? ` · ${ms < 10_000 ? (ms / 1000).toFixed(1) : Math.round(ms / 1000)}s investigation` : ""}
-            </span>
-            {prepared ? (
-              <Tip label="Prepared from a recorded run when the demo was reset. Every tool call ran live against this case, and the brief passed the same checks as a live one." wide side="bottom" align="start">
-                <span className="inline-flex items-center gap-1 rounded-md bg-sunken px-1.5 py-0.5 text-[11px] text-muted">
-                  <History className="size-3" /> Prepared at reset
-                </span>
-              </Tip>
-            ) : null}
-            {stale ? <span className="text-[11.5px] text-muted">· the previous brief, while Exhibit re-runs</span> : null}
-          </div>
-          <h2 className="display text-[22px] leading-[1.2] tracking-[-0.025em]">{brief.headline}</h2>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">{brief.summary}</p>
+    <section className={clsx("card overflow-hidden border transition-opacity", stale && "opacity-60")} aria-label="Exhibit's brief">
+      <div className="px-5 pb-4 pt-4">
+        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted">
+          <Chip tone={m.tone}>{m.label}</Chip>
+          <span>{brief.confidence.toLowerCase()} confidence</span>
+          {replayed && !prepared ? <span>· recorded run, replayed</span> : ms && !prepared ? <span>· {ms < 10_000 ? (ms / 1000).toFixed(1) : Math.round(ms / 1000)} s investigation</span> : null}
+          {prepared ? (
+            <Tip label="Prepared from a recorded run when the demo was reset. Every tool call ran live against this case, and the brief passed the same checks as a live one." wide side="bottom" align="start">
+              <span className="cursor-help underline decoration-line-strong decoration-dotted underline-offset-[3px]">· prepared at the demo reset</span>
+            </Tip>
+          ) : null}
+          {stale ? <span>· the previous brief, while Exhibit re-runs</span> : null}
         </div>
-        <div className="flex shrink-0 flex-col items-center gap-1">
-          <Gauge value={brief.win_likelihood} tone={tone} />
-          <span className="text-[11px] text-muted">{brief.decision === "REFUND" ? "chance if fought" : "win likelihood"}</span>
-        </div>
+        <h2 className="text-[20px] font-semibold leading-[27px] tracking-[-0.015em] text-ink">{plain(brief.headline)}</h2>
+        <p className="mt-2 text-[14px] leading-[22px] text-ink-2">{plain(brief.summary)}</p>
       </div>
-      <div className="grid grid-cols-2 divide-line border-b border-line text-[12px] sm:grid-cols-4 sm:divide-x">
-        <div className="px-5 py-3">
-          <div className="text-muted">At stake</div>
-          <div className="num mt-0.5 text-[15px]">{usd(amount)}</div>
-        </div>
-        <div className="px-5 py-3">
-          <div className="text-muted">Expected back</div>
-          <div className="num mt-0.5 text-[15px]">{usd(expected)}</div>
-        </div>
-        <div className="px-5 py-3">
-          <div className="text-muted">Exhibits</div>
-          <div className="num mt-0.5 text-[15px]">{brief.exhibits.length ? (brief.exhibits.length > 3 ? `${brief.exhibits[0].label}–${brief.exhibits.at(-1)!.label}` : brief.exhibits.map((e) => e.label).join(" · ")) : "none"}</div>
-        </div>
-        <div className="px-5 py-3">
-          <div className="text-muted">Seller Protection</div>
-          <div className="mt-1">{protection ? <Chip tone={protection.tone}>{protection.label}</Chip> : <span className="text-faint">n/a</span>}</div>
-        </div>
+      <div className="grid grid-cols-2 border-y border-line sm:grid-cols-4 sm:divide-x sm:divide-line max-sm:[&>*:nth-child(odd)]:border-r max-sm:[&>*:nth-child(-n+2)]:border-b [&>*]:border-line">
+        <Stat label={brief.decision === "REFUND" ? "Chance if fought" : "Win likelihood"}>
+          <span className="num font-semibold">{brief.win_likelihood}%</span>
+        </Stat>
+        <Stat label="At stake">
+          <span className="mono text-[14px]">{usd(amount)}</span>
+        </Stat>
+        <Stat label="Expected back">
+          <span className="mono text-[14px]">{usd(expected)}</span>
+        </Stat>
+        <Stat label="Seller Protection">
+          {protection ? <span className={clsx("text-[14px]", protection.tone === "green" ? "text-green" : protection.tone === "red" ? "text-red" : "text-ink-2")}>{protection.label}</span> : <span className="text-[14px] text-muted">–</span>}
+        </Stat>
       </div>
-      <div className="space-y-3 p-5">
-        <ol className="space-y-2.5">
+      <div className="px-5 py-4">
+        <h3 className="mb-2 text-[13px] font-medium text-muted">Why</h3>
+        <ul className="space-y-3">
           {brief.reasoning.map((r, i) => (
-            <li key={i} className="flex gap-3 text-[13.5px] leading-relaxed">
-              <span className="num mt-0.5 text-[11px] text-faint">{String(i + 1).padStart(2, "0")}</span>
-              <div>
-                {r.point}
-                {r.refs.length ? (
-                  <span className="ml-1.5 inline-flex flex-wrap gap-1 align-middle">
-                    {r.refs.map((ref) => {
-                      const ex = brief.exhibits.find((e) => e.ref === ref);
-                      return (
-                        <button
-                          type="button"
-                          key={ref}
-                          title={ref}
-                          onMouseEnter={() => onHoverRef?.(ref)}
-                          onMouseLeave={() => onHoverRef?.(null)}
-                          onFocus={() => onHoverRef?.(ref)}
-                          onBlur={() => onHoverRef?.(null)}
-                          className={clsx("inline-flex items-center gap-1 rounded border px-1.5 py-px text-[11px] transition-colors", hoverRef === ref ? "border-ink bg-ink text-white" : "border-line text-muted hover:border-line-strong hover:text-ink")}
-                        >
-                          {ex ? <span className={clsx("num font-semibold", hoverRef === ref ? "text-white" : "text-ink")}>{ex.label}</span> : null}
-                          {refLabel(ref)}
-                        </button>
-                      );
-                    })}
-                  </span>
-                ) : null}
-              </div>
+            <li key={i} className="text-[14px] leading-[22px] text-ink">
+              {plain(r.point)}
+              {r.refs.length ? (
+                <span className="ml-1.5 inline-flex flex-wrap gap-1 align-[1px]">
+                  {r.refs.map((ref) => {
+                    const ex = brief.exhibits.find((e) => e.ref === ref);
+                    const on = hoverRef === ref;
+                    return (
+                      <button
+                        type="button"
+                        key={ref}
+                        title={ref}
+                        onMouseEnter={() => onHoverRef?.(ref)}
+                        onMouseLeave={() => onHoverRef?.(null)}
+                        onFocus={() => onHoverRef?.(ref)}
+                        onBlur={() => onHoverRef?.(null)}
+                        className={clsx("inline-flex h-5 items-center gap-1 rounded-[6px] border px-1.5 text-[12px] leading-none transition-colors", on ? "border-ink bg-ink text-white" : "border-line-strong text-muted hover:border-ink hover:text-ink")}
+                      >
+                        {ex ? <span className={clsx("mono font-semibold", on ? "text-white" : "text-ink")}>{ex.label}</span> : null}
+                        {refLabel(ref)}
+                      </button>
+                    );
+                  })}
+                </span>
+              ) : null}
             </li>
           ))}
-        </ol>
-        {brief.risks.length || brief.missing_evidence.length ? (
-          <div className="grid gap-3 pt-2 md:grid-cols-2">
-            {brief.risks.length ? (
-              <div className="rounded-lg border border-line p-3">
-                <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-ink">
-                  <AlertTriangle className="size-3.5" /> What could go wrong
-                </div>
-                <ul className="space-y-1 text-[12.5px] leading-snug text-ink-2">
-                  {brief.risks.map((x, i) => (
-                    <li key={i}>{x}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {brief.missing_evidence.length ? (
-              <div className="rounded-lg bg-sunken p-3">
-                <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-ink-2">
-                  <CircleHelp className="size-3.5" /> Would strengthen the case
-                </div>
-                <ul className="space-y-1 text-[12.5px] leading-snug text-ink-2">
-                  {brief.missing_evidence.map((x, i) => (
-                    <li key={i}>{x}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        </ul>
       </div>
+      {brief.risks.length || brief.missing_evidence.length ? (
+        <div className="grid gap-x-8 gap-y-4 border-t border-line px-5 py-4 md:grid-cols-2">
+          {brief.risks.length ? (
+            <div>
+              <h3 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
+                <AlertTriangle className="size-3.5 text-muted" strokeWidth={1.9} /> What could go wrong
+              </h3>
+              <ul className="list-disc space-y-1 pl-4 text-[13px] leading-[20px] text-ink-2 marker:text-ghost">
+                {brief.risks.map((x, i) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {brief.missing_evidence.length ? (
+            <div>
+              <h3 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
+                <CircleHelp className="size-3.5 text-muted" strokeWidth={1.9} /> Would strengthen the case
+              </h3>
+              <ul className="list-disc space-y-1 pl-4 text-[13px] leading-[20px] text-ink-2 marker:text-ghost">
+                {brief.missing_evidence.map((x, i) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

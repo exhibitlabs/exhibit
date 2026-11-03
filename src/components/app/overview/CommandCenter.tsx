@@ -1,133 +1,123 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Bell, Bot, CircleCheck, CircleX, Database, FileCheck2, Gavel, Play, RotateCcw, ShieldCheck, TriangleAlert, Webhook } from "lucide-react";
+import { ArrowRight, Bell, Play } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import type { FeedItem, Overview, ReasonRow } from "@/lib/overview";
+import type { FeedItem, Overview, QueueRow, ReasonRow } from "@/lib/overview";
 import { relTime, usd } from "@/lib/format";
-import { Button } from "../../ui/Button";
+import { Button, buttonClass } from "../../ui/Button";
+import { DECISION_META } from "../../ui/Chip";
 import { toast } from "../../ui/Toast";
+import { GuideStrip } from "../DemoGuide";
 import { NeedsYouGrid } from "./NeedsYouGrid";
-import { CardHead, CountUp, EmptyNote, InfoTip, LegendDot, Sparkline } from "./parts";
+import { CardHead, EmptyNote, InfoTip, LegendDot } from "./parts";
 
-const ChartSkeleton = ({ h }: { h: number }) => <div className="shimmer rounded-md" style={{ height: h, opacity: 0.5 }} />;
-const RecoveryChart = dynamic(() => import("./Charts").then((m) => m.RecoveryChart), { ssr: false, loading: () => <ChartSkeleton h={300} /> });
-const RateChart = dynamic(() => import("./Charts").then((m) => m.RateChart), { ssr: false, loading: () => <ChartSkeleton h={128} /> });
+const ChartSkeleton = ({ h }: { h: number }) => <div className="skeleton rounded-[6px]" style={{ height: h }} />;
+const RecoveryChart = dynamic(() => import("./Charts").then((m) => m.RecoveryChart), { ssr: false, loading: () => <ChartSkeleton h={248} /> });
+const RateChart = dynamic(() => import("./Charts").then((m) => m.RateChart), { ssr: false, loading: () => <ChartSkeleton h={140} /> });
 
 const money = (n: number) => usd(Math.round(n), 0);
-const stagger = (i: number) => ({ animationDelay: `${i * 60}ms` });
 const span = (h: number) => (h < 48 ? `${h} hour${h === 1 ? "" : "s"}` : `${Math.round(h / 24)} days`);
 
-function Kpi({ i, label, tip, value, format, hint, series, tone, empty }: { i: number; label: string; tip: React.ReactNode; value: number | null; format: (n: number) => string; hint: string; series: number[]; tone?: "ink" | "green" | "red"; empty?: string }) {
-  const blank = value === null || (value === 0 && !hint);
+/** Outcome colours: kept is green, a refund chosen on purpose is a quiet grey, a settled offer a darker grey, a lost fight red. */
+const SEG = [
+  { key: "won", color: "var(--green)", label: "Won" },
+  { key: "settled", color: "#9b9b98", label: "Offer" },
+  { key: "refunded", color: "#d9d9d6", label: "Refunded" },
+  { key: "lost", color: "var(--red)", label: "Lost" },
+] as const;
+
+/** The screen's finding: the open case that most needs the merchant, in one sentence. */
+function finding(queue: QueueRow[], h: Overview["headline"]) {
+  if (!queue.length) return "No open disputes. When PayPal opens one, Exhibit investigates it on arrival and it lands here.";
+  const next = queue.filter((q) => q.next !== "waiting").sort((a, b) => (a.hoursLeft ?? 1e9) - (b.hoursLeft ?? 1e9))[0];
+  if (!next) return `Every open case is answered; PayPal has ${h.openCount === 1 ? "it" : "all " + h.openCount} now.`;
+  const kind = next.stage === "Chargeback" ? "chargeback" : next.stage === "Inquiry" ? "inquiry" : "claim";
+  const due = next.hoursLeft === null ? "has no PayPal deadline" : next.hoursLeft < 0 ? `was due ${span(-next.hoursLeft)} ago` : `is due in ${span(next.hoursLeft)}`;
+  const call = next.next === "investigate" ? ", and Exhibit hasn't investigated it yet" : next.decision ? `; Exhibit says ${DECISION_META[next.decision]?.label.toLowerCase() ?? next.decision} at ${next.likelihood}%` : "";
+  return `${next.buyer}'s ${money(next.amount)} ${next.reason.toLowerCase()} ${kind} ${due}${call}.`;
+}
+
+function Kpi({ label, tip, value, hint, tone, align }: { label: string; tip: React.ReactNode; value: string | null; hint: string; tone?: "red"; align?: "left" | "right" }) {
   return (
-    <div className="card rise flex flex-col px-4 pb-3 pt-3.5" style={stagger(i)}>
-      <div className="flex items-center gap-1.5 text-[12px] text-muted">
+    <div className="px-5 py-4">
+      <div className="flex items-center gap-1.5 text-[13px] text-muted">
         {label}
-        <InfoTip align={i > 2 ? "right" : "left"}>{tip}</InfoTip>
+        <InfoTip align={align}>{tip}</InfoTip>
       </div>
-      <div className={clsx("mt-2 text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums", blank ? "text-faint" : "text-ink")}>{value === null ? "—" : <CountUp value={value} format={format} />}</div>
-      <div className="mt-1.5 h-4 truncate text-[12px] text-faint">{blank ? empty : hint}</div>
-      <Sparkline data={series} tone={tone} className="mt-2.5" delay={150 + i * 80} />
+      <div className={clsx("num mt-1.5 text-[24px] font-semibold leading-7 tracking-[-0.02em]", value === null ? "text-ghost" : tone === "red" ? "text-red" : "text-ink")}>{value ?? "–"}</div>
+      <div className="mt-1 truncate text-[13px] text-muted">{hint}</div>
     </div>
   );
 }
 
 function ReasonBars({ reasons }: { reasons: ReasonRow[] }) {
   const max = Math.max(...reasons.map((r) => r.total), 1);
-  const seg = [
-    { key: "won", color: "var(--green)", label: "won" },
-    { key: "settled", color: "#a3a3a3", label: "settled with an offer" },
-    { key: "refunded", color: "#dcdcdc", label: "refunded honestly" },
-    { key: "lost", color: "var(--red)", label: "lost" },
-  ] as const;
+  const shown = reasons.slice(0, 6);
   return (
-    <div className="flex flex-1 flex-col px-5 pb-4">
-      <div className="mb-2 grid grid-cols-[128px_minmax(0,1fr)_64px] items-center gap-3 text-[10.5px] uppercase tracking-[0.06em] text-faint">
+    <div className="px-5 pb-5">
+      <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_48px] items-center gap-3 border-b border-line pb-1.5 text-[12px] text-muted">
         <span>Reason</span>
         <span>Cases</span>
         <span className="text-right">Win rate</span>
       </div>
-      <div className="space-y-2">
-        {reasons.slice(0, 6).map((r, ri) => (
-          <div key={r.reason} className="grid grid-cols-[128px_minmax(0,1fr)_64px] items-center gap-3">
+      <ul>
+        {shown.map((r) => (
+          <li key={r.reason} className="grid min-h-[44px] grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_48px] items-center gap-3 border-b border-rule py-1.5 last:border-0">
             <span className="min-w-0 leading-tight">
-              <span className="block truncate text-[12.5px] text-ink-2">{r.label}</span>
-              <span className="mt-0.5 block truncate text-[11px] text-faint">{[r.fought ? `${r.fought} fought` : null, r.settled ? `${r.settled} offered` : null, r.refunded ? `${r.refunded} refunded` : null].filter(Boolean).join(" · ")}</span>
+              <span className="block truncate text-[14px] text-ink">{r.label}</span>
+              <span className="mt-0.5 block truncate text-[13px] text-muted">{[r.fought ? `${r.fought} fought` : null, r.settled ? `${r.settled} offered` : null, r.refunded ? `${r.refunded} refunded` : null].filter(Boolean).join(" · ")}</span>
             </span>
-            <div className="flex items-center gap-2">
-              <div className="bar-grow flex h-[9px] gap-px overflow-hidden rounded-[3px]" style={{ width: `${(r.total / max) * 100}%`, animationDelay: `${200 + ri * 70}ms` }}>
-                {seg.map((s) => (r[s.key] ? <span key={s.key} title={`${r[s.key]} ${s.label}`} style={{ flex: r[s.key], background: s.color }} /> : null))}
-              </div>
-              <span className="num text-[11px] text-faint">{r.total}</span>
-            </div>
-            <span className="text-right">
-              {r.winRate !== null ? (
-                <span className={clsx("num text-[12.5px]", r.winRate >= 70 ? "text-ink" : "text-ink-2")}>{r.winRate}%</span>
-              ) : (
-                <span className="text-[11.5px] text-muted">{r.refunded ? "refunds" : "offers"}</span>
-              )}
+            <span className="flex items-center gap-2">
+              <span className="flex h-2 gap-px overflow-hidden rounded-[2px]" style={{ width: `${(r.total / max) * 100}%` }}>
+                {SEG.map((s) => (r[s.key] ? <span key={s.key} title={`${r[s.key]} ${s.label.toLowerCase()}`} style={{ flex: r[s.key], background: s.color }} /> : null))}
+              </span>
+              <span className="num shrink-0 text-[13px] text-muted">{r.total}</span>
             </span>
-          </div>
+            <span className="num text-right text-[14px] text-ink">{r.winRate !== null ? `${r.winRate}%` : <span className="text-muted">–</span>}</span>
+          </li>
         ))}
-      </div>
-      <div className="mt-auto flex flex-wrap gap-x-3.5 gap-y-1 pt-4">
-        <LegendDot color="var(--green)" label="Won" />
-        <LegendDot color="#a3a3a3" label="Offer" />
-        <LegendDot color="#dcdcdc" label="Refunded" />
-        <LegendDot color="var(--red)" label="Lost" />
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-x-3.5 gap-y-1">
+        {SEG.map((s) => (
+          <LegendDot key={s.key} color={s.color} label={s.label} />
+        ))}
       </div>
     </div>
   );
 }
 
-const FEED_ICON: Record<FeedItem["kind"], { icon: typeof Bot; cls: string }> = {
-  agent: { icon: Bot, cls: "text-ink-2" },
-  action: { icon: FileCheck2, cls: "text-ink-2" },
-  prevention: { icon: ShieldCheck, cls: "text-ink-2" },
-  webhook: { icon: Webhook, cls: "text-ink-2" },
-  ruling: { icon: Gavel, cls: "text-ink-2" },
-  system: { icon: Database, cls: "text-faint" },
-  error: { icon: TriangleAlert, cls: "text-red" },
-  "outcome-won": { icon: CircleCheck, cls: "text-green" },
-  "outcome-refund": { icon: RotateCcw, cls: "text-muted" },
-  "outcome-lost": { icon: CircleX, cls: "text-red" },
-};
-
 function Feed({ items, now }: { items: FeedItem[]; now: number }) {
-  if (!items.length) return <EmptyNote className="mx-5 mb-5 h-[220px]" title="Nothing yet" body="Investigations, filings, refunds and webhooks show up here as they happen." />;
+  if (!items.length) return <EmptyNote className="mx-5 mb-5" title="Nothing yet" body="Investigations, filings, refunds and webhooks show up here as they happen." />;
   return (
-    <ol className="relative px-5 pb-3">
-      <span className="absolute bottom-6 left-[31px] top-3 w-px bg-line" aria-hidden />
-      {items.map((f, i) => {
-        const meta = FEED_ICON[f.kind];
+    <ol className="px-5">
+      {items.slice(0, 6).map((f) => {
+        const tone = f.kind === "outcome-won" ? "bg-green" : f.kind === "outcome-lost" || f.kind === "error" ? "bg-red" : f.kind === "system" ? "bg-ghost" : "bg-ink-2";
         const body = (
-          <div className="flex items-start gap-3 py-[7px]">
-            <span className="relative z-10 mt-px grid size-[22px] shrink-0 place-items-center rounded-full border border-line bg-surface">
-              <meta.icon className={clsx("size-3", meta.cls)} strokeWidth={2} />
-            </span>
+          <div className="flex items-start gap-3 py-2">
+            <span className={clsx("mt-[7px] size-1.5 shrink-0 rounded-full", tone)} aria-hidden />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px] leading-snug text-ink">{f.title}</div>
-              <div className="mt-0.5 flex items-center gap-1.5 truncate text-[11.5px] text-faint">
-                {f.detail ? <span className="truncate">{f.detail}</span> : null}
-              </div>
+              <div className={clsx("truncate text-[14px] leading-5", f.kind === "error" ? "text-red" : "text-ink")}>{f.title}</div>
+              {f.detail ? <div className="truncate text-[13px] leading-5 text-muted">{f.detail}</div> : null}
             </div>
-            <div className="shrink-0 pt-px text-right leading-snug">
-              <div className="text-[11px] text-faint">{relTime(f.at, now)}</div>
-              {f.amount ? <div className={clsx("num text-[11.5px]", f.amount > 0 ? "text-green" : "text-muted")}>{f.amount > 0 ? "+" : "−"}{money(Math.abs(f.amount))}</div> : null}
+            <div className="shrink-0 text-right leading-5">
+              <div suppressHydrationWarning className="text-[13px] text-muted">
+                {relTime(f.at, now)}
+              </div>
+              {f.amount ? <div className={clsx("num text-[13px]", f.amount > 0 ? "text-green" : "text-muted")}>{f.amount > 0 ? "+" : "−"}{money(Math.abs(f.amount))}</div> : null}
             </div>
           </div>
         );
         return (
-          <li key={f.id} className="rise" style={{ animationDelay: `${300 + i * 45}ms` }}>
+          <li key={f.id} className="border-b border-rule last:border-0">
             {f.href ? (
-              <Link href={f.href} className="-mx-2 block rounded-md px-2 transition-colors hover:bg-[#fafafa]">
+              <Link href={f.href} className="-mx-2 block rounded-[8px] px-2 transition-colors hover:bg-hover">
                 {body}
               </Link>
             ) : (
-              <div className="-mx-2 px-2">{body}</div>
+              <div>{body}</div>
             )}
           </li>
         );
@@ -140,33 +130,24 @@ function RateHealth({ rate }: { rate: Overview["rate"] }) {
   const line = rate.thresholds[0].value;
   const cur = rate.current.rate;
   const start = rate.start.rate;
-  const down = cur !== null && start !== null && cur <= start;
+  const better = cur !== null && start !== null && cur <= start;
   return (
-    <div className="flex flex-1 flex-col px-5 pb-4">
+    <div className="px-5 pb-5">
       {cur !== null ? (
         <>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2.5">
-                <span className="text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-                  <CountUp value={cur} format={(n) => `${n.toFixed(2)}%`} />
-                </span>
-                <span className={clsx("inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-[12px] font-medium", cur < line ? "bg-green-soft text-green" : "bg-red-soft text-red")}>
-                  <span className="size-1.5 rounded-full bg-current" />
-                  {cur < line ? "Healthy" : "Over the line"}
-                </span>
-              </div>
-              <div className="mt-1.5 whitespace-nowrap text-[12px] tabular-nums text-muted">
-                {rate.current.disputes} disputes · {rate.current.orders?.toLocaleString("en-US")} orders · 30 days
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <div className="num text-[24px] font-semibold leading-7 tracking-[-0.02em] text-ink">{cur.toFixed(2)}%</div>
+              <div className="mt-1 text-[13px] text-muted">
+                <span className={cur < line ? "text-green" : "text-red"}>{cur < line ? "Under" : "Over"} the {line}% line</span> · {rate.current.disputes} disputes in {rate.current.orders?.toLocaleString("en-US")} orders
               </div>
             </div>
             {start !== null ? (
-              <div className="shrink-0 pt-0.5 text-right">
-                <div className={clsx("inline-flex items-center gap-0.5 text-[12.5px] font-medium tabular-nums", down ? "text-green" : "text-red")}>
-                  {down ? <ArrowDownRight className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
-                  {Math.abs(start - cur).toFixed(2)} pts
+              <div className="shrink-0 text-right text-[13px] leading-5">
+                <div className={clsx("num font-medium", cur === start ? "text-muted" : better ? "text-green" : "text-red")}>
+                  {cur === start ? "0.00" : `${better ? "−" : "+"}${Math.abs(start - cur).toFixed(2)}`} pts
                 </div>
-                <div className="mt-1 whitespace-nowrap text-[11.5px] text-faint">vs. 13 weeks ago</div>
+                <div className="text-muted">vs 13 weeks ago</div>
               </div>
             ) : null}
           </div>
@@ -176,37 +157,37 @@ function RateHealth({ rate }: { rate: Overview["rate"] }) {
         </>
       ) : (
         <>
-          <div className="text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-ink">{rate.current.disputes}</div>
-          <div className="mt-1.5 text-[12px] text-muted">disputes opened in the last 30 days</div>
-          <EmptyNote className="mt-3 h-[112px]" title="Rate needs your order volume" body="Exhibit divides disputes by orders. Connect your store's order count to chart it against the network lines." />
+          <div className="num text-[24px] font-semibold leading-7 text-ink">{rate.current.disputes}</div>
+          <div className="mt-1 text-[13px] text-muted">disputes opened in the last 30 days</div>
+          <EmptyNote className="mt-3" title="The rate needs your order volume" body="Exhibit divides disputes by orders. Connect your store's order count to chart it against the network lines." />
         </>
       )}
-      <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+      <ul className="mt-3 border-t border-line pt-2">
         {rate.thresholds.map((t) => (
-          <div key={t.id} className="flex items-center gap-2.5 text-[12px]">
-            <span className="w-8 shrink-0 font-medium tabular-nums text-ink">{t.value.toFixed(1)}%</span>
-            <span className="truncate text-ink-2">
-              {t.network} <span className="text-muted">{t.label}</span>
+          <li key={t.id} className="flex items-center gap-3 py-1 text-[14px]">
+            <span className="num w-10 shrink-0 text-ink">{t.value.toFixed(1)}%</span>
+            <span className="min-w-0 truncate text-ink-2">
+              {t.network} {t.label}
             </span>
-            <span className="ml-auto shrink-0 text-[11px] tabular-nums text-faint">{t.minimum}</span>
-          </div>
+            <span className="ml-auto shrink-0 text-[13px] text-muted">{t.minimum}</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
 
-export function CommandCenter({ initial }: { initial: Overview }) {
+export function CommandCenter({ initial, guideArt }: { initial: Overview; /** Dot art for the demo guide strip, rendered by the page (a server component). */ guideArt?: React.ReactNode }) {
   const [data, setData] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/overview", { cache: "no-store" });
-    if (res.ok) setData(await res.json());
+    const res = await fetch("/api/overview", { cache: "no-store" }).catch(() => null);
+    if (res?.ok) setData(await res.json());
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => void load(), 6000);
+    const t = setInterval(() => document.visibilityState === "visible" && void load(), 6000);
     return () => clearInterval(t);
   }, [load]);
 
@@ -225,61 +206,34 @@ export function CommandCenter({ initial }: { initial: Overview }) {
   const { headline: h, kpis, queue, assumptions: a } = data;
   const now = Date.parse(data.generatedAt);
   const unanalyzed = queue.filter((q) => q.next === "investigate").length;
-  const nextDue = queue.find((q) => q.hoursLeft !== null);
+  const briefed = queue.filter((q) => q.decision).length;
   const totals = data.weekly.reduce((acc, w) => ({ recovered: acc.recovered + w.recovered, refunded: acc.refunded + w.refunded, lost: acc.lost + w.lost }), { recovered: 0, refunded: 0, lost: 0 });
   const hasResolved = totals.recovered + totals.refunded + totals.lost > 0;
-  const closed = kpis.recovered.hint.match(/(\d+) closed/)?.[1];
-  const today = new Date(now).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const winHint = kpis.winRate.value !== null ? kpis.winRate.hint.replace(" fought cases", " fought, 90 days") : (kpis.winRate.empty ?? "");
 
   return (
     <>
-      <header className="flex flex-col gap-4 border-b border-line px-4 pb-5 pt-6 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-6 lg:px-8">
+      <header className="flex flex-col gap-4 px-4 pt-6 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
         <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-2 text-[12px] text-muted">
-            <span>Command center</span>
-            <span className="text-line-strong">/</span>
-            <span suppressHydrationWarning>{today}</span>
-            {data.demoHistory ? (
-              <span className="ml-1 inline-flex h-5 items-center gap-1.5 rounded-full border border-line bg-surface px-2 text-[11px] text-ink-2">
-                <span className="size-1.5 rounded-full bg-amber" />
-                Demo merchant · 90-day history
-              </span>
-            ) : data.mode === "sandbox" ? (
-              <span className="ml-1 inline-flex h-5 items-center gap-1.5 rounded-full border border-line bg-surface px-2 text-[11px] text-ink-2">
-                <span className="size-1.5 rounded-full bg-green" />
-                Live PayPal sandbox data
-              </span>
-            ) : null}
-          </div>
-          <h1 className="display text-[30px] leading-[1.1]">
+          <h1 className="text-[28px] font-semibold leading-[34px] tracking-[-0.025em] text-ink">
             {h.recovered > 0 ? (
               <>
-                <span className="tabular-nums">
-                  <CountUp value={h.recovered} format={money} />
-                </span>{" "}
-                recovered.{" "}
+                <span className="num">{money(h.recovered)}</span> recovered.{" "}
               </>
             ) : (
               <>
-                <span className="tabular-nums">
-                  <CountUp value={h.atRisk} format={money} />
-                </span>{" "}
-                at risk.{" "}
+                <span className="num">{money(h.atRisk)}</span> at stake.{" "}
               </>
             )}
-            <span className="text-faint">{h.needsYou ? `${h.needsYou} case${h.needsYou === 1 ? "" : "s"} need${h.needsYou === 1 ? "s" : ""} you.` : "Nothing needs you."}</span>
+            <span className="text-[#858583]">{h.needsYou ? `${h.needsYou} case${h.needsYou === 1 ? "" : "s"} need${h.needsYou === 1 ? "s" : ""} you.` : "Nothing needs you."}</span>
           </h1>
-          <p className="mt-2 max-w-[760px] text-[13.5px] text-muted">
-            {h.recovered > 0 && closed ? `Exhibit closed ${closed} dispute${closed === "1" ? "" : "s"} in the last 90 days${kpis.winRate.value !== null ? ` and won ${kpis.winRate.value}% of the ones it chose to fight` : ""}. ` : ""}
-            {h.openCount ? `${money(h.atRisk)} is open across ${h.openCount} case${h.openCount === 1 ? "" : "s"}` : "No open disputes"}
-            {nextDue?.hoursLeft != null ? (nextDue.hoursLeft < 0 ? `; a PayPal response deadline passed ${span(-nextDue.hoursLeft)} ago.` : `; the next PayPal deadline is in ${span(nextDue.hoursLeft)}.`) : "."}
-          </p>
+          <p className="mt-1.5 max-w-[760px] text-[14px] leading-[22px] text-ink-2">{finding(queue, h)}</p>
+          <p className="mt-1 text-[12px] text-muted">{data.demoHistory ? "Demo merchant: the 90-day history behind these figures is generated; the open cases run live on the simulator." : data.mode === "sandbox" ? "Live PayPal sandbox disputes, resolved in the last 90 days and open now." : "Resolved in the last 90 days and open now."}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {data.mode === "demo" ? (
             <Button
-              variant="secondary"
-              size="sm"
+              className="max-sm:hidden"
               disabled={!!busy}
               onClick={() =>
                 run("incoming", async () => {
@@ -294,7 +248,6 @@ export function CommandCenter({ initial }: { initial: Overview }) {
           {unanalyzed ? (
             <Button
               variant="primary"
-              size="sm"
               disabled={!!busy}
               onClick={() =>
                 run("batch", async () => {
@@ -307,73 +260,40 @@ export function CommandCenter({ initial }: { initial: Overview }) {
               <Play className="size-3.5" /> Investigate {unanalyzed} new
             </Button>
           ) : (
-            <Link href="/app/disputes" className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-ink px-2.5 text-[12.5px] font-medium text-white transition-colors hover:bg-[#262626]">
+            <Link href="/app/disputes" className={buttonClass("primary", "md")}>
               Open disputes <ArrowRight className="size-3.5" />
             </Link>
           )}
         </div>
       </header>
 
-      <div className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-5">
+      <div className="space-y-4 px-4 pt-6 sm:px-6">
+        <GuideStrip art={guideArt} />
+
+        <section aria-label="Key figures" className="grid grid-cols-2 rounded-[10px] border border-line max-lg:[&>*:nth-child(-n+2)]:border-b max-lg:[&>*:nth-child(odd)]:border-r lg:grid-cols-4 lg:divide-x lg:divide-line [&>*]:border-line">
+          <Kpi label="At risk now" value={money(h.atRisk)} hint={`across ${h.openCount} open case${h.openCount === 1 ? "" : "s"}`} tip="The disputed amount on every open case. If you did nothing, this is what PayPal could return to buyers." />
           <Kpi
-            i={0}
-            label="Recovered · 90 days"
-            value={kpis.recovered.value}
-            format={money}
-            hint={kpis.recovered.hint}
-            empty={kpis.recovered.empty}
-            series={kpis.recovered.series}
-            tone="green"
-            tip="Money kept on cases resolved in the last 90 days: fights won, cases the buyer closed after Exhibit replied, and the part kept when a buyer accepted a partial refund."
+            label="Expected back"
+            value={briefed ? money(h.expected) : null}
+            hint={briefed ? `estimated on ${briefed} briefed case${briefed === 1 ? "" : "s"}` : "No case briefed yet"}
+            tip="Each briefed case weighted by Exhibit's call: a fight by its win likelihood, an offer by what the merchant keeps, a refund at zero."
           />
+          <Kpi label="Win rate when fought" value={kpis.winRate.value !== null ? `${Math.round(kpis.winRate.value)}%` : null} hint={winHint} align="right" tip="Cases Exhibit chose to fight that PayPal decided for you. Refunds and offers are left out on purpose: Exhibit doesn't fight cases it expects to lose." />
           <Kpi
-            i={1}
-            label="At risk now"
-            value={kpis.atRisk.value}
-            format={money}
-            hint={kpis.atRisk.hint}
-            series={kpis.atRisk.series}
-            tip="Disputed amount on open cases. Expected back weighs each case by Exhibit's call and win likelihood. The sparkline is open exposure at the end of each week."
-          />
-          <Kpi
-            i={2}
-            label="Win rate · fought"
-            value={kpis.winRate.value}
-            format={(n) => `${Math.round(n)}%`}
-            hint={kpis.winRate.hint}
-            empty={kpis.winRate.empty}
-            series={kpis.winRate.series}
-            tip="Cases Exhibit chose to fight that PayPal decided for you. Refunds and offers are left out on purpose: Exhibit doesn't fight cases it expects to lose."
-          />
-          <Kpi
-            i={3}
             label="Fees avoided"
-            value={kpis.feesAvoided.value}
-            format={money}
-            hint={kpis.feesAvoided.hint}
-            empty={kpis.feesAvoided.empty}
-            series={kpis.feesAvoided.series}
+            value={kpis.feesAvoided.value || kpis.feesAvoided.hint ? money(kpis.feesAvoided.value) : null}
+            hint={kpis.feesAvoided.hint ? kpis.feesAvoided.hint.replace(/ inquiries × \$\d+ claim fee/, " inquiries closed before a claim") : (kpis.feesAvoided.empty ?? "")}
+            align="right"
             tip={
               <>
                 Inquiries closed before the buyer escalated to a claim, at PayPal&apos;s ${a.disputeFee} Standard Dispute Fee, which PayPal may charge &ldquo;when a buyer files a dispute claim or chargeback&rdquo; (${a.chargebackFee} for card chargebacks). Source: PayPal US merchant fees page, updated 1 Oct 2026.
               </>
             }
           />
-          <Kpi
-            i={4}
-            label="Merchant hours saved"
-            value={kpis.hoursSaved.value}
-            format={(n) => `${Math.round(n)}h`}
-            hint={kpis.hoursSaved.hint}
-            empty={kpis.hoursSaved.empty}
-            series={kpis.hoursSaved.series}
-            tip={`Assumes ${a.minutesPerCase} minutes of manual work per case: pulling the order, tracking, buyer messages and policies, then writing and filing the response. Counts resolved cases plus open cases Exhibit has briefed.`}
-          />
         </section>
 
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-          <div className="card rise flex flex-col overflow-hidden xl:col-span-7" style={stagger(5)}>
+          <div className="card flex flex-col overflow-hidden border xl:col-span-8">
             <CardHead
               title="Needs you"
               sub={
@@ -381,89 +301,77 @@ export function CommandCenter({ initial }: { initial: Overview }) {
                   "Every open case is answered · waiting on PayPal"
                 ) : queue.length ? (
                   <>
-                    {h.needsYou} waiting on a decision{h.dueSoon ? <span className="text-red"> · {h.dueSoon} due within 48h</span> : null} · closest deadline first
+                    {h.needsYou} waiting on a decision{h.dueSoon ? <span className="text-red"> · {h.dueSoon} due within 48 hours</span> : null} · closest deadline first
                   </>
                 ) : (
                   "No open disputes"
                 )
               }
               right={
-                <Link href="/app/disputes" className="inline-flex items-center gap-1 text-[12.5px] text-muted transition-colors hover:text-ink">
+                <Link href="/app/disputes" className="inline-flex items-center gap-1 rounded-[6px] text-[13px] text-ink-2 transition-colors hover:text-ink">
                   All disputes <ArrowRight className="size-3.5" />
                 </Link>
               }
             />
             {queue.length ? (
-              <div className="border-t border-line">
-                <NeedsYouGrid rows={queue.slice(0, 6)} />
-              </div>
+              <NeedsYouGrid rows={queue.slice(0, 6)} />
             ) : (
-              <EmptyNote className="mx-5 mb-5 h-[240px]" title="Inbox zero" body="When PayPal opens a dispute, Exhibit investigates it on arrival and it lands here with a recommendation." />
+              <EmptyNote className="mx-5 mb-5" title="Inbox zero" body="When PayPal opens a dispute, Exhibit investigates it on arrival and it lands here with a recommendation." />
             )}
             {queue.length > 6 ? (
-              <Link href="/app/disputes" className="mt-auto border-t border-line px-5 py-2.5 text-[12.5px] text-muted transition-colors hover:bg-[#fafafa] hover:text-ink">
-                +{queue.length - 6} more open case{queue.length - 6 === 1 ? "" : "s"}
+              <Link href="/app/disputes" className="border-t border-line px-5 py-3 text-[13px] text-ink-2 transition-colors hover:bg-hover hover:text-ink">
+                View all {queue.length} open cases
               </Link>
             ) : null}
           </div>
 
-          <div className="card rise flex flex-col xl:col-span-5" style={stagger(6)}>
-            <CardHead
-              title="Recovered vs. given back"
-              tipAlign="right"
-              sub="Weekly, by close date · last 13 weeks"
-              tip="Above the line: money kept. Below: money returned to buyers, split into honest refunds (Exhibit's call when the merchant was at fault) and fights that were lost."
-            />
-            <div className="flex flex-wrap gap-x-4 gap-y-1 px-5 pb-2">
-              <LegendDot color="var(--green)" label="Recovered" value={money(totals.recovered)} />
-              <LegendDot color="#d4d4d4" label="Refunded honestly" value={money(totals.refunded)} />
+          <div className="card flex flex-col border xl:col-span-4">
+            <CardHead title="Kept and given back" tipAlign="right" sub="Weekly by close date, last 13 weeks" tip="Above the line: money kept. Below: money returned to buyers, split into refunds Exhibit chose because the merchant was at fault, and fights that were lost." />
+            <div className="flex flex-wrap gap-x-4 gap-y-1 px-5 pb-1">
+              <LegendDot color="var(--green)" label="Kept" value={money(totals.recovered)} />
+              <LegendDot color="#d9d9d6" label="Refunded" value={money(totals.refunded)} />
               <LegendDot color="var(--red)" label="Lost" value={money(totals.lost)} />
             </div>
-            <div className="relative min-h-[236px] flex-1 px-3 pb-3">{hasResolved ? <div className="absolute inset-x-3 bottom-3 top-1"><RecoveryChart weekly={data.weekly} /></div> : <EmptyNote className="mx-2 h-[236px]" title="No resolved cases yet" body="Each case PayPal resolves lands here by week: what you kept, what Exhibit refunded on purpose, and what was lost." />}</div>
+            {/* The chart grows with the queue beside it, so the row shares one bottom edge without a blank band. */}
+            <div className="relative min-h-[248px] flex-1 px-3 pb-4 pt-2">
+              {hasResolved ? (
+                <div className="absolute inset-x-3 bottom-4 top-2">
+                  <RecoveryChart weekly={data.weekly} height="100%" />
+                </div>
+              ) : (
+                <EmptyNote className="mx-2" title="No resolved cases yet" body="Each case PayPal resolves lands here by week: what you kept, what Exhibit refunded on purpose, and what was lost." />
+              )}
+            </div>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
-          <div className="card rise flex flex-col xl:col-span-4" style={stagger(7)}>
-            <CardHead
-              title="Outcomes by reason"
-              sub="Fights it picks, it wins. Where you were at fault, it refunds."
-              tip="Resolved cases in the last 90 days by PayPal dispute reason. Win rate counts only the cases Exhibit chose to fight."
-            />
-            {data.reasons.length ? <ReasonBars reasons={data.reasons} /> : <EmptyNote className="mx-5 mb-5 h-[200px]" title="No resolved cases yet" body="Win rates by dispute reason appear once PayPal resolves a case." />}
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="card border">
+            <CardHead title="Outcomes by reason" sub="Resolved in the last 90 days" tip="Resolved cases by PayPal dispute reason. Win rate counts only the cases Exhibit chose to fight." />
+            {data.reasons.length ? <ReasonBars reasons={data.reasons} /> : <EmptyNote className="mx-5 mb-5" title="No resolved cases yet" body="Win rates by dispute reason appear once PayPal resolves a case." />}
           </div>
 
-          <div className="card rise flex flex-col xl:col-span-4" style={stagger(8)}>
+          <div className="card border">
             <CardHead
-              title="Dispute-rate health"
-              sub="Rolling 30 days vs. card-network monitoring lines"
+              title="Dispute rate"
+              sub="Rolling 30 days, against the card networks' lines"
               tip={
                 <>
-                  PayPal doesn&apos;t publish a merchant dispute-rate threshold, so these are card-network lines. Visa VAMP: (fraud + disputes) ÷ settled card-not-present transactions, excessive at 1.5% in the US since 1 April 2026. Mastercard: chargebacks ÷ last month&apos;s transactions. Exhibit counts every PayPal dispute and chargeback ÷ orders, which is stricter than the card-only ratios. Sources: Visa VAMP fact sheet (2025 v2); Mastercard Excessive Chargeback Program summary. See docs/sources/dispute-thresholds.md.
+                  PayPal doesn&apos;t publish a merchant dispute-rate threshold, so these are card-network lines. Visa VAMP: (fraud + disputes) ÷ settled card-not-present transactions, excessive at 1.5% in the US since 1 April 2026. Mastercard: chargebacks ÷ last month&apos;s transactions. Exhibit counts every PayPal dispute and chargeback ÷ orders, which is stricter than the card-only ratios.
                 </>
               }
             />
             <RateHealth rate={data.rate} />
           </div>
 
-          <div className="card rise flex flex-col md:col-span-2 xl:col-span-4" style={stagger(9)}>
-            <CardHead
-              title="Agent activity"
-              sub="Investigations, filings, refunds and PayPal rulings"
-              right={
-                <span className="inline-flex items-center gap-1.5 text-[11.5px] text-muted">
-                  <span className="pulse-dot size-1.5 rounded-full bg-green" /> Live
-                </span>
-              }
-            />
-            <Feed items={data.feed} now={now} />
-            <Link href="/app/activity" className="mt-auto border-t border-line px-5 py-2.5 text-[12.5px] text-muted transition-colors hover:bg-[#fafafa] hover:text-ink">
-              Full audit trail
-            </Link>
+          <div className="card flex flex-col border md:col-span-2 xl:col-span-1">
+            <CardHead title="Agent activity" sub="Filings, refunds and PayPal rulings" right={<Link href="/app/activity" className="inline-flex items-center gap-1 rounded-[6px] text-[13px] text-ink-2 transition-colors hover:text-ink">Audit trail <ArrowRight className="size-3.5" /></Link>} />
+            <div className="pb-3">
+              <Feed items={data.feed} now={now} />
+            </div>
           </div>
         </section>
       </div>
-
     </>
   );
 }

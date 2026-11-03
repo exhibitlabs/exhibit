@@ -11,7 +11,7 @@ export function Tip({ label, children, side = "top", align = "center", className
       <span
         role="tooltip"
         className={clsx(
-          "pointer-events-none absolute z-[70] rounded-md bg-ink px-2 py-1 text-[11.5px] font-normal leading-snug text-white opacity-0 shadow-[0_6px_18px_rgb(0_0_0/0.18)] transition-opacity delay-0 duration-150 group-hover/tt:opacity-100 group-hover/tt:delay-300 group-focus-within/tt:opacity-100",
+          "pointer-events-none invisible absolute z-[70] rounded-[6px] bg-ink px-2 py-1 text-[12px] font-normal leading-snug text-white opacity-0 shadow-[0_6px_18px_rgb(0_0_0/0.16)] transition-[opacity,visibility] delay-0 duration-150 group-hover/tt:visible group-hover/tt:opacity-100 group-hover/tt:delay-300 group-focus-within/tt:visible group-focus-within/tt:opacity-100",
           wide ? "w-64 whitespace-normal" : "whitespace-nowrap",
           side === "top" ? "bottom-[calc(100%+6px)]" : "top-[calc(100%+6px)]",
           align === "center" ? "left-1/2 -translate-x-1/2" : align === "start" ? "left-0" : "right-0",

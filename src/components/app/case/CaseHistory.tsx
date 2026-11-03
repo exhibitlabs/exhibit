@@ -10,22 +10,19 @@ const ICON = { agent: Bot, merchant: User, webhook: Webhook, system: Database, a
 /** The audit trail for this case: who did what, in order. PayPal API calls live in their own tab. */
 export function CaseHistory({ items }: { items: TimelineItem[] }) {
   const list = items.filter((i) => i.lane !== "api");
-  if (!list.length) return <p className="rounded-lg border border-dashed border-line-strong px-4 py-6 text-center text-[13px] text-muted">Nothing on record for this case yet.</p>;
+  if (!list.length) return <p className="rounded-[10px] border border-dashed border-line-strong px-4 py-6 text-center text-[13px] text-muted">Nothing on record for this case yet.</p>;
   return (
-    <ol className="card relative px-5 py-3">
-      <span className="absolute bottom-6 left-[31px] top-6 w-px bg-line" aria-hidden />
+    <ol className="card border px-5 py-2">
       {list.map((e) => {
         const Icon = e.error ? TriangleAlert : e.kind === "sandbox" ? Gavel : ICON[e.lane];
         return (
-          <li key={e.id} className="relative flex items-start gap-3 py-2">
-            <span className={clsx("relative z-10 mt-px grid size-[22px] shrink-0 place-items-center rounded-full border bg-surface", e.error ? "border-red/30 text-red" : e.lane === "merchant" ? "border-ink/30 text-ink" : "border-line text-ink-2")}>
-              <Icon className="size-3" strokeWidth={2} />
-            </span>
+          <li key={e.id} className="flex items-start gap-3 border-b border-rule py-2.5 last:border-0">
+            <Icon className={clsx("mt-0.5 size-4 shrink-0", e.error ? "text-red" : e.lane === "merchant" ? "text-ink" : "text-muted")} strokeWidth={1.7} />
             <div className="min-w-0 flex-1">
-              <div className={clsx("text-[12.5px] leading-snug", e.error ? "text-red" : "text-ink")}>{e.title}</div>
-              <div className="mt-0.5 text-[11.5px] text-muted">{e.actor}</div>
+              <div className={clsx("text-[13px] leading-[19px]", e.error ? "text-red" : "text-ink")}>{e.title}</div>
+              <div className="text-[12px] text-muted">{e.actor}</div>
             </div>
-            <span suppressHydrationWarning className="shrink-0 pt-px text-[11px] text-faint">
+            <span suppressHydrationWarning className="shrink-0 pt-px text-[12px] text-muted">
               {dateTime(e.at)}
             </span>
           </li>

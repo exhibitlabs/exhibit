@@ -8,16 +8,18 @@ import { usd } from "@/lib/format";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+/** Chart colours: green is money kept, red a lost fight, a light warm grey a refund chosen on purpose; ink for neutral series. */
 export const CHART = {
   green: "#15803d",
   red: "#b91c1c",
-  refund: "#d4d4d4",
+  refund: "#d9d9d6",
   ink: "#0a0a0a",
-  grid: "#f2f2f2",
-  label: "#a1a1a1",
+  grid: "#f1f1f0",
+  base: "#cdcdca",
+  label: "#737371",
 };
 
-/** Exhibit's chart theme: Geist, no chrome, grey grid, ink tooltips. Canvas needs the resolved font family name. */
+/** Exhibit's chart theme: Geist, no chrome, faint horizontal grid, ink tooltips. Canvas needs the resolved font family name. */
 function useTheme(): AgChartTheme {
   return useMemo(() => {
     const font = typeof document !== "undefined" ? getComputedStyle(document.body).fontFamily : "system-ui";
@@ -26,18 +28,18 @@ function useTheme(): AgChartTheme {
       palette: { fills: [CHART.green, CHART.refund, CHART.red, CHART.ink], strokes: [CHART.green, CHART.refund, CHART.red, CHART.ink] },
       params: {
         fontFamily: font,
-        fontSize: 11,
+        fontSize: 12,
         foregroundColor: CHART.ink,
-        textColor: "#737373",
+        textColor: CHART.label,
         subtleTextColor: CHART.label,
         backgroundColor: "transparent",
         chartBackgroundColor: "transparent",
         gridLineColor: CHART.grid,
-        axisLineColor: "#ebebeb",
+        axisLineColor: CHART.base,
         chartPadding: 0,
         tooltipBackgroundColor: CHART.ink,
         tooltipTextColor: "#ffffff",
-        tooltipSubtleTextColor: "#a1a1a1",
+        tooltipSubtleTextColor: "#b5b5b2",
         tooltipBorder: false,
         tooltipBorderRadius: 8,
       },
@@ -47,8 +49,8 @@ function useTheme(): AgChartTheme {
 
 const money = (n: number) => (Math.abs(n) >= 1000 ? `$${(Math.abs(n) / 1000).toFixed(1).replace(/\.0$/, "")}k` : `$${Math.abs(Math.round(n))}`);
 
-/** Weekly money out of resolved cases: kept above the line, given back below it. */
-export function RecoveryChart({ weekly }: { weekly: WeekPoint[] }) {
+/** Weekly money out of resolved cases: kept above the line, given back below it, on one signed scale. */
+export function RecoveryChart({ weekly, height = 248 }: { weekly: WeekPoint[]; height?: number | string }) {
   const theme = useTheme();
   const options = useMemo<AgCartesianChartOptions>(() => {
     const data = weekly.map((w) => ({ label: w.label, recovered: w.recovered, refunded: -w.refunded, lost: -w.lost }));
@@ -56,8 +58,8 @@ export function RecoveryChart({ weekly }: { weekly: WeekPoint[] }) {
       renderer: ({ datum }: { datum: (typeof data)[number] }) => ({
         heading: `Week of ${datum.label}`,
         data: [
-          { label: "Recovered", value: usd(datum.recovered, 0) },
-          { label: "Refunded honestly", value: usd(-datum.refunded, 0) },
+          { label: "Kept", value: usd(datum.recovered, 0) },
+          { label: "Refunded", value: usd(-datum.refunded, 0) },
           { label: "Lost", value: usd(-datum.lost, 0) },
         ],
       }),
@@ -66,12 +68,12 @@ export function RecoveryChart({ weekly }: { weekly: WeekPoint[] }) {
       theme,
       data,
       background: { visible: false },
-      padding: { top: 6, right: 2, bottom: 0, left: 0 },
+      padding: { top: 8, right: 16, bottom: 0, left: 0 },
       legend: { enabled: false },
       series: [
-        { type: "bar", xKey: "label", yKey: "recovered", yName: "Recovered", stackGroup: "kept", fill: CHART.green, cornerRadius: 3, tooltip },
-        { type: "bar", xKey: "label", yKey: "refunded", yName: "Refunded honestly", stackGroup: "out", fill: CHART.refund, cornerRadius: 0, tooltip },
-        { type: "bar", xKey: "label", yKey: "lost", yName: "Lost", stackGroup: "out", fill: CHART.red, fillOpacity: 0.85, cornerRadius: 3, tooltip },
+        { type: "bar", xKey: "label", yKey: "recovered", yName: "Kept", stackGroup: "kept", fill: CHART.green, cornerRadius: 2, tooltip },
+        { type: "bar", xKey: "label", yKey: "refunded", yName: "Refunded", stackGroup: "out", fill: CHART.refund, cornerRadius: 0, tooltip },
+        { type: "bar", xKey: "label", yKey: "lost", yName: "Lost", stackGroup: "out", fill: CHART.red, cornerRadius: 2, tooltip },
       ],
       axes: {
         x: {
@@ -81,7 +83,7 @@ export function RecoveryChart({ weekly }: { weekly: WeekPoint[] }) {
           paddingOuter: 0.2,
           line: { enabled: false },
           tick: { enabled: false },
-          label: { color: CHART.label, fontSize: 10.5, avoidCollisions: true, minSpacing: 12, wrapping: "never", rotation: 0 },
+          label: { color: CHART.label, fontSize: 12, avoidCollisions: true, minSpacing: 16, wrapping: "never", rotation: 0 },
           gridLine: { enabled: false },
         },
         y: {
@@ -89,53 +91,50 @@ export function RecoveryChart({ weekly }: { weekly: WeekPoint[] }) {
           position: "left",
           line: { enabled: false },
           tick: { enabled: false },
-          label: { color: CHART.label, fontSize: 10.5, formatter: ({ value }: { value: number }) => (value === 0 ? "$0" : money(value)) },
+          label: { color: CHART.label, fontSize: 12, formatter: ({ value }: { value: number }) => (value === 0 ? "$0" : `${value < 0 ? "−" : ""}${money(value)}`) },
           gridLine: { style: [{ stroke: CHART.grid, lineDash: [] }] },
-          crossLines: [{ type: "line", value: 0, stroke: "#d4d4d4", strokeWidth: 1 }],
+          crossLines: [{ type: "line", value: 0, stroke: CHART.base, strokeWidth: 1 }],
         },
       },
     } as AgCartesianChartOptions;
   }, [weekly, theme]);
-  return <AgCharts options={options} style={{ height: "100%", width: "100%" }} />;
+  return <AgCharts options={options} style={{ height, width: "100%" }} />;
 }
 
-/** Rolling 30-day dispute rate against the card networks' 1.5% monitoring line. */
-export function RateChart({ series, threshold, height = 150 }: { series: { label: string; rate: number }[]; threshold: number; height?: number }) {
+/** Rolling 30-day dispute rate in straight segments, against the card networks' monitoring line (dashed, labelled at its end). */
+export function RateChart({ series, threshold, height = 140 }: { series: { label: string; rate: number }[]; threshold: number; height?: number }) {
   const theme = useTheme();
   const options = useMemo<AgCartesianChartOptions>(() => {
-    const top = Math.max(2, Math.ceil(Math.max(...series.map((s) => s.rate), threshold) * 2) / 2 + 0.25);
+    const top = Math.max(2, Math.ceil(Math.max(...series.map((s) => s.rate), threshold) * 2) / 2 + 0.5);
     return {
       theme,
       data: series,
       background: { visible: false },
-      padding: { top: 4, right: 10, bottom: 0, left: 0 },
+      padding: { top: 10, right: 16, bottom: 0, left: 0 },
       legend: { enabled: false },
       series: [
         {
-          type: "area",
+          type: "line",
           xKey: "label",
           yKey: "rate",
           yName: "Dispute rate",
-          fill: CHART.ink,
-          fillOpacity: 0.05,
           stroke: CHART.ink,
           strokeWidth: 1.5,
-          interpolation: { type: "smooth" },
           marker: { enabled: false },
           tooltip: { renderer: ({ datum }: { datum: { label: string; rate: number } }) => ({ heading: `30 days to ${datum.label}`, data: [{ label: "Dispute rate", value: `${datum.rate.toFixed(2)}%` }] }) },
         },
       ],
       axes: {
-        x: { type: "category", position: "bottom", line: { enabled: false }, tick: { enabled: false }, label: { color: CHART.label, fontSize: 10, minSpacing: 22, wrapping: "never", rotation: 0, avoidCollisions: true }, gridLine: { enabled: false } },
+        x: { type: "category", position: "bottom", line: { enabled: false }, tick: { enabled: false }, label: { color: CHART.label, fontSize: 12, minSpacing: 28, wrapping: "never", rotation: 0, avoidCollisions: true }, gridLine: { enabled: false } },
         y: {
           type: "number",
           position: "left",
           min: 0,
           max: top,
-          interval: { step: 0.5 },
+          interval: { step: top > 2 ? 1 : 0.5 },
           line: { enabled: false },
           tick: { enabled: false },
-          label: { color: CHART.label, fontSize: 10, formatter: ({ value }: { value: number }) => `${value}%` },
+          label: { color: CHART.label, fontSize: 12, formatter: ({ value }: { value: number }) => `${value}%` },
           gridLine: { style: [{ stroke: CHART.grid, lineDash: [] }] },
           crossLines: [
             {
@@ -144,8 +143,7 @@ export function RateChart({ series, threshold, height = 150 }: { series: { label
               stroke: CHART.red,
               strokeWidth: 1,
               lineDash: [4, 3],
-              strokeOpacity: 0.8,
-              label: { text: `${threshold}% network line`, position: "inside-top-right", color: CHART.red, fontSize: 10, padding: 4 },
+              label: { text: `${threshold}% Visa line`, position: "inside-top-right", color: CHART.red, fontSize: 12, padding: 4 },
             },
           ],
         },

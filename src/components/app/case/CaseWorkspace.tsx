@@ -19,8 +19,9 @@ import type { ApiRowLite } from "../ApiInspector";
 import { usePageKeys } from "../Shortcuts";
 import { AI_LABEL, type AiProviderKind } from "../Sidebar";
 import { Button } from "../../ui/Button";
-import { Chip, DECISION_META } from "../../ui/Chip";
+import { Chip } from "../../ui/Chip";
 import { Dialog } from "../../ui/Dialog";
+import { Kbd } from "../../ui/Kbd";
 import { Tabs } from "../../ui/Tabs";
 import { toast } from "../../ui/Toast";
 import { Tip } from "../../ui/Tooltip";
@@ -92,6 +93,7 @@ export function CaseWorkspace({
   nav,
   initialTab,
   guide,
+  briefArt,
 }: {
   initial: { cf: CaseFile; run: RunState; running: boolean; actions: ActionRow[]; api: ApiRowLite[]; history: TimelineItem[] };
   protection: ProtectionReport;
@@ -100,6 +102,8 @@ export function CaseWorkspace({
   nav: CaseNav;
   initialTab: DetailTab | null;
   guide: string | null;
+  /** Dot art for "No brief yet", rendered by the page (a server component). */
+  briefArt?: React.ReactNode;
 }) {
   const router = useRouter();
   const [dispute, setDispute] = useState<Dispute>(initial.cf.dispute);
@@ -119,6 +123,7 @@ export function CaseWorkspace({
   const [confirm, setConfirm] = useState(false);
   const [compact, setCompact] = useState(false);
   const [prevBrief, setPrevBrief] = useState<CaseBrief | null>(null);
+  const [agentAsks, setAgentAsks] = useState(0);
   const streaming = useRef(false);
   const queue = useRef<RunEvent[]>([]);
   const frame = useRef(0);
@@ -338,57 +343,64 @@ export function CaseWorkspace({
     return false;
   });
 
-  const m = brief ? DECISION_META[brief.decision] : null;
   const filedLabel = answered ? (ANSWER_LABEL[answered.kind] ?? "Filed") : effectiveAction?.ok ? "Sent to PayPal" : null;
 
   const primary = running ? (
-    <Button variant="primary" size="md" disabled>
-      <Loader2 className="size-4 animate-spin" /> Investigating…
+    <Button variant="primary" disabled>
+      <Loader2 className="size-3.5 animate-spin" /> Investigating…
     </Button>
   ) : !brief ? (
-    <Button variant="primary" size="md" onClick={start} className={clsx(guide === "run" && "ring-2 ring-amber ring-offset-2")}>
-      <Play className="size-4" /> Run Exhibit
+    <Button variant="primary" onClick={start} className={clsx(guide === "run" && "shadow-[0_0_0_2px_var(--surface),0_0_0_4px_var(--amber)]")}>
+      <Play className="size-3.5" /> Run Exhibit
     </Button>
   ) : filedLabel ? (
-    <span className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-green-soft px-3.5 text-[13.5px] font-medium text-green">
-      <Check className="size-4" strokeWidth={2.5} /> {filedLabel}
+    <span className="inline-flex h-8 items-center gap-1.5 rounded-[8px] bg-green-soft px-3 text-[13px] font-medium text-green">
+      <Check className="size-3.5" strokeWidth={2.6} /> {filedLabel}
     </span>
   ) : allowed ? (
-    <Button variant="primary" size="md" onClick={requestSubmit} disabled={submitting || editing || letter.length > 1900} className={clsx(guide === "file" && "ring-2 ring-amber ring-offset-2")}>
-      {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+    <Button variant={agentAsks ? "secondary" : "primary"} onClick={requestSubmit} disabled={submitting || editing || letter.length > 1900} className={clsx(guide === "file" && "shadow-[0_0_0_2px_var(--surface),0_0_0_4px_var(--amber)]")}>
+      {submitting ? <Loader2 className="size-3.5 animate-spin" /> : null}
       {actionLabel(brief, amount)}
     </Button>
   ) : outcome ? (
-    <Chip tone={outcome.tone === "green" ? "green" : outcome.tone === "red" ? "red" : "outline"} dot>
+    <Chip tone={outcome.tone === "green" ? "green" : outcome.tone === "red" ? "red" : "neutral"} className="h-8 rounded-[8px] px-3 text-[13px]">
       {outcome.label}
     </Chip>
   ) : (
-    <span className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-sunken px-3 text-[13px] text-ink-2">
-      <Clock3 className="size-4" /> {dispute.status === "UNDER_REVIEW" ? "PayPal reviewing" : STATUS_LABEL[dispute.status]}
+    <span className="inline-flex h-8 items-center gap-1.5 rounded-[8px] bg-sunken px-3 text-[13px] text-ink-2">
+      <Clock3 className="size-3.5" /> {dispute.status === "UNDER_REVIEW" ? "PayPal reviewing" : STATUS_LABEL[dispute.status]}
     </span>
   );
 
+  const items = t?.items?.map((i) => i.item_name).filter(Boolean).join(", ") || cf.order?.items.map((i) => i.name).join(", ") || "Order";
+
   return (
-    <div className="pb-24">
-      <header className={clsx("sticky top-12 z-20 border-b border-line bg-white/92 backdrop-blur-md transition-[padding] duration-200 lg:top-0", compact ? "py-2.5" : "pb-4 pt-5")}>
-        <div className="px-4 sm:px-6 lg:px-8">
+    <div className="pb-16">
+      <header className={clsx("sticky top-12 z-20 border-b border-line bg-surface lg:rounded-t-[12px]", compact ? "py-2.5" : "pb-4 pt-5")}>
+        <div className="px-4 sm:px-6">
           {!compact ? (
-            <div className="mb-3 flex items-center justify-between gap-3 text-[12.5px]">
-              <Link href="/app/disputes" className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-ink">
-                <ArrowLeft className="size-3.5" /> Disputes
-              </Link>
+            <div className="mb-2 flex items-center justify-between gap-3 text-[13px]">
+              <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-muted">
+                <Link href="/app/disputes" className="inline-flex items-center gap-1 rounded-[4px] transition-colors hover:text-ink">
+                  <ArrowLeft className="size-3.5" /> Disputes
+                </Link>
+                <span aria-hidden className="text-ghost">
+                  /
+                </span>
+                <span className="mono truncate text-[12px] text-ink-2">{dispute.dispute_id}</span>
+              </nav>
               {nav.total > 1 ? (
                 <span className="flex items-center gap-1 text-muted">
-                  <span className="num mr-1 text-[11.5px]">
+                  <span className="num mr-1.5 text-[12px]">
                     {nav.index + 1} of {nav.total} open
                   </span>
                   <Tip label={nav.prev ? `Previous: ${nav.prev.buyer} (K)` : "First case"} align="end">
-                    <button type="button" disabled={!nav.prev} onClick={() => nav.prev && router.push(`/app/disputes/${nav.prev.id}`)} aria-label="Previous case" className="flex size-7 items-center justify-center rounded-md border border-line bg-surface hover:border-line-strong disabled:opacity-40">
+                    <button type="button" disabled={!nav.prev} onClick={() => nav.prev && router.push(`/app/disputes/${nav.prev.id}`)} aria-label="Previous case" className="flex size-7 items-center justify-center rounded-[8px] border border-line-strong bg-surface text-ink-2 hover:bg-hover disabled:opacity-40">
                       <ChevronLeft className="size-3.5" />
                     </button>
                   </Tip>
                   <Tip label={nav.next ? `Next: ${nav.next.buyer} (J)` : "Last case"} align="end">
-                    <button type="button" disabled={!nav.next} onClick={() => nav.next && router.push(`/app/disputes/${nav.next.id}`)} aria-label="Next case" className="flex size-7 items-center justify-center rounded-md border border-line bg-surface hover:border-line-strong disabled:opacity-40">
+                    <button type="button" disabled={!nav.next} onClick={() => nav.next && router.push(`/app/disputes/${nav.next.id}`)} aria-label="Next case" className="flex size-7 items-center justify-center rounded-[8px] border border-line-strong bg-surface text-ink-2 hover:bg-hover disabled:opacity-40">
                       <ChevronRight className="size-3.5" />
                     </button>
                   </Tip>
@@ -397,58 +409,43 @@ export function CaseWorkspace({
             </div>
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-            <div className="min-w-0 flex-1">
-              {!compact ? (
-                <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                  <span className="num text-[12px] text-muted">{dispute.dispute_id}</span>
-                  <Chip>{STAGE_LABEL[dispute.dispute_life_cycle_stage]}</Chip>
-                  <Chip tone={dispute.status === "WAITING_FOR_SELLER_RESPONSE" ? "outline" : "neutral"} dot>
-                    {STATUS_LABEL[dispute.status]}
-                  </Chip>
-                </div>
-              ) : null}
-              <h1 className={clsx("display truncate leading-[1.15] transition-[font-size] duration-200", compact ? "text-[16px]" : "text-[26px]")}>
+            <div className="min-w-0 grow basis-[420px]">
+              <h1 className={clsx("truncate font-semibold tracking-[-0.02em] text-ink", compact ? "flex items-center text-[16px] leading-6" : "text-[24px] leading-8")}>
                 {compact ? (
-                  <Link href="/app/disputes" className="mr-2 inline-flex translate-y-[-1px] align-middle text-muted hover:text-ink" aria-label="Back to disputes">
+                  <Link href="/app/disputes" className="mr-2 inline-flex rounded-[4px] text-muted hover:text-ink" aria-label="Back to disputes">
                     <ArrowLeft className="size-4" />
                   </Link>
                 ) : null}
-                {t?.buyer?.name ?? "Buyer"} · {REASON_LABEL[dispute.reason]}
-                {compact ? <span className="num ml-2 text-[13px] font-normal text-muted">{usd(amount)}</span> : null}
+                <span className="truncate">
+                  {t?.buyer?.name ?? "Buyer"} · {REASON_LABEL[dispute.reason]}
+                </span>
+                {compact ? <span className="mono ml-2 shrink-0 text-[13px] font-normal text-muted">{usd(amount)}</span> : null}
               </h1>
               {!compact ? (
-                <p className="mt-1 truncate text-[13px] text-muted">
-                  {t?.items?.map((i) => i.item_name).filter(Boolean).join(", ") || cf.order?.items.map((i) => i.name).join(", ") || "Order"} · <span className="num">{usd(amount)}</span> · opened {dateTime(dispute.create_time)}
+                <p className="mt-1 truncate text-[14px] text-muted">
+                  {items} · <span className="mono text-[13px] text-ink-2">{usd(amount)}</span> · {STAGE_LABEL[dispute.dispute_life_cycle_stage]} · {STATUS_LABEL[dispute.status]} · opened <span suppressHydrationWarning>{dateTime(dispute.create_time)}</span>
                 </p>
               ) : null}
             </div>
-            <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2.5">
+            <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">
               {hours !== null ? (
                 <Tip label={`PayPal's deadline: ${dateTime(dispute.seller_response_due_date)}. Unanswered cases close for the buyer.`} wide side="bottom" align="end">
-                  <span className={clsx("inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-[13px]", hours < 48 ? "border-red/25 bg-red-soft text-red" : "border-line bg-surface text-ink")}>
+                  <span className={clsx("inline-flex h-8 items-center gap-2 rounded-[8px] border px-2.5 text-[13px]", hours < 48 ? "border-[#efd3d3] bg-red-soft text-red" : "border-line-strong bg-surface text-ink")}>
                     <Clock3 className="size-3.5" />
                     <span suppressHydrationWarning className="num font-medium">
                       {dueLabel(hours)}
                     </span>
-                    <span suppressHydrationWarning className={clsx("hidden text-[11.5px] sm:inline", hours < 48 ? "text-red/70" : "text-muted")}>
+                    <span suppressHydrationWarning className={clsx("hidden sm:inline", hours < 48 ? "text-red/80" : "text-muted")}>
                       due {shortDate(dispute.seller_response_due_date)}
                     </span>
-                  </span>
-                </Tip>
-              ) : null}
-              {m && brief ? (
-                <Tip label={brief.headline} wide side="bottom" align="end">
-                  <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface pl-1.5 pr-3 text-[13px]">
-                    <Chip tone={m.tone}>{m.label}</Chip>
-                    <span className="num text-ink-2">{brief.win_likelihood}%</span>
                   </span>
                 </Tip>
               ) : null}
               {primary}
               {brief && !running ? (
                 <Tip label="Re-run Exhibit (R)" side="bottom" align="end">
-                  <Button variant="secondary" size="md" onClick={start} aria-label="Re-run Exhibit" className="px-2.5">
-                    <RotateCw className="size-4" />
+                  <Button size="icon" onClick={start} aria-label="Re-run Exhibit">
+                    <RotateCw className="size-3.5" />
                   </Button>
                 </Tip>
               ) : null}
@@ -458,12 +455,13 @@ export function CaseWorkspace({
       </header>
       <div ref={sentinel} aria-hidden className="h-px" />
 
-      <div className="border-b border-line px-4 py-3.5 sm:px-6 lg:px-8">
+      <div className="border-b border-line px-4 py-3.5 sm:px-6">
         <Lifecycle steps={steps} running={running} />
       </div>
 
       <ApprovalBanner
         disputeId={dispute.dispute_id}
+        onPendingChange={setAgentAsks}
         onDecided={(r) => {
           if (r) setLastAction(r);
           void refresh();
@@ -471,15 +469,15 @@ export function CaseWorkspace({
         }}
       />
 
-      <div className="space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
+      <div className="space-y-4 px-4 pt-5 sm:px-6">
         {error ? (
-          <div className="flex items-start gap-3 rounded-xl border border-red/20 bg-red-soft px-4 py-3 text-[13px] text-red">
+          <div role="alert" className="flex items-start gap-3 rounded-[10px] border border-[#efd3d3] bg-red-soft px-4 py-3 text-[13px] text-red">
             <span className="min-w-0 flex-1">
               <span className="font-medium">The last run stopped: </span>
               {error}
               {shownBrief || run?.brief ? <span className="text-red/80"> The brief below is the previous one, unchanged.</span> : null}
             </span>
-            <button type="button" onClick={start} className="shrink-0 font-medium underline underline-offset-2">
+            <button type="button" onClick={start} className="shrink-0 rounded-[4px] font-medium underline underline-offset-2">
               Try again
             </button>
           </div>
@@ -493,23 +491,25 @@ export function CaseWorkspace({
           highlight={hoverRef}
           action={
             !brief && !running ? (
-              <Button variant="primary" size="sm" onClick={start}>
+              <Button size="sm" variant="secondary" onClick={start}>
                 <Play className="size-3.5" /> Run Exhibit
               </Button>
             ) : null
           }
           footer={
             running ? (
-              <div className="flex items-center gap-2.5 border-t border-line bg-[#fcfcfc] px-5 py-2.5 text-[12.5px]">
-                <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-amber" />
-                <span className="shrink-0 font-medium text-ink">{toolSteps} step{toolSteps === 1 ? "" : "s"}</span>
+              <div className="flex items-center gap-2.5 border-t border-line bg-frame px-5 py-2.5 text-[13px]">
+                <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-ink" />
+                <span className="shrink-0 font-medium text-ink">
+                  {toolSteps} step{toolSteps === 1 ? "" : "s"}
+                </span>
                 <span className="min-w-0 flex-1 truncate text-muted">{lastThought}</span>
-                <button type="button" onClick={() => showTab("trace")} className="shrink-0 text-muted underline decoration-line-strong underline-offset-2 hover:text-ink">
+                <button type="button" onClick={() => showTab("trace")} className="shrink-0 rounded-[4px] text-ink-2 underline decoration-line-strong underline-offset-2 hover:text-ink">
                   Follow the reasoning
                 </button>
               </div>
             ) : !brief && !events.length ? (
-              <div className="border-t border-line bg-[#fcfcfc] px-5 py-2.5 text-[12px] text-muted">
+              <div className="border-t border-line bg-frame px-5 py-2.5 text-[13px] text-muted">
                 {provider === "replay" ? "Replays a recorded Claude run on this case. Every tool call, check and PayPal request executes live." : `Live agent on ${AI_LABEL[provider].replace(" · live", "")}. Reads only this case's records; it can't file anything.`}
               </div>
             ) : null
@@ -517,7 +517,7 @@ export function CaseWorkspace({
         />
 
         {shownBrief ? (
-          <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <BriefCard
               brief={shownBrief}
               amount={amount}
@@ -530,47 +530,70 @@ export function CaseWorkspace({
               hoverRef={hoverRef}
               onHoverRef={setHoverRef}
             />
-            {brief && !running ? (
-              <ResponsePanel
-                dispute={dispute}
-                brief={brief}
-                letter={letter}
-                setLetter={setLetter}
-                message={message}
-                setMessage={setMessage}
-                editing={editing}
-                setEditing={setEditing}
-                cites={cites}
-                onHoverRef={setHoverRef}
-                autopilot={(autopilotEvent?.verdict as AutopilotVerdict | undefined) ?? null}
-                mode={mode}
-                answered={answered}
-                lastAction={effectiveAction}
-                submitting={submitting}
-                onSubmit={requestSubmit}
-                onShowCalls={() => showTab("calls")}
-                onSandbox={sandbox}
-                highlight={guide === "file"}
-              />
-            ) : (
-              <div className="rounded-xl border border-dashed border-line-strong px-5 py-10 text-center text-[13px] text-muted">The new response appears when the brief is filed.</div>
-            )}
+            {/* The letter and its one action stay in view while the brief beside it is read. */}
+            <div className="xl:sticky xl:top-[124px]">
+              {brief && !running ? (
+                <ResponsePanel
+                  dispute={dispute}
+                  brief={brief}
+                  letter={letter}
+                  setLetter={setLetter}
+                  message={message}
+                  setMessage={setMessage}
+                  editing={editing}
+                  setEditing={setEditing}
+                  cites={cites}
+                  onHoverRef={setHoverRef}
+                  autopilot={(autopilotEvent?.verdict as AutopilotVerdict | undefined) ?? null}
+                  mode={mode}
+                  answered={answered}
+                  lastAction={effectiveAction}
+                  submitting={submitting}
+                  onSubmit={requestSubmit}
+                  onShowCalls={() => showTab("calls")}
+                  onSandbox={sandbox}
+                  highlight={guide === "file"}
+                />
+              ) : (
+                <div className="rounded-[10px] border border-dashed border-line-strong px-5 py-10 text-center text-[13px] text-muted">The new response appears when the brief is filed.</div>
+              )}
+            </div>
           </div>
         ) : !running ? (
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-            <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center">
-              <div className="text-[14px] font-medium text-ink">No brief yet</div>
-              <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-muted">Run Exhibit and it checks every source above, decides whether to fight, offer, refund or message the buyer, and drafts the response with cited evidence. Nothing is sent until you decide.</p>
-              <p className="mt-3 text-[12px] text-faint">
-                Press <span className="num rounded border border-line bg-[#fafafa] px-1 text-muted">R</span> or use Run Exhibit above
-              </p>
+          <section className="grid overflow-hidden rounded-[10px] border border-dashed border-line-strong md:grid-cols-[minmax(0,1fr)_320px]" aria-label="No brief yet">
+            <div className="flex flex-col items-center px-6 py-8 text-center">
+              {briefArt}
+              <h2 className="mt-4 text-[16px] font-semibold text-ink">No brief yet</h2>
+              <p className="mt-1 max-w-[440px] text-[14px] leading-[22px] text-muted">Run Exhibit and it checks every source above, decides whether to fight, offer, refund or message the buyer, and drafts the response with cited evidence. Nothing is sent until you decide.</p>
+              <div className="mt-4 flex items-center gap-3">
+                <Button variant="primary" onClick={start}>
+                  <Play className="size-3.5" /> Run Exhibit
+                </Button>
+                <span className="text-[13px] text-muted">
+                  or press <Kbd>R</Kbd>
+                </span>
+              </div>
             </div>
-            <ProtectionCard report={protection} defaultOpen />
-          </div>
+            {/* What is already known before the agent runs: PayPal's Seller Protection, checked on the records. */}
+            <div className="flex flex-col justify-center border-t border-dashed border-line-strong px-6 py-6 md:border-l md:border-t-0">
+              <div className="text-[13px] text-muted">Already checked</div>
+              <div className="mt-1 text-[14px] font-semibold text-ink">PayPal Seller Protection</div>
+              <div className="mt-2">
+                <Chip tone={protectionChip(protection).tone}>{protectionChip(protection).label}</Chip>
+              </div>
+              <div className="num mt-2 text-[13px] text-muted">
+                {protection.checks.filter((c) => c.status === "pass").length} of {protection.checks.length} requirements met
+              </div>
+              <p className="mt-1 text-[13px] leading-[20px] text-ink-2">{protection.summary}</p>
+              <button type="button" onClick={() => showTab("facts")} className="mt-3 self-start rounded-[4px] text-[13px] font-medium text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink">
+                See each requirement
+              </button>
+            </div>
+          </section>
         ) : null}
 
-        <div ref={details} className="scroll-mt-28">
-          <div className="mb-3 border-b border-line">
+        <div ref={details} className="scroll-mt-32 pt-2">
+          <div className="mb-4 border-b border-line">
             <Tabs
               value={tab}
               onChange={setTab}
@@ -585,27 +608,25 @@ export function CaseWorkspace({
           </div>
           {tab === "packet" && brief && !running ? <PacketViewer disputeId={dispute.dispute_id} brief={brief} letter={letter} hoverRef={hoverRef} /> : null}
           {tab === "facts" || (tab === "packet" && (!brief || running)) ? (
-            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] 2xl:grid-cols-3">
+            <div className="grid items-start gap-4 lg:grid-cols-2">
               <CaseFacts cf={cf} />
               <ProtectionCard report={protection} defaultOpen />
             </div>
           ) : null}
           {tab === "trace" ? (
-            <section className="card">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3 text-[12.5px]">
-                <span className="flex items-center gap-2 font-medium">
-                  {running ? <span className="pulse-dot size-2 rounded-full bg-amber" /> : <span className="size-2 rounded-full bg-green" />}
+            <section className="card border" aria-label="Investigation">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3 text-[13px]">
+                <span className="flex items-center gap-2 font-medium text-ink">
+                  {running ? <span className="pulse-dot size-1.5 rounded-full bg-ink" /> : <span className={clsx("size-1.5 rounded-full", events.length ? "bg-green" : "bg-ghost")} />}
                   {running ? "Investigating" : events.length ? "Investigation" : "No investigation yet"}
                   <span className="font-normal text-muted">
                     · {toolSteps} tool call{toolSteps === 1 ? "" : "s"}
-                    {doneEvent && !prepared && !replayed ? ` · ${(doneEvent.ms / 1000).toFixed(1)}s` : ""}
+                    {doneEvent && !prepared && !replayed ? ` · ${(doneEvent.ms / 1000).toFixed(1)} s` : ""}
                   </span>
                 </span>
-                <span className="text-muted">
-                  {replayed ? (prepared ? "Recorded run, replayed at demo reset · tools executed live" : "Recorded run · tools executed live") : run?.model ?? startEvent?.model ?? ""}
-                </span>
+                <span className="text-muted">{replayed ? (prepared ? "Recorded run, replayed at the demo reset · tools executed live" : "Recorded run · tools executed live") : (run?.model ?? startEvent?.model ?? "")}</span>
               </div>
-              <div className="px-5 py-5">{events.length ? <AgentTrace events={events} running={running} /> : <p className="text-[13px] text-muted">Run Exhibit to see each step: the records it reads, what it concludes, and the brief it files.</p>}</div>
+              <div className="px-5 py-5">{events.length ? <AgentTrace events={events} running={running} /> : <p className="text-[14px] text-muted">Run Exhibit to see each step: the records it reads, what it concludes, and the brief it files.</p>}</div>
             </section>
           ) : null}
           {tab === "calls" ? <ApiCalls rows={api} mode={mode} /> : null}
@@ -629,7 +650,7 @@ export function CaseWorkspace({
           </>
         }
       >
-        <p className="text-[13px] leading-relaxed text-ink-2">
+        <p className="text-[14px] leading-[22px] text-ink-2">
           {brief?.paypal_action.type === "accept_claim"
             ? `Exhibit accepts the claim through PayPal's accept-claim call. PayPal refunds ${t?.buyer?.name ?? "the buyer"} ${usd(amount)} and closes the case.`
             : brief?.paypal_action.type === "refund_then_prove"
@@ -637,7 +658,7 @@ export function CaseWorkspace({
               : `Exhibit offers ${usd(brief?.paypal_action.amount ?? 0)} to ${t?.buyer?.name ?? "the buyer"} through PayPal. Money moves only if the buyer accepts.`}{" "}
           {mode === "demo" ? "This demo sends it to the PayPal simulator." : "This is the PayPal sandbox."}
         </p>
-        <p className="mt-2 text-[12.5px] text-muted">
+        <p className="mt-2 text-[13px] leading-[20px] text-muted">
           {brief?.paypal_action.type === "make_offer" ? "A fair offer settles the case without a fight." : "Exhibit found the buyer is right here: refunding now avoids a lost fight and its fee, and keeps the customer."} The call is logged in PayPal activity.
         </p>
       </Dialog>

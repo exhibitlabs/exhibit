@@ -2,13 +2,13 @@
 
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { clsx } from "clsx";
-import { Check, CircleDashed, Loader2, UploadCloud } from "lucide-react";
+import { Check, Loader2, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PreventionAction, PreventionOrder } from "@/lib/prevention";
 import { Button } from "../ui/Button";
 import { exhibitGridTheme } from "./InboxGrid";
-import { BAND, bandOf, BandPill, money, SignalChip } from "./PreventionParts";
+import { BAND, bandOf, money, SIGNAL_SHORT } from "./PreventionParts";
+import { Segmented } from "../ui/Tabs";
 
 type Ctx = { onSelect: (id: string) => void; onFix: (id: string, action: PreventionAction) => void; working: Set<string> };
 type P = ICellRendererParams<PreventionOrder, unknown, Ctx>;
@@ -16,10 +16,10 @@ type P = ICellRendererParams<PreventionOrder, unknown, Ctx>;
 function OrderCell({ data }: P) {
   if (!data) return null;
   return (
-    <div className="flex h-full flex-col justify-center leading-tight">
-      <span className="font-medium">{data.buyer}</span>
-      <span className="num mt-1 truncate text-[11.5px] text-faint">
-        {data.orderId} · {data.item}
+    <div className="flex h-full min-w-0 flex-col justify-center leading-tight">
+      <span className="truncate font-medium text-ink">{data.buyer}</span>
+      <span className="mt-1 truncate text-[13px] text-muted">
+        <span className="mono text-[12px]">{data.orderId}</span> · {data.item}
       </span>
     </div>
   );
@@ -31,47 +31,44 @@ function RiskCell({ data }: P) {
   if (data.status !== "at_risk")
     return (
       <div className="flex h-full items-center">
-        <span className="text-[12.5px]" style={{ color: BAND[b].text }}>
-          {data.status === "prevented" ? `${data.history.find((h) => h.before.score)?.before.score ?? "–"} → 0` : "—"}
+        <span className="num text-[13px]" style={{ color: data.status === "prevented" ? BAND.prevented.text : "var(--muted)" }}>
+          {data.status === "prevented" ? `${data.history.find((h) => h.before.score)?.before.score ?? "–"} → 0` : "–"}
         </span>
       </div>
     );
   return (
-    <div className="flex h-full items-center gap-2.5">
-      <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-[#f0f0f0]">
-        <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${data.score}%`, background: BAND[b].color }} />
+    <div className="flex h-full items-center gap-2">
+      <span className="num w-6 text-right text-[14px] font-medium text-ink">{data.score}</span>
+      <span className="inline-flex items-center gap-1.5 text-[13px]" style={{ color: BAND[b].text }}>
+        <span className="size-1.5 rounded-full" style={{ background: BAND[b].color }} />
+        {BAND[b].label}
       </span>
-      <span className="num text-[13px]">{data.score}</span>
     </div>
   );
 }
 
 function SignalsCell({ data }: P) {
   if (!data) return null;
-  if (!data.signals.length) return <div className="flex h-full items-center text-[12.5px] text-faint">{data.status === "prevented" ? "Fixed by Exhibit" : "Nothing to fix"}</div>;
+  if (!data.signals.length) return <div className="flex h-full items-center text-[13px] text-muted">{data.status === "prevented" ? "Fixed by Exhibit" : "Nothing to fix"}</div>;
   return (
-    <div className="flex h-full items-center gap-1.5 overflow-hidden">
-      {data.signals.slice(0, 2).map((s) => (
-        <SignalChip key={s.kind} kind={s.kind} />
-      ))}
-      {data.signals.length > 2 ? <span className="num text-[11.5px] text-faint">+{data.signals.length - 2}</span> : null}
+    <div className="flex h-full items-center truncate text-[13px] text-ink-2" title={data.signals.map((s) => SIGNAL_SHORT[s.kind]).join(", ")}>
+      {data.signals.slice(0, 2).map((s) => SIGNAL_SHORT[s.kind]).join(" · ")}
+      {data.signals.length > 2 ? <span className="text-muted">&nbsp;· +{data.signals.length - 2}</span> : null}
     </div>
   );
 }
 
 function SyncCell({ data }: P) {
   if (!data) return null;
-  if (!data.shipment) return <div className="flex h-full items-center text-[12.5px] text-faint">Not shipped</div>;
+  if (!data.shipment) return <div className="flex h-full items-center text-[13px] text-muted">Not shipped</div>;
   return (
     <div className="flex h-full items-center">
       {data.shipment.onPayPal ? (
-        <span className="inline-flex items-center gap-1.5 text-[12.5px] text-green">
-          <Check className="size-3.5" strokeWidth={2.5} /> On PayPal
+        <span className="inline-flex items-center gap-1.5 text-[13px] text-muted">
+          <Check className="size-3.5" strokeWidth={2.2} /> On PayPal
         </span>
       ) : (
-        <span className="inline-flex items-center gap-1.5 text-[12.5px] text-muted">
-          <CircleDashed className="size-3.5" /> Missing
-        </span>
+        <span className="text-[13px] font-medium text-ink">Missing</span>
       )}
     </div>
   );
@@ -82,14 +79,14 @@ function FixCell({ data, context }: P) {
   const fix = data.fixes.find((f) => f.primary);
   if (data.status === "prevented")
     return (
-      <div className="flex h-full items-center text-[12.5px] text-green">
+      <div className="flex h-full items-center justify-end text-[13px] text-green">
         <Check className="mr-1 size-3.5" strokeWidth={2.5} /> {money(data.saved)} saved
       </div>
     );
   if (!fix) return null;
   const busy = context?.working.has(data.orderId);
   return (
-    <div className="flex h-full items-center">
+    <div className="flex h-full items-center justify-end">
       <Button
         size="sm"
         variant="secondary"
@@ -129,41 +126,30 @@ export function PreventionGrid({ orders, onSelect, onFix, working, onPushAll, pu
   const cols = useMemo<ColDef<PreventionOrder>[]>(
     () => [
       { headerName: "Order", field: "buyer", flex: 1.5, minWidth: 220, cellRenderer: OrderCell },
-      { headerName: "Risk", field: "score", width: 130, cellRenderer: RiskCell, sort: "desc" },
-      { headerName: "Signals", flex: 1.6, minWidth: 260, cellRenderer: SignalsCell, sortable: false },
-      { headerName: "Likely dispute", valueGetter: (p) => p.data?.top?.reasonLabel ?? "", width: 160, cellClass: "text-ink-2" },
-      { headerName: "Exposure", field: "exposure", width: 112, cellClass: "num", valueFormatter: (p) => money(p.value) },
-      { headerName: "PayPal tracking", valueGetter: (p) => (p.data?.shipment ? (p.data.shipment.onPayPal ? 1 : 0) : 2), width: 140, cellRenderer: SyncCell },
-      {
-        headerName: "Status",
-        valueGetter: (p) => p.data?.status ?? "",
-        width: 120,
-        cellRenderer: (p: P) => (p.data ? <div className="flex h-full items-center"><BandPill band={bandOf(p.data)} /></div> : null),
-      },
-      { headerName: "", colId: "fix", width: 210, cellRenderer: FixCell, sortable: false },
+      { headerName: "Risk", field: "score", width: 124, cellRenderer: RiskCell, sort: "desc" },
+      { headerName: "Signals", flex: 1.3, minWidth: 200, cellRenderer: SignalsCell, sortable: false },
+      { headerName: "Likely dispute", valueGetter: (p) => p.data?.top?.reasonLabel ?? "–", width: 156, cellClass: "text-ink-2 text-[13px]" },
+      { headerName: "Exposure", field: "exposure", width: 108, type: "rightAligned", cellClass: "ag-right-aligned-cell mono text-[13px]", valueFormatter: (p) => money(p.value) },
+      { headerName: "PayPal tracking", valueGetter: (p) => (p.data?.shipment ? (p.data.shipment.onPayPal ? 1 : 0) : 2), width: 132, cellRenderer: SyncCell },
+      { headerName: "Fix", colId: "fix", width: 200, cellRenderer: FixCell, sortable: false, headerClass: "ag-right-aligned-header" },
     ],
     [],
   );
 
   return (
-    <div className="card overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-b border-line px-5 py-3.5">
+    <section className="card overflow-hidden border" aria-label="Every watched order">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-b border-line px-5 py-3">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h2 className="text-[14px] font-medium">Every watched order</h2>
-          <div className="flex items-center rounded-lg bg-sunken p-0.5">
-            {TABS.map((t) => {
-              const n = t.id === "all" ? orders.length : orders.filter((o) => (t.id === "clear" ? o.status === "clear" || o.status === "dismissed" : o.status === t.id)).length;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)} className={clsx("h-7 rounded-md px-2.5 text-[12.5px] transition-colors", tab === t.id ? "bg-surface font-medium text-ink shadow-[0_0_0_1px_var(--line),0_1px_2px_rgb(0_0_0/0.04)]" : "text-muted hover:text-ink")}>
-                  {t.label} <span className="num ml-0.5 text-faint">{n}</span>
-                </button>
-              );
-            })}
-          </div>
+          <h2 className="text-[14px] font-semibold text-ink">Every watched order</h2>
+          <Segmented
+            value={tab}
+            onChange={setTab}
+            items={TABS.map((t) => ({ key: t.id, label: t.label, count: t.id === "all" ? orders.length : orders.filter((o) => (t.id === "clear" ? o.status === "clear" || o.status === "dismissed" : o.status === t.id)).length }))}
+          />
         </div>
         <div className="flex items-center gap-3">
           {shipped.length ? (
-            <span className="text-[12px] text-muted">
+            <span className="text-[13px] text-muted">
               Tracking on PayPal <span className="num text-ink">{pct}%</span>
             </span>
           ) : null}
@@ -184,12 +170,12 @@ export function PreventionGrid({ orders, onSelect, onFix, working, onPushAll, pu
           getRowId={(p) => p.data.orderId}
           suppressCellFocus
           overlayNoRowsTemplate={`<span style="color: var(--muted); font-size: 13px">${orders.length ? "Nothing in this view." : "No recent orders to watch yet."}</span>`}
-          defaultColDef={{ suppressMovable: true }}
-          rowHeight={58}
+          defaultColDef={{ suppressMovable: true, resizable: false }}
+          rowHeight={56}
           onRowClicked={(e) => e.data && e.data.status === "at_risk" && onSelect(e.data.orderId)}
           rowClassRules={{ "pv-row-done": (p) => p.data?.status === "prevented" }}
         />
       </div>
-    </div>
+    </section>
   );
 }

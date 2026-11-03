@@ -6,7 +6,7 @@ import type { InboxRow } from "@/lib/inbox";
 import { usd } from "@/lib/format";
 import { Button } from "../ui/Button";
 import { Kbd } from "../ui/Kbd";
-import { Segmented } from "../ui/Tabs";
+import { Tabs } from "../ui/Tabs";
 import { toast } from "../ui/Toast";
 import { InboxGrid } from "./InboxGrid";
 import { PageHeader } from "./PageHeader";
@@ -20,21 +20,22 @@ const VIEWS: { key: View; label: string; test: (r: InboxRow) => boolean; empty: 
   { key: "needs", label: "Needs response", test: (r) => r.statusCode === "WAITING_FOR_SELLER_RESPONSE" && !r.answered, empty: ["Nothing needs a response", "Every open case is answered, or PayPal hasn't asked you for anything yet."] },
   { key: "due", label: "Due soon", test: (r) => r.statusCode !== "RESOLVED" && !r.answered && r.hoursLeft !== null && r.hoursLeft <= 72, empty: ["No deadline inside 72 hours", "PayPal closes unanswered cases for the buyer at the deadline; nothing is close."] },
   { key: "fight", label: "Exhibit says fight", test: (r) => r.statusCode !== "RESOLVED" && r.decision === "FIGHT", empty: ["No case to fight right now", "Exhibit fights only when your records show you did what you promised."] },
-  { key: "refund", label: "Exhibit says refund or offer", test: (r) => r.statusCode !== "RESOLVED" && (r.decision === "REFUND" || r.decision === "OFFER"), empty: ["No refunds or offers recommended", "When the buyer is right, Exhibit says so and refunds instead of fighting."] },
+  { key: "refund", label: "Refund or offer", test: (r) => r.statusCode !== "RESOLVED" && (r.decision === "REFUND" || r.decision === "OFFER"), empty: ["No refunds or offers recommended", "When the buyer is right, Exhibit says so and refunds instead of fighting."] },
   { key: "resolved", label: "Resolved", test: (r) => r.statusCode === "RESOLVED", empty: ["No resolved cases yet", "PayPal's rulings land here: won, refunded or settled."] },
 ];
 
-function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "red" }) {
-  return (
-    <div className="card px-4 py-3.5">
-      <div className="text-[12px] text-muted">{label}</div>
-      <div className={`mt-1.5 text-[22px] font-semibold leading-none tracking-[-0.03em] tabular-nums ${tone === "red" ? "text-red" : "text-ink"}`}>{value}</div>
-      {hint ? <div className="mt-1.5 truncate text-[12px] text-faint">{hint}</div> : null}
-    </div>
-  );
+const span = (h: number) => (h < 48 ? `${h} hour${h === 1 ? "" : "s"}` : `${Math.round(h / 24)} days`);
+
+/** The list's one line of context: how many, how much, and the deadline that matters most. */
+function summary(rows: InboxRow[], stats: Stats) {
+  if (!stats.openCount) return "No open disputes. Resolved cases stay under Resolved.";
+  const next = rows.filter((r) => r.statusCode === "WAITING_FOR_SELLER_RESPONSE" && !r.answered && r.hoursLeft !== null).sort((a, b) => a.hoursLeft! - b.hoursLeft!)[0];
+  const lead = `${stats.openCount} open, ${usd(stats.atRisk, 0)} at stake.`;
+  if (!next) return `${lead} Every open case is answered; PayPal has them now.`;
+  return `${lead} ${next.buyer}'s ${next.stage === "Chargeback" ? "chargeback" : "case"} is the next deadline, ${next.hoursLeft! < 0 ? `overdue by ${span(-next.hoursLeft!)}` : `in ${span(next.hoursLeft!)}`}.`;
 }
 
-export function InboxView({ initialRows, initialStats, mode, header }: { initialRows: InboxRow[]; initialStats: Stats; mode: string; header: { eyebrow: string; title: string; subtitle: string } }) {
+export function InboxView({ initialRows, initialStats, mode, emptyArt }: { initialRows: InboxRow[]; initialStats: Stats; mode: string; /** Dot art for the empty open queue, rendered by the page (a server component). */ emptyArt?: React.ReactNode }) {
   const [rows, setRows] = useState(initialRows);
   const [stats, setStats] = useState(initialStats);
   const [busy, setBusy] = useState<string | null>(null);
@@ -100,8 +101,7 @@ export function InboxView({ initialRows, initialStats, mode, header }: { initial
     <>
       {mode === "demo" ? (
         <Button
-          variant="secondary"
-          size="sm"
+          className="max-sm:hidden"
           disabled={!!busy}
           onClick={() =>
             act("incoming", async () => {
@@ -114,98 +114,101 @@ export function InboxView({ initialRows, initialStats, mode, header }: { initial
           <Bell className="size-3.5" /> Simulate new dispute
         </Button>
       ) : null}
-      <Button variant="secondary" size="sm" disabled={!!busy} onClick={() => act("sync", () => load(true).then(() => toast({ title: "Synced with PayPal", sub: "GET /v1/customer/disputes" })))}>
+      <Button className="max-sm:hidden" disabled={!!busy} onClick={() => act("sync", () => load(true).then(() => toast({ title: "Synced with PayPal", sub: "GET /v1/customer/disputes" })))}>
         <RefreshCw className={`size-3.5 ${busy === "sync" ? "animate-spin" : ""}`} /> Sync PayPal
       </Button>
-      <Button variant="primary" size="sm" disabled={!!busy || !unanalyzed} onClick={() => investigate()} title={unanalyzed ? undefined : "Every open case has a brief"}>
-        {busy === "batch" ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} Investigate {unanalyzed ? `${unanalyzed} new` : "all"}
+      <Button variant="primary" disabled={!!busy || !unanalyzed} onClick={() => investigate()} title={unanalyzed ? undefined : "Every open case has a brief"}>
+        {busy === "batch" ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} {unanalyzed ? `Investigate ${unanalyzed} new` : "All investigated"}
       </Button>
     </>
   );
 
   return (
     <>
-      <PageHeader eyebrow={header.eyebrow} title={header.title} subtitle={header.subtitle} actions={actions} />
-      <div className="space-y-5 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <Stat label="Open · at risk" value={usd(stats.atRisk, 0)} hint={`${stats.openCount} open · ${stats.needsResponse} waiting on you`} />
-        <Stat label="Due in 72 hours" value={String(stats.dueSoon)} hint="Unanswered cases close for the buyer" tone={stats.dueSoon ? "red" : undefined} />
-        <Stat label="Expected back" value={usd(stats.expected, 0)} hint={`${stats.analyzed} of ${stats.openCount} open cases briefed`} />
-        <Stat label="Recovered · 90 days" value={usd(stats.recovered, 0)} hint={stats.winRate !== null ? `${stats.winRate}% won of ${stats.decided} fought` : "No fought cases yet"} />
-      </div>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <Segmented items={VIEWS.map((x) => ({ key: x.key, label: x.label, count: counts[x.key] }))} value={view} onChange={setView} />
-        <label className="relative flex h-8 min-w-0 items-center lg:w-72">
-          <Search className="pointer-events-none absolute left-2.5 size-3.5 text-faint" />
-          <input
-            ref={search}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== "Escape") return;
-              setQ("");
-              e.currentTarget.blur();
-            }}
-            placeholder="Search buyer, case id, reason…"
-            aria-label="Search disputes"
-            className="h-8 w-full rounded-lg border border-line bg-surface pl-8 pr-8 text-[12.5px] outline-none transition-colors placeholder:text-faint focus:border-ink-2"
-          />
-          {q ? (
-            <button type="button" onClick={() => setQ("")} aria-label="Clear search" className="absolute right-2 text-faint hover:text-ink">
-              <X className="size-3.5" />
-            </button>
-          ) : (
-            <Kbd className="absolute right-2">/</Kbd>
-          )}
-        </label>
-      </div>
-
-      {selected.length ? (
-        <div className="rise flex items-center gap-3 rounded-xl bg-ink px-4 py-2.5 text-[13px] text-white">
-          <span className="font-medium">{selected.length} selected</span>
-          <span className="text-white/50">Exhibit re-reads every source and files a fresh brief. Nothing is sent to PayPal.</span>
-          <span className="ml-auto flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setSelected([]);
-                setClearSignal((x) => x + 1);
+      <PageHeader title="Disputes" subtitle={summary(rows, stats)} actions={actions} />
+      <div className="px-4 pt-5 sm:px-6">
+        <div className="flex flex-col gap-3 border-b border-line lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+          <Tabs tabs={VIEWS.map((x) => ({ key: x.key, label: x.label, count: counts[x.key] }))} value={view} onChange={setView} />
+          <label className="relative mb-2 flex h-8 min-w-0 items-center lg:w-72">
+            <Search className="pointer-events-none absolute left-2.5 size-3.5 text-ghost" />
+            <input
+              ref={search}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Escape") return;
+                setQ("");
+                e.currentTarget.blur();
               }}
-              className="rounded-md px-2.5 py-1 text-white/70 hover:text-white"
-            >
-              Clear
-            </button>
-            <button type="button" disabled={!!busy} onClick={() => investigate(selected)} className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1 font-medium text-ink hover:bg-white/90">
-              {busy === "selected" ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} Investigate {selected.length}
-            </button>
-          </span>
+              placeholder="Search buyer, case id, reason"
+              aria-label="Search disputes"
+              className="outline-none h-8 w-full rounded-[8px] border border-line-strong bg-surface pl-8 pr-8 text-[13px] text-ink transition-colors placeholder:text-faint focus:border-ink focus:shadow-[0_0_0_1px_var(--ink)]"
+            />
+            {q ? (
+              <button type="button" onClick={() => setQ("")} aria-label="Clear search" className="absolute right-1.5 flex size-6 items-center justify-center rounded-[6px] text-muted hover:bg-active hover:text-ink">
+                <X className="size-3.5" />
+              </button>
+            ) : (
+              <Kbd className="absolute right-2">/</Kbd>
+            )}
+          </label>
         </div>
-      ) : null}
 
-      {shown.length ? (
-        <InboxGrid rows={shown} onSelection={setSelected} clearSignal={clearSignal} />
-      ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line-strong bg-[#fcfcfc] px-6 py-14 text-center">
-          <div className="text-[14px] font-medium text-ink">{needle ? `No dispute matches “${q.trim()}”` : v.empty[0]}</div>
-          <div className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-muted">{needle ? `in ${v.label.toLowerCase()}. Try a buyer's name, a PP-D id or a reason.` : v.empty[1]}</div>
-          {needle || view !== "open" ? (
-            <div className="mt-4 flex gap-2">
-              {needle ? (
-                <Button size="sm" onClick={() => setQ("")}>
-                  Clear search
-                </Button>
-              ) : null}
-              {view !== "open" ? (
-                <Button size="sm" variant="ghost" onClick={() => setView("open")}>
-                  Show all open
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      )}
-      <p className="px-1 text-[11.5px] text-faint">Sorted by deadline, most urgent first. Hover a case for Exhibit&apos;s summary; select cases to investigate them together.</p>
+        {selected.length ? (
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-frame px-4 py-2.5 text-[13px]">
+            <span className="font-medium text-ink">{selected.length} selected</span>
+            <span className="text-muted">Exhibit re-reads every source and writes a fresh brief. Nothing is sent to PayPal.</span>
+            <span className="ml-auto flex gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setSelected([]);
+                  setClearSignal((x) => x + 1);
+                }}
+              >
+                Clear
+              </Button>
+              <Button size="sm" variant="primary" disabled={!!busy} onClick={() => investigate(selected)}>
+                {busy === "selected" ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} Investigate {selected.length}
+              </Button>
+            </span>
+          </div>
+        ) : null}
+
+        {shown.length ? (
+          <>
+            <InboxGrid rows={shown} onSelection={setSelected} clearSignal={clearSignal} />
+            {!needle && view !== "open" && view !== "resolved" && counts.open > shown.length ? (
+              <p className="mt-4 text-[13px] text-muted">
+                {counts.open - shown.length} more open case{counts.open - shown.length === 1 ? " isn't" : "s aren't"} in this view.{" "}
+                <button type="button" onClick={() => setView("open")} className="rounded-[4px] font-medium text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink">
+                  Show all {counts.open} open
+                </button>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <div className="mt-4 flex flex-col items-center justify-center rounded-[10px] border border-dashed border-line-strong px-6 py-12 text-center">
+            {!needle && view === "open" ? emptyArt : null}
+            <div className="text-[14px] font-medium text-ink">{needle ? `No dispute matches “${q.trim()}”` : v.empty[0]}</div>
+            <div className="mt-1 max-w-sm text-[13px] leading-[20px] text-muted">{needle ? `in ${v.label.toLowerCase()}. Try a buyer's name, a PP-D id or a reason.` : v.empty[1]}</div>
+            {needle || view !== "open" ? (
+              <div className="mt-4 flex gap-2">
+                {needle ? (
+                  <Button size="sm" onClick={() => setQ("")}>
+                    Clear search
+                  </Button>
+                ) : null}
+                {view !== "open" ? (
+                  <Button size="sm" variant="ghost" onClick={() => setView("open")}>
+                    Show all open
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </>
   );

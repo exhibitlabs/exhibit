@@ -101,7 +101,7 @@ export function CitedText({ text, cites, exhibits, onHover, className }: { text:
               onFocus={(e) => show(e.currentTarget, { title: s.cite.title, detail: s.cite.detail, exhibit: ex, note: ex ? `In the packet as Exhibit ${ex}` : "From a record the agent read" }, s.cite.ref)}
               onMouseLeave={hide}
               onBlur={hide}
-              className={clsx("cursor-help rounded-[3px] underline decoration-dotted decoration-[1.5px] underline-offset-[3px] transition-colors hover:bg-[rgb(232_163_61/0.14)]", ex ? "decoration-ink/60" : "decoration-line-strong")}
+              className={clsx("cursor-help rounded-[3px] underline decoration-dotted decoration-[1.5px] underline-offset-[3px] transition-colors hover:bg-[rgb(232_163_61/0.16)] focus-visible:bg-[rgb(232_163_61/0.16)]", ex ? "decoration-ink/60" : "decoration-[#b5b5b2]")}
             >
               {s.text}
             </span>
@@ -116,7 +116,7 @@ export function CitedText({ text, cites, exhibits, onHover, className }: { text:
               onFocus={(e) => show(e.currentTarget, { title: s.title ?? `Exhibit ${s.exhibit}`, detail: s.why ?? "", exhibit: s.exhibit, note: "Cited by letter; the packet carries it" }, s.ref)}
               onMouseLeave={hide}
               onBlur={hide}
-              className="num mx-px inline-flex h-[17px] min-w-[17px] cursor-help items-center justify-center rounded bg-ink px-1 align-[1px] text-[10.5px] font-semibold text-white transition-transform hover:scale-110"
+              className="mono mx-px inline-flex h-[18px] min-w-[18px] cursor-help items-center justify-center rounded-[4px] bg-ink px-1 align-[1px] text-[11px] font-semibold leading-none text-white"
             >
               {s.text}
             </span>
@@ -126,13 +126,13 @@ export function CitedText({ text, cites, exhibits, onHover, className }: { text:
       })}
       {tip && typeof document !== "undefined"
         ? createPortal(
-            <div role="tooltip" style={{ left: tip.x, top: tip.y }} className={clsx("app-shell pv-fade pointer-events-none fixed z-[97] w-72 rounded-xl bg-ink px-3.5 py-3 text-white shadow-[0_12px_32px_rgb(0_0_0/0.25)]", tip.above && "-translate-y-full")}>
+            <div role="tooltip" style={{ left: tip.x, top: tip.y }} className={clsx("app-shell pv-fade pointer-events-none fixed z-[97] w-72 rounded-[10px] bg-ink px-3.5 py-3 text-white shadow-[0_12px_32px_rgb(0_0_0/0.25)]", tip.above && "-translate-y-full")}>
               <div className="flex items-center gap-2">
-                {tip.exhibit ? <span className="num flex size-[18px] items-center justify-center rounded bg-white text-[10.5px] font-semibold text-ink">{tip.exhibit}</span> : null}
-                <span className="text-[12.5px] font-medium leading-tight">{tip.title}</span>
+                {tip.exhibit ? <span className="mono flex size-[18px] items-center justify-center rounded-[4px] bg-white text-[11px] font-semibold text-ink">{tip.exhibit}</span> : null}
+                <span className="text-[13px] font-medium leading-tight">{tip.title}</span>
               </div>
-              {tip.detail ? <div className="mt-1.5 text-[12px] leading-snug text-white/75">{tip.detail}</div> : null}
-              <div className="mt-2 text-[10.5px] uppercase tracking-[0.07em] text-white/45">{tip.note}</div>
+              {tip.detail ? <div className="mt-1.5 text-[12px] leading-[18px] text-white/75">{tip.detail}</div> : null}
+              <div className="mt-2 text-[12px] text-white/55">{tip.note}</div>
             </div>,
             document.body,
           )

@@ -1,14 +1,16 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Check, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, Loader2, Sparkles, UploadCloud, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PreventionAction, PreventionFixResult, PreventionOrder, PreventionReport, PreventionSignalKind } from "@/lib/prevention";
 import { PreventionDrawer } from "./PreventionDrawer";
 import { PreventionGrid } from "./PreventionGrid";
-import { BAND, bandOf, money, ScoreRing, SIGNAL_ICON, SignalChip, useTicker } from "./PreventionParts";
+import { BAND, bandOf, money, ScoreRing, SIGNAL_SHORT, useTicker } from "./PreventionParts";
 import { PreventionRadar } from "./PreventionRadar";
+import { Button } from "../ui/Button";
 import { toast } from "../ui/Toast";
+import { PageHeader } from "./PageHeader";
 
 type FixOutcome = { ok: boolean; prevented: boolean; saved: number; paypal: boolean; error?: string };
 
@@ -17,22 +19,22 @@ function Ticker({ value, format }: { value: number; format: (n: number) => strin
   return <>{format(v)}</>;
 }
 
+/** Every at-risk order as one segment, as wide as its exposure, in its band's colour. */
 function HeatStrip({ orders, onSelect }: { orders: PreventionOrder[]; onSelect: (id: string) => void }) {
-  if (!orders.length) return <div className="h-9 rounded-md bg-[#f0fdf4]" />;
+  if (!orders.length) return <div className="h-2.5 rounded-full bg-[#ededeb]" />;
   return (
-    <div className="flex h-9 gap-[3px]">
-      {orders.map((o) => {
-        const b = bandOf(o);
-        return (
-          <button
-            key={o.orderId}
-            title={`${o.buyer} · ${o.orderId} · risk ${o.score} · ${money(o.exposure)}`}
-            onClick={() => onSelect(o.orderId)}
-            className="pv-seg relative min-w-[6px] rounded-[4px] transition-all duration-500"
-            style={{ flexGrow: o.exposure, background: BAND[b].color, opacity: 0.35 + (o.score / 100) * 0.65 }}
-          />
-        );
-      })}
+    <div className="flex h-2.5 gap-[2px] overflow-hidden rounded-full">
+      {orders.map((o) => (
+        <button
+          key={o.orderId}
+          type="button"
+          aria-label={`${o.buyer}, ${o.orderId}, risk ${o.score}, ${money(o.exposure)} exposure`}
+          title={`${o.buyer} · ${o.orderId} · risk ${o.score} · ${money(o.exposure)}`}
+          onClick={() => onSelect(o.orderId)}
+          className="min-w-[4px] transition-opacity hover:opacity-70"
+          style={{ flexGrow: o.exposure, background: BAND[bandOf(o)].color }}
+        />
+      ))}
     </div>
   );
 }
@@ -45,44 +47,43 @@ function AtRiskRow({ o, selected, leaving, working, onSelect, onFix }: { o: Prev
         <div
           role="button"
           tabIndex={0}
+          aria-pressed={selected}
           onClick={onSelect}
-          onKeyDown={(e) => e.key === "Enter" && onSelect()}
-          className={clsx("group flex cursor-pointer items-center gap-3.5 border-b border-[#f3f3f3] px-5 py-3 transition-colors", selected ? "bg-[#f7f7f7]" : "hover:bg-[#fafafa]", leaving && "bg-green-soft")}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onSelect())}
+          className={clsx("group flex cursor-pointer items-center gap-3.5 border-b border-rule px-5 py-3 transition-colors", selected ? "bg-active" : "hover:bg-hover", leaving && "bg-green-soft")}
         >
           <ScoreRing score={o.score} band={leaving ? "prevented" : bandOf(o)} />
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-2">
-              <span className="truncate text-[13.5px] font-medium">{o.buyer}</span>
-              <span className="num shrink-0 text-[11px] text-faint">{o.orderId}</span>
+              <span className="truncate text-[14px] font-medium text-ink">{o.buyer}</span>
+              <span className="mono shrink-0 text-[12px] text-faint">{o.orderId}</span>
             </div>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              {o.signals.slice(0, 2).map((s) => (
-                <SignalChip key={s.kind} kind={s.kind} />
-              ))}
-              {o.signals.length > 2 ? <span className="num text-[11px] text-faint">+{o.signals.length - 2}</span> : null}
+            <div className="mt-0.5 truncate text-[13px] text-ink-2">
+              {o.signals.slice(0, 2).map((s) => SIGNAL_SHORT[s.kind]).join(" · ")}
+              {o.signals.length > 2 ? <span className="text-muted"> · +{o.signals.length - 2}</span> : null}
             </div>
           </div>
-          <div className="shrink-0 text-right">
-            <div className="num text-[13.5px]">{money(o.exposure)}</div>
-            <div className="mt-1 text-[11.5px] text-muted">{o.top?.reasonLabel}</div>
+          <div className="hidden shrink-0 text-right sm:block">
+            <div className="mono text-[13px] text-ink">{money(o.exposure)}</div>
+            <div className="mt-0.5 text-[12px] text-muted">{o.top?.reasonLabel}</div>
           </div>
-          <div className="w-[140px] shrink-0 text-right">
+          <div className="flex min-w-[136px] shrink-0 justify-end">
             {leaving ? (
-              <span className="inline-flex items-center gap-1 text-[12.5px] font-medium text-green">
+              <span className="inline-flex items-center gap-1 text-[13px] font-medium text-green">
                 <Check className="size-3.5" strokeWidth={2.6} /> Prevented
               </span>
             ) : fix ? (
-              <button
+              <Button
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   onFix(fix.action);
                 }}
                 disabled={working}
-                className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-[12.5px] font-medium text-ink shadow-[0_1px_1px_rgb(0_0_0/0.03)] transition-colors hover:border-line-strong hover:bg-[#fafafa] disabled:text-faint"
               >
                 {working ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                {fix.label.length > 20 ? fix.label.replace(" to PayPal", "") : fix.label}
-              </button>
+                <span className="whitespace-nowrap">{fix.label.length > 20 ? fix.label.replace(" to PayPal", "") : fix.label}</span>
+              </Button>
             ) : null}
           </div>
         </div>
@@ -91,37 +92,29 @@ function AtRiskRow({ o, selected, leaving, working, onSelect, onFix }: { o: Prev
   );
 }
 
-function EmptyRadarList({ report }: { report: PreventionReport }) {
+function EmptyRadarList({ report, art }: { report: PreventionReport; art?: React.ReactNode }) {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-10 py-6 text-center">
-      <span className="flex size-11 items-center justify-center rounded-full bg-green-soft text-green">
-        <ShieldCheck className="size-5" />
-      </span>
-      <div className="display mt-4 text-[20px]">No orders at risk</div>
-      <p className="mt-1.5 max-w-sm text-[13px] text-muted">
-        Exhibit is watching {report.totals.watched} recent order{report.totals.watched === 1 ? "" : "s"} and will flag the first sign of a dispute.
+    <div className="flex min-h-full flex-col items-center justify-center px-8 py-6 text-center">
+      {art}
+      <div className="mt-4 text-[16px] font-semibold text-ink">No orders at risk</div>
+      <p className="mt-1 max-w-sm text-[13px] leading-[20px] text-muted">
+        Exhibit is watching {report.totals.watched} recent order{report.totals.watched === 1 ? "" : "s"} and flags the first sign of a dispute. It looks for:
       </p>
-      <div className="mt-6 grid w-full max-w-md grid-cols-1 gap-2 text-left">
-        {report.watches.map((w) => {
-          const Icon = SIGNAL_ICON[w.kind];
-          return (
-            <div key={w.kind} className="flex items-start gap-2.5 rounded-lg border border-line px-3 py-2">
-              <Icon className="mt-0.5 size-3.5 shrink-0 text-muted" />
-              <div className="min-w-0">
-                <div className="text-[12.5px] font-medium">
-                  {w.label} <span className="font-normal text-faint">→ {w.reasonLabel}</span>
-                </div>
-                <div className="text-[11.5px] leading-snug text-muted">{w.description}</div>
-              </div>
+      <ul className="mt-4 w-full max-w-md text-left">
+        {report.watches.map((w) => (
+          <li key={w.kind} className="border-b border-rule py-2 last:border-0">
+            <div className="text-[13px] font-medium text-ink">
+              {w.label} <span className="font-normal text-muted">→ {w.reasonLabel}</span>
             </div>
-          );
-        })}
-      </div>
+            <div className="text-[12px] leading-[18px] text-muted">{w.description}</div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-export function PreventionView({ initial, initialOrder = null }: { initial: PreventionReport; initialOrder?: string | null }) {
+export function PreventionView({ initial, initialOrder = null, emptyArt }: { initial: PreventionReport; initialOrder?: string | null; /** Dot art for "No orders at risk", rendered by the page (a server component). */ emptyArt?: React.ReactNode }) {
   const [report, setReport] = useState(initial);
   const latest = useRef(initial);
   const [selectedId, setSelectedId] = useState<string | null>(initialOrder && initial.atRisk.some((o) => o.orderId === initialOrder) ? initialOrder : null);
@@ -248,139 +241,140 @@ export function PreventionView({ initial, initialOrder = null }: { initial: Prev
   const list = report.atRisk.filter((o) => !filter || o.signals.some((s) => s.kind === filter));
   const selected = selectedId ? report.orders.find((o) => o.orderId === selectedId) : undefined;
   const preventable = Math.max(t.atRisk ? 1 : 0, Math.round(t.expectedDisputes));
+  const shipped = report.orders.filter((o) => o.shipment);
+  const missing = shipped.filter((o) => !o.shipment?.onPayPal).length;
+  const top = report.atRisk[0];
 
   return (
-    <div className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Hero strip */}
-      <div className="card grid divide-y divide-line lg:grid-cols-[1.05fr_1.5fr_1fr] lg:divide-x lg:divide-y-0">
-        <div className="px-6 py-5">
-          <div className="text-[12px] text-muted">At risk right now</div>
-          <div className="display num mt-1.5 text-[40px] leading-none tracking-[-0.04em]">
-            <Ticker value={t.exposure} format={(n) => money(n)} />
-          </div>
-          <div className="mt-2.5 text-[13px] leading-snug text-ink-2">
-            across <span className="num">{t.atRisk}</span> order{t.atRisk === 1 ? "" : "s"}
-            <br />
-            Exhibit can prevent{" "}
-            <span className="font-medium text-ink">
-              ~<span className="num">{t.atRisk ? preventable : 0}</span> dispute{preventable === 1 ? "" : "s"}
-            </span>
-          </div>
-        </div>
-        <div className="px-6 py-5">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] text-muted">Risk across watched orders · width = $ exposure</span>
-            <span className="num text-[11.5px] text-faint">{t.watched} watched</span>
-          </div>
-          <div className="mt-3">
-            <HeatStrip orders={report.atRisk} onSelect={setSelectedId} />
-          </div>
-          <div className="mt-3 flex items-center gap-4 text-[12px]">
-            {(["high", "elevated", "watch"] as const).map((b) => (
-              <span key={b} className="inline-flex items-center gap-1.5 text-muted">
-                <span className="size-2 rounded-full" style={{ background: BAND[b].color }} />
-                {BAND[b].label} <span className="num text-ink">{t[b]}</span>
-              </span>
-            ))}
-            <span className="inline-flex items-center gap-1.5 text-muted">
-              <span className="size-2 rounded-full" style={{ background: BAND.prevented.color }} />
-              Prevented <span className="num text-ink">{t.prevented}</span>
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between px-6 py-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-[12px] text-muted">Prevented by Exhibit</div>
-              <div className="mt-1.5 flex items-baseline gap-2">
-                <span className={clsx("display num text-[40px] leading-none tracking-[-0.04em] transition-colors", t.prevented ? "text-green" : "text-ink")}>
-                  <Ticker value={t.prevented} format={(n) => String(Math.round(n))} />
-                </span>
-                <span className="text-[12.5px] text-muted">
-                  · <span className="num text-ink">
-                    <Ticker value={t.saved} format={(n) => money(n)} />
-                  </span>{" "}
-                  saved
-                </span>
-              </div>
+    <>
+      <PageHeader
+        title="Prevention"
+        subtitle={
+          t.atRisk && top
+            ? `${t.atRisk} recent order${t.atRisk === 1 ? " shows" : "s show"} the signs that come before a PayPal dispute, ${money(t.exposure)} exposed. The riskiest: ${top.buyer}'s ${money(top.exposure - top.fee)} order, ${top.signals
+                .slice(0, 2)
+                .map((x) => SIGNAL_SHORT[x.kind].toLowerCase())
+                .join(" and ")}.`
+            : `No order shows a sign of a coming dispute. Exhibit is watching ${t.watched} recent orders.`
+        }
+        actions={
+          <>
+            {missing ? (
+              <Button disabled={pushing} onClick={pushAll} className="max-sm:hidden">
+                {pushing ? <Loader2 className="size-3.5 animate-spin" /> : <UploadCloud className="size-3.5" />} Push {missing} tracking number{missing === 1 ? "" : "s"}
+              </Button>
+            ) : null}
+            <Button variant="primary" onClick={fixAll} disabled={!!bulk || !t.atRisk}>
+              {bulk ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+              {bulk ? `Fixing ${Math.min(bulk.done + 1, bulk.total)} of ${bulk.total}…` : t.atRisk ? `Fix all ${t.atRisk} at-risk orders` : "Nothing to fix"}
+            </Button>
+          </>
+        }
+      />
+      <div className="space-y-4 px-4 pt-6 sm:px-6">
+        <section aria-label="Risk now" className="grid rounded-[10px] border border-line lg:grid-cols-[1fr_1.6fr_1fr] lg:divide-x lg:divide-line max-lg:[&>*:not(:last-child)]:border-b max-lg:[&>*]:border-line">
+          <div className="px-5 py-4">
+            <div className="text-[13px] text-muted">At risk now</div>
+            <div className="num mt-1.5 text-[24px] font-semibold leading-7 tracking-[-0.02em] text-ink">
+              <Ticker value={t.exposure} format={(n) => money(n)} />
+            </div>
+            <div className="mt-1 text-[13px] text-muted">
+              across <span className="num">{t.atRisk}</span> order{t.atRisk === 1 ? "" : "s"}, about <span className="num">{t.atRisk ? preventable : 0}</span> dispute{preventable === 1 ? "" : "s"} if nothing changes
             </div>
           </div>
-          <button
-            onClick={fixAll}
-            disabled={!!bulk || !t.atRisk}
-            className="mt-4 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-ink px-3.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#262626] disabled:bg-[#d4d4d4]"
-          >
-            {bulk ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-            {bulk ? `Fixing ${Math.min(bulk.done + 1, bulk.total)} of ${bulk.total}…` : t.atRisk ? `Fix all ${t.atRisk} at-risk orders` : "Nothing to fix"}
-          </button>
-        </div>
-      </div>
-
-      {/* Radar + ranked list */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,min(500px,44%))_minmax(0,1fr)]">
-        <div className="card px-5 pb-4 pt-4">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-[14px] font-medium">Dispute radar</h2>
-            <span className="text-[11.5px] text-faint">closer to the centre = closer to a dispute</span>
+          <div className="px-5 py-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[13px] text-muted">Risk across watched orders, width is exposure</span>
+              <span className="num shrink-0 text-[13px] text-muted">{t.watched} watched</span>
+            </div>
+            <div className="mt-3.5">
+              <HeatStrip orders={report.atRisk} onSelect={setSelectedId} />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
+              {(["high", "elevated", "watch", "prevented"] as const).map((b) => (
+                <span key={b} className="inline-flex items-center gap-1.5 text-muted">
+                  <span className="size-2 rounded-[2px]" style={{ background: BAND[b].color }} />
+                  {BAND[b].label} <span className="num text-ink">{b === "prevented" ? t.prevented : t[b]}</span>
+                </span>
+              ))}
+            </div>
           </div>
-          <PreventionRadar orders={report.orders} selectedId={selectedId} onSelect={setSelectedId} filter={filter} onFilter={setFilter} leaving={leaving} />
-        </div>
+          <div className="px-5 py-4">
+            <div className="text-[13px] text-muted">Prevented by Exhibit</div>
+            <div className={clsx("num mt-1.5 text-[24px] font-semibold leading-7 tracking-[-0.02em]", t.prevented ? "text-green" : "text-ink")}>
+              <Ticker value={t.prevented} format={(n) => String(Math.round(n))} />
+            </div>
+            <div className="mt-1 text-[13px] text-muted">
+              <span className="num text-ink-2">
+                <Ticker value={t.saved} format={(n) => money(n)} />
+              </span>{" "}
+              of exposure saved
+            </div>
+          </div>
+        </section>
 
-        <div className="card relative min-h-[420px] overflow-hidden">
-          <div className="absolute inset-0 flex flex-col">
-            <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-[14px] font-medium">At-risk orders</h2>
-                <span className="num rounded-md bg-sunken px-1.5 py-0.5 text-[11.5px] text-muted">{list.length}</span>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(500px,44%))]">
+          {/* The list scrolls inside the card; the radar beside it sets the row's height, so both cards end level. */}
+          <section className="card relative min-h-[440px] overflow-hidden border" aria-label="At-risk orders">
+            <div className="absolute inset-0 flex flex-col">
+            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <h2 className="text-[14px] font-semibold text-ink">At-risk orders</h2>
+                <span className="num text-[13px] text-muted">{list.length}</span>
                 {filter ? (
-                  <button onClick={() => setFilter(null)} className="inline-flex items-center gap-1 rounded-md bg-ink px-2 py-0.5 text-[11.5px] text-white">
+                  <button type="button" onClick={() => setFilter(null)} className="inline-flex h-6 items-center gap-1 rounded-[6px] border border-line-strong px-2 text-[12px] text-ink-2 hover:bg-hover">
                     {report.bySignal.find((b) => b.kind === filter)?.label ?? filter} <X className="size-3" />
                   </button>
                 ) : null}
               </div>
-              <span className="text-[11.5px] text-faint">ranked by risk · click for the full story</span>
+              <span className="hidden text-[12px] text-muted sm:inline">riskiest first · select one for the full story</span>
             </div>
             <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
               {report.atRisk.length ? (
-                list.map((o) => (
-                  <AtRiskRow key={o.orderId} o={o} selected={o.orderId === selectedId} leaving={leaving.has(o.orderId)} working={working.has(o.orderId)} onSelect={() => setSelectedId(o.orderId)} onFix={(a) => fix(o.orderId, a)} />
-                ))
+                list.map((o) => <AtRiskRow key={o.orderId} o={o} selected={o.orderId === selectedId} leaving={leaving.has(o.orderId)} working={working.has(o.orderId)} onSelect={() => setSelectedId(o.orderId)} onFix={(a) => fix(o.orderId, a)} />)
               ) : (
-                <EmptyRadarList report={report} />
+                <EmptyRadarList report={report} art={emptyArt} />
               )}
               {report.atRisk.length && report.resolved.length ? (
-                <div className="px-5 py-3 text-[12px] text-muted">
+                <div className="px-5 py-3 text-[13px] text-muted">
                   <span className="inline-flex items-center gap-1.5">
                     <Check className="size-3.5 text-green" strokeWidth={2.5} />
-                    {report.resolved.length} order{report.resolved.length === 1 ? "" : "s"} off the radar ·{" "}
-                    <span className="num text-ink">{money(t.saved)}</span> saved
+                    {report.resolved.length} order{report.resolved.length === 1 ? "" : "s"} off the radar · <span className="num text-ink">{money(t.saved)}</span> saved
                   </span>
                 </div>
               ) : null}
             </div>
-          </div>
+            </div>
+          </section>
+
+          <section className="card border px-5 pb-4 pt-3" aria-label="Dispute radar">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-[14px] font-semibold text-ink">Dispute radar</h2>
+              <span className="text-[12px] text-muted">nearer the centre, nearer a dispute</span>
+            </div>
+            <PreventionRadar orders={report.orders} selectedId={selectedId} onSelect={setSelectedId} filter={filter} onFilter={setFilter} leaving={leaving} />
+          </section>
         </div>
+
+        <PreventionGrid orders={report.orders} onSelect={setSelectedId} onFix={(id, a) => void fix(id, a)} working={working} onPushAll={pushAll} pushing={pushing} />
+
+        <p className="max-w-[900px] px-1 text-[12px] leading-[18px] text-muted">
+          Exposure is the open order value plus PayPal&apos;s US dispute fee ({money(report.fee.PAYPAL)} on PayPal checkout, {money(report.fee.CARD)} for a card chargeback), per PayPal&apos;s merchant fees page retrieved {report.fee.retrieved}. Risk scores are deterministic: each signal adds weight, and they combine as independent probabilities. Buyer messages go out from the support inbox; PayPal has no messaging API before a dispute is filed.
+        </p>
+
+        {selected ? (
+          <PreventionDrawer
+            key={selected.orderId}
+            order={selected}
+            success={success?.orderId === selected.orderId ? success : null}
+            onClose={() => {
+              setSelectedId(null);
+              setSuccess(null);
+            }}
+            onFix={(id, a, m) => fix(id, a, m)}
+          />
+        ) : null}
       </div>
-
-      <PreventionGrid orders={report.orders} onSelect={setSelectedId} onFix={(id, a) => void fix(id, a)} working={working} onPushAll={pushAll} pushing={pushing} />
-
-      <p className="px-1 text-[11.5px] leading-relaxed text-faint">
-        Exposure is the open order value plus PayPal&apos;s US dispute fee ({money(report.fee.PAYPAL)} on PayPal checkout, {money(report.fee.CARD)} card chargeback), per PayPal&apos;s merchant fees page retrieved {report.fee.retrieved}. Risk scores are deterministic: each
-        signal adds weight and they combine as independent probabilities. Buyer messages go out from the support inbox; PayPal has no messaging API before a dispute is filed.
-      </p>
-
-      {selected ? (
-        <PreventionDrawer
-          key={selected.orderId}
-          order={selected}
-          success={success?.orderId === selected.orderId ? success : null}
-          onClose={() => {
-            setSelectedId(null);
-            setSuccess(null);
-          }}
-          onFix={(id, a, m) => fix(id, a, m)}
-        />
-      ) : null}
-    </div>
+    </>
   );
 }

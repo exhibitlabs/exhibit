@@ -1,16 +1,20 @@
 "use client";
 
 import { clsx } from "clsx";
-import { CreditCard, MapPinOff, MessageSquareWarning, PackageX, Signature, Undo2, UploadCloud, type LucideIcon } from "lucide-react";
+import { Check, CreditCard, MapPinOff, MessageSquareWarning, PackageX, Signature, Undo2, UploadCloud, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { PreventionOrder, PreventionSignalKind, RiskBand } from "@/lib/prevention";
 
+/**
+ * Risk bands. Red is kept for the one band that is about to become a dispute; elevated and watch are two greys;
+ * green is a dispute Exhibit prevented. The brand's gold is not a status colour.
+ */
 export const BAND: Record<RiskBand | "prevented", { label: string; color: string; soft: string; text: string }> = {
-  high: { label: "High", color: "#dc2626", soft: "#fef2f2", text: "#b91c1c" },
-  elevated: { label: "Elevated", color: "#e8a33d", soft: "#fdf6ea", text: "#9a5b0b" },
-  watch: { label: "Watch", color: "#a3a3a3", soft: "#f5f5f5", text: "#525252" },
-  clear: { label: "Clear", color: "#d4d4d4", soft: "#f5f5f5", text: "#737373" },
-  prevented: { label: "Prevented", color: "#16a34a", soft: "#f0fdf4", text: "#15803d" },
+  high: { label: "High", color: "#b91c1c", soft: "#fdf2f2", text: "#b91c1c" },
+  elevated: { label: "Elevated", color: "#8a8a87", soft: "#f1f1ef", text: "#3d3d3c" },
+  watch: { label: "Watch", color: "#c9c9c6", soft: "#f1f1ef", text: "#6b6b6a" },
+  clear: { label: "Clear", color: "#e3e3e1", soft: "#f6f6f5", text: "#6b6b6a" },
+  prevented: { label: "Prevented", color: "#15803d", soft: "#eef7f1", text: "#15803d" },
 };
 
 export const SIGNAL_ICON: Record<PreventionSignalKind, LucideIcon> = {
@@ -63,14 +67,14 @@ export function useTicker(value: number, ms = 900) {
   return shown;
 }
 
-export function ScoreRing({ score, band, size = 40, stroke = 3.5, className }: { score: number; band: RiskBand | "prevented"; size?: number; stroke?: number; className?: string }) {
+export function ScoreRing({ score, band, size = 40, stroke = 3, className }: { score: number; band: RiskBand | "prevented"; size?: number; stroke?: number; className?: string }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const meta = BAND[band];
   return (
     <span className={clsx("relative inline-flex shrink-0 items-center justify-center", className)} style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#efefef" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#ededeb" strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -83,27 +87,23 @@ export function ScoreRing({ score, band, size = 40, stroke = 3.5, className }: {
           style={{ transition: "stroke-dasharray 0.6s cubic-bezier(0.22,1,0.36,1), stroke 0.3s" }}
         />
       </svg>
-      <span className="num absolute text-[12px] font-medium" style={{ fontSize: size > 50 ? size * 0.3 : undefined, color: band === "prevented" ? meta.text : "var(--ink)" }}>
-        {band === "prevented" ? "✓" : score}
+      <span className="num absolute text-[13px] font-semibold" style={{ fontSize: size > 50 ? size * 0.3 : undefined, color: band === "prevented" ? meta.text : "var(--ink)" }}>
+        {band === "prevented" ? <Check className="size-4" strokeWidth={2.6} aria-label="Prevented" /> : score}
       </span>
     </span>
   );
 }
 
+/** A signal in words. Rows list them as plain text joined by a dot; the icon is for the drawer's headings. */
 export function SignalChip({ kind, muted, className }: { kind: PreventionSignalKind; muted?: boolean; className?: string }) {
-  const Icon = SIGNAL_ICON[kind];
-  return (
-    <span className={clsx("inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-[12px] font-medium", muted ? "bg-sunken text-muted" : "bg-surface text-ink-2 shadow-[inset_0_0_0_1px_var(--line-strong)]", className)}>
-      <Icon className="size-3.5" strokeWidth={1.9} />
-      {SIGNAL_SHORT[kind]}
-    </span>
-  );
+  return <span className={clsx("whitespace-nowrap", muted ? "text-muted" : "text-ink-2", className)}>{SIGNAL_SHORT[kind]}</span>;
 }
 
+/** The band as a word with a 6px mark; only High carries red. */
 export function BandPill({ band }: { band: RiskBand | "prevented" }) {
   const m = BAND[band];
   return (
-    <span className="inline-flex h-[22px] items-center gap-1.5 rounded-md px-2 text-[12px] font-medium" style={{ background: m.soft, color: m.text }}>
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px]" style={{ color: m.text }}>
       <span className="size-1.5 rounded-full" style={{ background: m.color }} />
       {m.label}
     </span>

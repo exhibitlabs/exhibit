@@ -15,16 +15,10 @@
   --faint: #a1a1a1;
   /* Brand accent: used only for the logo mark and tiny status dots. */
   --amber: #e8a33d;
-  --amber-soft: #f5f5f5;
-  --amber-ink: #3f3f3f;
   --green: #15803d;
   --green-soft: #f0fdf4;
   --red: #b91c1c;
   --red-soft: #fef2f2;
-  --blue: #1d4ed8;
-  --blue-soft: #eff6ff;
-  --violet: #6d28d9;
-  --violet-soft: #f5f3ff;
 }
 
 @theme inline {
@@ -38,16 +32,16 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-amber: var(--amber);
-  --color-amber-soft: var(--amber-soft);
-  --color-amber-ink: var(--amber-ink);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
   --color-red: var(--red);
   --color-red-soft: var(--red-soft);
-  --color-blue: var(--blue);
-  --color-blue-soft: var(--blue-soft);
-  --color-violet: var(--violet);
-  --color-violet-soft: var(--violet-soft);
+  /* App-only roles (defined under .app-shell below). */
+  --color-frame: var(--frame);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-rule: var(--rule);
+  --color-ghost: var(--ghost);
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
@@ -130,27 +124,9 @@ body {
   animation: rise 0.28s ease-out both;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-.shimmer {
-  background: linear-gradient(90deg, var(--sunken) 0%, #fcfcfc 50%, var(--sunken) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.6s linear infinite;
-}
-
-/* AG Grid: keep rows quiet; the cell renderers carry the color. */
+/* AG Grid: keep rows quiet; the cell renderers carry the colour. Headers are sentence case. */
 .ag-theme-exhibit .ag-row {
   cursor: pointer;
-}
-.ag-theme-exhibit .ag-header-cell-text {
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 /* Evidence graph: data flowing along an edge while a source is queried; the verdict ring fills once. */
@@ -171,59 +147,14 @@ body {
   animation: ring-fill 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Command center: sparklines draw in once, segment bars grow from the left. */
-@keyframes spark-draw {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-.spark-draw {
-  animation: spark-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes bar-grow {
-  from {
-    transform: scaleX(0);
-  }
-}
-.bar-grow {
-  transform-origin: left;
-  animation: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+/* Rows that arrive while you watch (a tool step in a live run, an answer in Ask Exhibit) may rise in; nothing else does. */
 @media (prefers-reduced-motion: reduce) {
-  .spark-draw,
-  .bar-grow,
   .rise {
     animation: none;
   }
 }
 
-/* Prevention radar: sweep, selection ping, drawer, toast, and the row that slides out once fixed. */
-@keyframes pv-sweep {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.pv-sweep {
-  animation: pv-sweep 7s linear infinite;
-}
-@keyframes pv-ping {
-  0% {
-    transform: scale(0.85);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(1.5);
-    opacity: 0;
-  }
-}
-.pv-ping {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pv-ping 1.6s ease-out infinite;
-}
+/* Prevention: the drawer, the confirmation, and the row that slides out once an order is fixed. */
 @keyframes pv-drawer {
   from {
     transform: translateX(28px);
@@ -259,19 +190,6 @@ body {
   stroke-dasharray: 24;
   animation: pv-check 0.45s 0.1s ease-out both;
 }
-@keyframes pv-toast {
-  from {
-    transform: translate(-50%, 12px);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-}
-.pv-toast {
-  animation: pv-toast 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
 .pv-row {
   grid-template-rows: 1fr;
   transition:
@@ -284,12 +202,8 @@ body {
   opacity: 0;
   transform: translateX(32px);
 }
-.pv-seg:hover {
-  filter: brightness(0.92);
-  transform: translateY(-1px);
-}
 .ag-theme-exhibit .pv-row-done {
-  background: #fcfffd;
+  background: #f8fbf9;
 }
 
 /* Ask Exhibit palette: open, fade and the streaming caret. */
@@ -329,14 +243,67 @@ body {
 }
 
 /* ---- App shell (product UI under /app) ------------------------------------------------------ */
+/*
+ * The product's own tokens, in the website's Letter Rack palette: white sheet, the lightest warm-neutral
+ * grey (#f6f6f5, never cream) as the frame, ink type, gold only on the mark. Scoped to .app-shell so the
+ * marketing site and /proof keep theirs. Every grey that carries words passes 4.5:1 on white and on the frame,
+ * except --ghost, which is for icons, rules and disabled marks only.
+ *
+ * Type: Geist 12 / 13 / 14 / 16 / 20 / 24 (28 for the overview's sentence). Geist Mono (.mono) only for
+ * ids, codes and amounts in records; every other figure is Geist with tabular numerals (.num).
+ * Radius: sheet 12, panels 10, controls 8, tags 6. Spacing on a 4px base; one 16px gap between cards.
+ */
+.app-shell {
+  --frame: #f6f6f5;
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --sunken: #f6f6f5;
+  --hover: #f7f7f6;
+  --active: #ededeb;
+  --line: #ebebea;
+  --line-strong: #dcdcda;
+  --rule: #f1f1f0;
+  --ink: #0a0a0a;
+  --ink-2: #3d3d3c;
+  --muted: #6b6b6a;
+  --faint: #737371;
+  --ghost: #a3a3a1;
+  --amber: #e8a33d;
+  --green: #15803d;
+  --green-soft: #eef7f1;
+  --red: #b91c1c;
+  --red-soft: #fdf2f2;
+}
+.app-shell .num {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.app-shell .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.app-shell .card {
+  border-radius: 10px;
+  border-color: var(--line);
+  box-shadow: none;
+}
+/* Loading placeholders: the final layout with flat bars at each value's real size. No shimmer. */
+.skeleton {
+  background: #efefed;
+  animation: none;
+}
 /* Components that opt out with `outline-none` (bare inputs inside a bordered field, the Ask palette) draw their own focus state, so the ring skips them. */
 .app-shell :focus-visible:not([tabindex="-1"]):not(.outline-none) {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 6px;
 }
 .app-shell :focus:not(:focus-visible) {
   outline: none;
+}
+.app-shell ::selection {
+  background: rgb(232 163 61 / 0.22);
 }
 @keyframes toast-in {
   from {
@@ -346,27 +313,6 @@ body {
 }
 .toast-in {
   animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(3px);
-  }
-}
-.page-in {
-  animation: page-in 0.24s ease-out both;
-}
-@keyframes cite-flash {
-  0%,
-  100% {
-    background-color: transparent;
-  }
-  30% {
-    background-color: rgb(232 163 61 / 0.18);
-  }
-}
-.cite-flash {
-  animation: cite-flash 1.2s ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
   .app-shell *,
@@ -426,44 +372,13 @@ body {
   background: linear-gradient(90deg, transparent, var(--amber), transparent);
   animation: lp-shimmer 1.2s ease-in-out infinite;
 }
-@keyframes lp-sweep {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.lp-sweep {
-  transform-origin: 50% 50%;
-  transform-box: fill-box;
-  animation: lp-sweep 9s linear infinite;
-}
-@keyframes lp-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-.lp-rise {
-  animation: lp-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.lp-page :focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
 @media (prefers-reduced-motion: reduce) {
   .lp-fade,
   .lp-pop,
   .lp-ring,
-  .lp-rise,
   .lp-flow,
-  .lp-shimmer,
-  .lp-sweep {
+  .lp-shimmer {
     animation: none;
-  }
-  .lp-page *,
-  .lp-page *::before,
-  .lp-page *::after {
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
 @keyframes lp-edge {
@@ -489,3 +404,4 @@ body {
     animation: none;
   }
 }
+

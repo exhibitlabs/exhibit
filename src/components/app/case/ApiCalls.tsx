@@ -8,39 +8,39 @@ import { ApiInspector, MethodTag, StatusPill, type ApiRowLite } from "../ApiInsp
 /** Every PayPal call made for this case. Click one for the request, response and debug id. */
 export function ApiCalls({ rows, mode }: { rows: ApiRowLite[]; mode: string }) {
   const [open, setOpen] = useState<number | null>(null);
-  if (!rows.length) return <p className="rounded-lg border border-dashed border-line-strong px-4 py-6 text-center text-[13px] text-muted">No PayPal calls for this case yet.</p>;
+  if (!rows.length) return <p className="rounded-[10px] border border-dashed border-line-strong px-4 py-6 text-center text-[13px] text-muted">No PayPal calls for this case yet.</p>;
   return (
     <>
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden border">
         <div className="scroll-thin overflow-x-auto">
-          <table className="w-full min-w-[640px] text-[12.5px]">
+          <table className="w-full min-w-[660px] text-[13px]">
             <thead>
-              <tr className="border-b border-line text-left text-[10.5px] uppercase tracking-[0.06em] text-faint">
-                <th className="py-2 pl-4 font-medium">Call</th>
-                <th className="py-2 font-medium">Status</th>
-                <th className="py-2 text-right font-medium">Latency</th>
-                <th className="py-2 pl-4 font-medium">PayPal-Debug-Id</th>
-                <th className="py-2 pr-4 text-right font-medium">When</th>
+              <tr className="border-b border-line text-left text-[12px] text-muted">
+                <th className="h-9 pl-5 font-normal">Call</th>
+                <th className="h-9 font-normal">Status</th>
+                <th className="h-9 text-right font-normal">Latency</th>
+                <th className="h-9 pl-6 font-normal">PayPal-Debug-Id</th>
+                <th className="h-9 pr-5 text-right font-normal">When</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} onClick={() => setOpen(r.id)} className="group cursor-pointer border-b border-line/70 last:border-0 hover:bg-[#fafafa]">
-                  <td className="max-w-0 py-2 pl-4 pr-3">
-                    <span className="flex min-w-0 items-center gap-2">
+                <tr key={r.id} onClick={() => setOpen(r.id)} className="group cursor-pointer border-b border-rule last:border-0 hover:bg-hover">
+                  <td className="h-11 max-w-0 pl-5 pr-3">
+                    <button type="button" onClick={() => setOpen(r.id)} className="flex min-w-0 max-w-full items-center gap-2 rounded-[4px] text-left">
                       <MethodTag method={r.meta.method} />
-                      <span className="num truncate text-ink-2">{r.meta.path}</span>
-                    </span>
+                      <span className="mono truncate text-[12px] text-ink">{r.meta.path}</span>
+                    </button>
                   </td>
-                  <td className="w-16 py-2">
+                  <td className="w-16">
                     <StatusPill status={r.meta.status} />
                   </td>
-                  <td className="num w-20 py-2 text-right text-muted">{r.meta.ms}ms</td>
-                  <td className="num w-40 max-w-40 truncate py-2 pl-4 text-faint">{r.meta.debugId ?? ""}</td>
-                  <td className="w-40 py-2 pr-4 text-right text-faint">
+                  <td className="mono w-20 text-right text-[12px] text-muted">{r.meta.ms} ms</td>
+                  <td className="mono w-40 max-w-40 truncate pl-6 text-[12px] text-muted">{r.meta.debugId ?? "–"}</td>
+                  <td className="w-44 pr-5 text-right text-muted">
                     <span className="inline-flex items-center gap-1">
-                      {dateTime(r.at)}
-                      <ChevronRight className="size-3.5 text-line-strong transition-colors group-hover:text-ink" />
+                      <span suppressHydrationWarning>{dateTime(r.at)}</span>
+                      <ChevronRight className="size-3.5 text-ghost transition-colors group-hover:text-ink" />
                     </span>
                   </td>
                 </tr>

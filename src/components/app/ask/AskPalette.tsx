@@ -8,8 +8,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Answer, AskEvent, AskIndex, AskProviderKind } from "@/lib/ask/schema";
 import { SUGGESTED_QUESTIONS } from "@/lib/ask/schema";
+import { dueLabel as formatDue } from "@/lib/format";
+import { Kbd } from "../../ui/Kbd";
 
-const AskChart = dynamic(() => import("./AskChart").then((m) => m.AskChart), { ssr: false, loading: () => <div className="h-[176px] shimmer rounded-lg" /> });
+const AskChart = dynamic(() => import("./AskChart").then((m) => m.AskChart), { ssr: false, loading: () => <div className="skeleton h-[176px] rounded-[8px]" /> });
 
 // ---- Types --------------------------------------------------------------------------------------
 
@@ -18,15 +20,13 @@ type Turn = { id: string; q: string; steps: Step[]; text: string; answer?: Answe
 type Item = { key: string; group: string; icon: ReactNode; label: ReactNode; text: string; meta?: ReactNode; hint?: string; run: () => void };
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
-const dueLabel = (h: number | null) => (h === null ? null : h < 0 ? "Overdue" : h <= 72 ? `${h}h left` : `${Math.round(h / 24)}d left`);
+/** The same countdown words as the rest of the app ("35h left", "2d left"); no deadline reads as nothing. */
+const dueLabel = (h: number | null) => (h === null ? null : formatDue(h));
 
 export const openAsk = (question?: string) => window.dispatchEvent(new CustomEvent("exhibit:ask", { detail: { question } }));
 
 // ---- Small pieces -------------------------------------------------------------------------------
 
-function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="num inline-flex h-[19px] min-w-[19px] items-center justify-center rounded-[5px] border border-line bg-[#fafafa] px-1 text-[10.5px] font-medium text-muted shadow-[0_1px_0_var(--line)]">{children}</kbd>;
-}
 
 function Caret() {
   return <span aria-hidden className="ask-caret ml-[2px] inline-block h-[1.05em] w-[7px] translate-y-[3px] rounded-[1.5px] bg-ink" />;
@@ -59,13 +59,13 @@ function Rich({ text, streaming }: { text: string; streaming: boolean }) {
   }
   const shown = blocks.filter((b) => b.lines.length);
   return (
-    <div className="space-y-2.5 text-[14px] leading-[1.62] text-ink-2">
+    <div className="space-y-2.5 text-[14px] leading-[23px] text-ink-2">
       {shown.map((b, i) => {
         const last = i === shown.length - 1;
         return b.list ? (
           <ul key={i} className="space-y-1.5">
             {b.lines.map((l, j) => (
-              <li key={j} className="relative pl-4 before:absolute before:left-[2px] before:top-[0.78em] before:h-[1.5px] before:w-[7px] before:rounded-full before:bg-[#c7c7c7]">
+              <li key={j} className="relative pl-4 before:absolute before:left-[2px] before:top-[0.78em] before:h-[1.5px] before:w-[7px] before:rounded-full before:bg-ghost">
                 {inline(l, `${i}-${j}`)}
                 {last && streaming && j === b.lines.length - 1 ? <Caret /> : null}
               </li>
@@ -86,18 +86,18 @@ function Rich({ text, streaming }: { text: string; streaming: boolean }) {
 function StepRow({ step }: { step: Step }) {
   const done = step.summary !== undefined;
   return (
-    <div className="ask-fade flex h-[22px] items-center gap-2 text-[12px]">
+    <div className="ask-fade flex h-6 items-center gap-2 text-[13px]">
       <span className="flex size-3.5 shrink-0 items-center justify-center">
         {!done ? (
           <span className="size-3 animate-spin rounded-full border-[1.5px] border-line-strong border-t-ink" />
         ) : step.ok ? (
-          <Check className="size-3.5 text-faint" strokeWidth={2.25} />
+          <Check className="size-3.5 text-muted" strokeWidth={2.25} />
         ) : (
           <TriangleAlert className="size-3.5 text-red" strokeWidth={2} />
         )}
       </span>
       <span className={clsx("truncate", done ? "text-muted" : "text-ink-2")}>{done ? step.summary : `${step.label}…`}</span>
-      {done && step.ms !== undefined ? <span className="num ml-auto shrink-0 text-[11px] text-faint">{(step.ms / 1000).toFixed(1)}s</span> : null}
+      {done && step.ms !== undefined ? <span className="mono ml-auto shrink-0 text-[12px] text-faint">{(step.ms / 1000).toFixed(1)} s</span> : null}
     </div>
   );
 }
@@ -105,36 +105,36 @@ function StepRow({ step }: { step: Step }) {
 function CaseCard({ c, onGo }: { c: Answer["cases"][number]; onGo: () => void }) {
   const due = dueLabel(c.hoursLeft);
   return (
-    <Link href={c.href} onClick={onGo} className="group flex min-w-0 items-center gap-3 rounded-[10px] border border-line bg-surface px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-[#fafafa]">
+    <Link href={c.href} onClick={onGo} className="group flex min-w-0 items-center gap-3 rounded-[10px] border border-line bg-surface px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-hover">
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-medium text-ink">{c.buyer}</div>
-        <div className="truncate text-[11.5px] text-muted">
+        <div className="truncate text-[12px] text-muted">
           {c.reason} · {c.note ?? c.status}
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <div className="num text-[12.5px] text-ink">{usd(c.amount)}</div>
-        {due ? <div className={clsx("num text-[11px]", c.hoursLeft !== null && c.hoursLeft <= 72 ? "text-red" : "text-faint")}>{due}</div> : null}
+        <div className="mono text-[12px] text-ink">{usd(c.amount)}</div>
+        {due ? <div className={clsx("num text-[12px]", c.hoursLeft !== null && c.hoursLeft < 48 ? "text-red" : "text-muted")}>{due}</div> : null}
       </div>
-      <ArrowUpRight className="size-3.5 shrink-0 text-faint transition-colors group-hover:text-ink" />
+      <ArrowUpRight className="size-3.5 shrink-0 text-ghost transition-colors group-hover:text-ink" />
     </Link>
   );
 }
 
-const BAND_DOT: Record<string, string> = { high: "bg-red", elevated: "bg-amber", watch: "bg-faint", clear: "bg-green" };
+const BAND_DOT: Record<string, string> = { high: "bg-red", elevated: "bg-[#8a8a87]", watch: "bg-[#c9c9c6]", clear: "bg-green" };
 
 function OrderCard({ o, onGo }: { o: Answer["orders"][number]; onGo: () => void }) {
   return (
-    <Link href={o.href} onClick={onGo} className="group flex min-w-0 items-center gap-3 rounded-[10px] border border-line bg-surface px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-[#fafafa]">
-      <span className={clsx("size-1.5 shrink-0 rounded-full", BAND_DOT[o.band] ?? "bg-faint")} />
+    <Link href={o.href} onClick={onGo} className="group flex min-w-0 items-center gap-3 rounded-[10px] border border-line bg-surface px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-hover">
+      <span className={clsx("size-1.5 shrink-0 rounded-full", BAND_DOT[o.band] ?? "bg-ghost")} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-medium text-ink">
-          {o.buyer} <span className="num text-[11.5px] font-normal text-faint">{o.id}</span>
+          {o.buyer} <span className="mono text-[12px] font-normal text-faint">{o.id}</span>
         </div>
-        <div className="truncate text-[11.5px] text-muted">{o.note && o.note !== o.signal ? `${o.signal ?? "At risk"} · ${o.note}` : (o.signal ?? o.item)}</div>
+        <div className="truncate text-[12px] text-muted">{o.note && o.note !== o.signal ? `${o.signal ?? "At risk"} · ${o.note}` : (o.signal ?? o.item)}</div>
       </div>
-      <div className="num shrink-0 text-[12.5px] text-ink">{usd(o.amount)}</div>
-      <ArrowUpRight className="size-3.5 shrink-0 text-faint transition-colors group-hover:text-ink" />
+      <div className="mono shrink-0 text-[12px] text-ink">{usd(o.amount)}</div>
+      <ArrowUpRight className="size-3.5 shrink-0 text-ghost transition-colors group-hover:text-ink" />
     </Link>
   );
 }
@@ -144,13 +144,13 @@ function TurnView({ turn, onAsk, onGo, latest }: { turn: Turn; onAsk: (q: string
   const streaming = turn.status === "streaming" || (turn.status === "thinking" && !!turn.text);
   return (
     <section className="px-5 pb-5 pt-4" data-turn={turn.id}>
-      <h3 className="text-[15px] font-medium leading-snug tracking-[-0.01em] text-ink">{turn.q}</h3>
+      <h3 className="text-[16px] font-semibold leading-[23px] tracking-[-0.01em] text-ink">{turn.q}</h3>
       <div className="mt-2.5">
         {turn.steps.map((s) => (
           <StepRow key={s.id} step={s} />
         ))}
         {turn.status === "thinking" && !turn.text && turn.steps.every((s) => s.summary !== undefined) ? (
-          <div className="flex h-[22px] items-center gap-2 text-[12px]">
+          <div className="flex h-6 items-center gap-2 text-[13px]">
             <span className="flex size-3.5 items-center justify-center">
               <Sparkle className="pulse-dot size-3 text-ink" strokeWidth={2} />
             </span>
@@ -158,27 +158,27 @@ function TurnView({ turn, onAsk, onGo, latest }: { turn: Turn; onAsk: (q: string
           </div>
         ) : null}
       </div>
-      {turn.notice ? <div className="mt-2 rounded-md bg-sunken px-2.5 py-1.5 text-[12px] text-muted">{turn.notice}</div> : null}
+      {turn.notice ? <div className="mt-2 rounded-[8px] bg-sunken px-3 py-2 text-[13px] text-muted">{turn.notice}</div> : null}
       {turn.text ? (
         <div className="mt-3">
           <Rich text={turn.text} streaming={streaming} />
         </div>
       ) : null}
       {turn.status === "error" ? (
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#f3d0d0] bg-red-soft px-3 py-2 text-[13px] text-red">
+        <div role="alert" className="mt-3 flex items-start gap-2 rounded-[8px] bg-red-soft px-3 py-2 text-[13px] text-red">
           <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
           {turn.error}
         </div>
       ) : null}
       {a?.chart ? (
-        <div className="rise mt-4 rounded-xl border border-line px-3.5 pb-2.5 pt-3">
-          <div className="mb-1.5 text-[12px] font-medium text-ink-2">{a.chart.title}</div>
+        <div className="rise mt-4 rounded-[10px] border border-line px-3.5 pb-2.5 pt-3">
+          <div className="mb-1.5 text-[13px] font-medium text-ink">{a.chart.title}</div>
           <AskChart chart={a.chart} />
         </div>
       ) : null}
       {a?.cases.length ? (
         <div className="rise mt-4">
-          <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-faint">Cases</div>
+          <div className="mb-1.5 text-[12px] text-muted">Cases</div>
           <div className="grid grid-cols-2 gap-2">
             {a.cases.map((c) => (
               <CaseCard key={c.id} c={c} onGo={onGo} />
@@ -188,7 +188,7 @@ function TurnView({ turn, onAsk, onGo, latest }: { turn: Turn; onAsk: (q: string
       ) : null}
       {a?.orders.length ? (
         <div className="rise mt-4">
-          <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-faint">Orders at risk · fix in Prevention</div>
+          <div className="mb-1.5 text-[12px] text-muted">Orders at risk · fix in Prevention</div>
           <div className="grid grid-cols-2 gap-2">
             {a.orders.map((o) => (
               <OrderCard key={o.id} o={o} onGo={onGo} />
@@ -199,8 +199,8 @@ function TurnView({ turn, onAsk, onGo, latest }: { turn: Turn; onAsk: (q: string
       {a?.followups.length && latest ? (
         <div className="rise mt-4 flex flex-wrap gap-1.5">
           {a.followups.map((f) => (
-            <button key={f} onClick={() => onAsk(f)} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 text-[12.5px] text-ink-2 transition-colors hover:border-line-strong hover:bg-[#fafafa] hover:text-ink">
-              <CornerDownRight className="size-3 text-faint" />
+            <button key={f} type="button" onClick={() => onAsk(f)} className="inline-flex h-7 items-center gap-1.5 rounded-[8px] border border-line-strong bg-surface px-2.5 text-[13px] text-ink-2 transition-colors hover:bg-hover hover:text-ink">
+              <CornerDownRight className="size-3 text-ghost" />
               {f}
             </button>
           ))}
@@ -419,7 +419,7 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
         icon: icon(Play),
         label: "Run Exhibit on all open disputes",
         text: "run exhibit investigate all open disputes batch",
-        meta: busy === "c-run" ? <span className="size-3 animate-spin rounded-full border-[1.5px] border-line-strong border-t-ink" /> : undefined,
+        meta: busy === "c-run" ? <span aria-label="Working" className="size-3 animate-spin rounded-full border-[1.5px] border-line-strong border-t-ink" /> : undefined,
         run: () =>
           void command("c-run", async () => {
             const r = (await fetch("/api/batch", { method: "POST" }).then((x) => x.json())) as { queued: string[] };
@@ -454,9 +454,9 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
       ),
       text: c.buyer,
       meta: (
-        <span className="num flex items-center gap-2 text-[12px]">
-          {dueLabel(c.hoursLeft) ? <span className={c.hoursLeft !== null && c.hoursLeft <= 72 ? "text-red" : "text-faint"}>{dueLabel(c.hoursLeft)}</span> : null}
-          <span className="text-ink-2">{usd(c.amount)}</span>
+        <span className="flex items-center gap-3 text-[13px]">
+          {dueLabel(c.hoursLeft) ? <span className={clsx("num", c.hoursLeft !== null && c.hoursLeft < 48 ? "text-red" : "text-muted")}>{dueLabel(c.hoursLeft)}</span> : null}
+          <span className="mono text-[12px] text-ink-2">{usd(c.amount)}</span>
         </span>
       ),
       run: () => go(`/app/disputes/${c.id}`),
@@ -472,7 +472,7 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
         </>
       ),
       text: o.buyer,
-      meta: <span className="num text-[12px] text-ink-2">{usd(o.amount)}</span>,
+      meta: <span className="mono text-[12px] text-ink-2">{usd(o.amount)}</span>,
       run: () => go(`/app/protection?order=${encodeURIComponent(o.id)}`),
     }));
     const filteredCmds = cmds.filter((c) => !q || matches(q, `${c.text} ${typeof c.label === "string" ? c.label : ""}`));
@@ -515,30 +515,31 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
 
   let lastGroup = "";
   return (
-    <div className="ask-fade fixed inset-0 z-[100] flex justify-center bg-[rgb(250_250_250/0.55)] px-4 pt-[11vh] backdrop-blur-[3px]" onMouseDown={(e) => e.target === e.currentTarget && close()} role="dialog" aria-modal="true" aria-label="Ask Exhibit">
-      <div className="ask-in flex h-fit w-full max-w-[700px] flex-col overflow-hidden rounded-2xl border border-[#e4e4e4] bg-surface shadow-[0_32px_90px_-20px_rgb(0_0_0/0.22),0_10px_28px_-12px_rgb(0_0_0/0.12)]">
+    <div className="ask-fade fixed inset-0 z-[100] flex justify-center bg-[rgb(10_10_10/0.18)] px-4 pt-[11vh]" onMouseDown={(e) => e.target === e.currentTarget && close()} role="dialog" aria-modal="true" aria-label="Ask Exhibit">
+      <div className="ask-in flex h-fit w-full max-w-[700px] flex-col overflow-hidden rounded-[12px] border border-line bg-surface shadow-[0_32px_90px_-20px_rgb(0_0_0/0.3),0_8px_24px_-12px_rgb(0_0_0/0.12)]">
         {/* Input */}
         <div className="flex h-[54px] shrink-0 items-center gap-3 border-b border-line px-4">
           {view === "thread" ? (
-            <button onClick={() => setView("menu")} className="flex size-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-sunken hover:text-ink" aria-label="Back">
+            <button type="button" onClick={() => setView("menu")} className="flex size-7 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-active hover:text-ink" aria-label="Back">
               <ArrowLeft className="size-4" strokeWidth={1.75} />
             </button>
           ) : (
             <Sparkle className="size-[18px] text-ink" strokeWidth={1.75} />
           )}
-          {view === "thread" ? <span className="rounded-md bg-sunken px-1.5 py-0.5 text-[11.5px] font-medium text-ink-2">Ask Exhibit</span> : null}
+          {view === "thread" ? <span className="shrink-0 rounded-[6px] bg-[#f1f1ef] px-1.5 py-0.5 text-[12px] font-medium text-ink-2">Ask Exhibit</span> : null}
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder={view === "thread" ? (running ? "Exhibit is answering…" : "Ask a follow-up…") : "Ask about your disputes, or jump to a case…"}
-            className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
+            aria-label={view === "thread" ? "Ask a follow-up" : "Ask Exhibit, or jump to a case"}
+            className="outline-none h-full min-w-0 flex-1 bg-transparent text-[16px] text-ink placeholder:text-faint"
             spellCheck={false}
             autoComplete="off"
           />
           {query && view === "thread" ? (
-            <span className="flex items-center gap-1 text-[11.5px] text-muted">
+            <span className="flex items-center gap-1 text-[12px] text-muted">
               <Kbd>
                 <CornerDownLeft className="size-3" />
               </Kbd>
@@ -557,24 +558,25 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
           <div ref={contentRef}>
             {view === "menu" ? (
               <div ref={listRef} className="p-2">
-                {items.length === 0 ? <div className="px-3 py-6 text-center text-[13px] text-muted">No matches</div> : null}
+                {items.length === 0 ? <div className="px-3 py-6 text-center text-[13px] text-muted">No matches. Press Enter to ask Exhibit instead.</div> : null}
                 {items.map((it, i) => {
                   const header = it.group !== lastGroup ? it.group : null;
                   lastGroup = it.group;
                   return (
                     <Fragment key={it.key}>
-                      {header ? <div className="px-3 pb-1 pt-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-faint first:pt-1">{header}</div> : null}
+                      {header ? <div className="px-3 pb-1 pt-3 text-[12px] text-muted first:pt-1.5">{header}</div> : null}
                       <button
+                        type="button"
                         data-idx={i}
                         onMouseMove={() => active !== i && setActive(i)}
                         onClick={() => it.run()}
-                        className={clsx("flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-[13.5px] transition-colors", i === active ? "bg-[#f3f3f3] text-ink" : "text-ink-2")}
+                        className={clsx("flex h-10 w-full items-center gap-3 rounded-[8px] px-3 text-left text-[14px] transition-colors", i === active ? "bg-[#f1f1ef] text-ink" : "text-ink-2")}
                       >
-                        <span className={clsx("flex size-6 shrink-0 items-center justify-center rounded-md", i === active ? "text-ink" : "text-muted")}>{it.icon}</span>
+                        <span className={clsx("flex size-5 shrink-0 items-center justify-center", i === active ? "text-ink" : "text-muted")}>{it.icon}</span>
                         <span className="min-w-0 flex-1 truncate">{it.label}</span>
                         {it.meta}
                         {i === active && it.hint ? (
-                          <span className="flex shrink-0 items-center gap-1.5 text-[11.5px] text-muted">
+                          <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-muted">
                             {it.hint}
                             <Kbd>
                               <CornerDownLeft className="size-3" />
@@ -597,7 +599,7 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
         </div>
 
         {/* Footer */}
-        <div className="flex h-10 shrink-0 items-center gap-3 border-t border-line bg-[#fcfcfc] px-4 text-[11.5px] text-muted">
+        <div className="flex h-10 shrink-0 items-center gap-3 border-t border-line bg-frame px-4 text-[12px] text-muted">
           {toast ? (
             <span className="ask-fade flex items-center gap-1.5 text-ink-2">
               <Check className="size-3.5 text-green" strokeWidth={2.25} />
@@ -605,9 +607,9 @@ export function AskPalette({ provider, label }: { provider: AskProviderKind; lab
             </span>
           ) : (
             <span className="flex min-w-0 items-center gap-1.5 truncate">
-              <span className={clsx("size-1.5 shrink-0 rounded-full", providerKind === "offline" ? "bg-faint" : "bg-green")} />
-              <span className="truncate">{providerLabel}</span>
-              <span className="text-faint">· read-only, grounded in your data</span>
+              <span className={clsx("size-1.5 shrink-0 rounded-full", providerKind === "offline" ? "bg-ghost" : "bg-green")} />
+              <span className="shrink-0 whitespace-nowrap">{providerLabel}</span>
+              <span className="hidden truncate sm:inline">· read-only, grounded in your records</span>
             </span>
           )}
           <span className="ml-auto flex shrink-0 items-center gap-3">

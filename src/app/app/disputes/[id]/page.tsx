@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CaseWorkspace } from "@/components/app/case/CaseWorkspace";
+import { DotArt } from "@/components/ui/DotArt";
 import { disputeTimeline } from "@/lib/activity";
 import { evaluateSellerProtection } from "@/lib/agent/playbook";
 import { isRunning } from "@/lib/agent/run";
@@ -61,6 +62,7 @@ export default async function DisputePage({ params, searchParams }: { params: Pr
       nav={{ prev: i > 0 ? label(open[i - 1]) : null, next: i >= 0 && i < open.length - 1 ? label(open[i + 1]) : null, index: Math.max(0, i), total }}
       initialTab={(TABS as readonly string[]).includes(tab ?? "") ? (tab as (typeof TABS)[number]) : null}
       guide={guide ?? null}
+      briefArt={<DotArt name="letter" width={136} height={102} />}
     />
   );
 }

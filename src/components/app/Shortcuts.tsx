@@ -57,7 +57,7 @@ const GROUPS: { title: string; rows: [React.ReactNode, string][] }[] = [
       ],
       [<Kbd key="r">R</Kbd>, "Run or re-run Exhibit"],
       [<Kbd key="e">E</Kbd>, "Edit the response to PayPal"],
-      [<Kbd key="1">1–5</Kbd>, "Switch between packet, facts, investigation, PayPal calls and history"],
+      [<Kbd key="1">1–5</Kbd>, "Switch the case tabs"],
     ],
   },
 ];
@@ -112,14 +112,14 @@ export function Shortcuts() {
   }, [router]);
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} title="Keyboard shortcuts" width={560}>
-      <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+    <Dialog open={open} onClose={() => setOpen(false)} title="Keyboard shortcuts" width={600}>
+      <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
         {GROUPS.map((g) => (
           <div key={g.title}>
-            <div className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.07em] text-faint">{g.title}</div>
-            <ul className="space-y-1">
+            <div className="mb-1 text-[13px] font-medium text-ink">{g.title}</div>
+            <ul>
               {g.rows.map(([keys, label], i) => (
-                <li key={i} className="flex items-center justify-between gap-3 text-[12.5px] text-ink-2">
+                <li key={i} className="flex min-h-8 items-center justify-between gap-3 border-b border-rule py-1 text-[13px] text-ink-2 last:border-0">
                   <span>{label}</span>
                   <span className="flex shrink-0 gap-0.5">{keys}</span>
                 </li>

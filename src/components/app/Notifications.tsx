@@ -44,7 +44,7 @@ export function Notifications({ notices }: { notices: Notice[] }) {
     const r = btn.current?.getBoundingClientRect();
     if (!r) return;
     const width = Math.min(380, window.innerWidth - 16);
-    setPos({ top: r.bottom + 8, left: Math.max(8, Math.min(r.left - 8, window.innerWidth - width - 8)) });
+    setPos({ top: r.bottom + 8, left: Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)) });
   }, []);
 
   const toggle = useCallback(() => {
@@ -54,8 +54,9 @@ export function Notifications({ notices }: { notices: Notice[] }) {
     setOpen(true);
   }, [open, place]);
 
+  // N opens the panel. The shell renders a bell in each top bar; only the one on screen answers.
   useEffect(() => {
-    const onKey = () => toggle();
+    const onKey = () => btn.current?.offsetParent !== null && toggle();
     window.addEventListener("exhibit:notifications", onKey);
     return () => window.removeEventListener("exhibit:notifications", onKey);
   }, [toggle]);
@@ -87,22 +88,22 @@ export function Notifications({ notices }: { notices: Notice[] }) {
 
   return (
     <>
-      <button ref={btn} type="button" onClick={toggle} aria-label={`Notifications${unread.length ? `, ${unread.length} unread` : ""}`} aria-expanded={open} className={clsx("relative flex size-8 items-center justify-center rounded-md transition-colors", open ? "bg-[#ececec] text-ink" : "text-muted hover:bg-[#f0f0f0] hover:text-ink")}>
-        <Bell className="size-4" strokeWidth={1.75} />
-        {unread.length ? <span className={clsx("absolute right-1.5 top-1.5 size-2 rounded-full ring-2 ring-[#fafafa]", urgent ? "bg-red" : "bg-ink")} /> : null}
+      <button ref={btn} type="button" onClick={toggle} aria-label={`Notifications${unread.length ? `, ${unread.length} unread` : ""}`} aria-expanded={open} className={clsx("relative flex size-8 items-center justify-center rounded-[8px] transition-colors max-lg:size-10", open ? "bg-active text-ink" : "text-ink-2 hover:bg-active hover:text-ink")}>
+        <Bell className="size-4" strokeWidth={1.7} />
+        {unread.length ? <span className={clsx("absolute right-[7px] top-[7px] size-[7px] rounded-full ring-2 ring-frame max-lg:right-[11px] max-lg:top-[11px]", urgent ? "bg-red" : "bg-ink")} /> : null}
       </button>
       {open && pos
         ? createPortal(
-            <div ref={panel} role="dialog" aria-label="Notifications" style={{ top: pos.top, left: pos.left, width: Math.min(380, window.innerWidth - 16) }} className="app-shell ask-in fixed z-[95] overflow-hidden rounded-xl border border-[#e4e4e4] bg-surface shadow-[0_24px_60px_-16px_rgb(0_0_0/0.22),0_8px_20px_-10px_rgb(0_0_0/0.12)]">
-              <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                <span className="text-[13.5px] font-medium">Notifications</span>
-                <span className="text-[11.5px] text-muted">{unread.length ? `${unread.length} new` : "All caught up"}</span>
+            <div ref={panel} role="dialog" aria-label="Notifications" style={{ top: pos.top, left: pos.left, width: Math.min(380, window.innerWidth - 16) }} className="app-shell ask-in fixed z-[95] overflow-hidden rounded-[10px] border border-line bg-surface shadow-[0_24px_60px_-16px_rgb(0_0_0/0.22),0_6px_18px_-8px_rgb(0_0_0/0.1)]">
+              <div className="flex items-center justify-between px-4 pb-2 pt-3.5">
+                <span className="text-[14px] font-semibold">Notifications</span>
+                <span className="text-[12px] text-muted">{unread.length ? `${unread.length} new` : "All caught up"}</span>
               </div>
-              <div className="scroll-thin max-h-[60vh] overflow-y-auto">
+              <div className="scroll-thin max-h-[60vh] overflow-y-auto pb-2">
                 {!notices.length ? (
-                  <div className="px-4 py-10 text-center">
-                    <div className="text-[13px] font-medium text-ink-2">Nothing needs you</div>
-                    <div className="mt-1 text-[12.5px] text-muted">Deadlines inside 72 hours and agent requests show up here.</div>
+                  <div className="px-4 pb-6 pt-4 text-center">
+                    <div className="text-[14px] font-medium text-ink-2">Nothing needs you</div>
+                    <div className="mt-1 text-[13px] text-muted">Deadlines inside 72 hours and agent requests show up here.</div>
                   </div>
                 ) : null}
                 {[
@@ -111,21 +112,19 @@ export function Notifications({ notices }: { notices: Notice[] }) {
                 ].map(([label, list]) =>
                   (list as Notice[]).length ? (
                     <div key={label as string}>
-                      <div className="px-4 pb-1 pt-3 text-[10.5px] font-medium uppercase tracking-[0.07em] text-faint">{label as string}</div>
+                      <div className="px-4 pb-1 pt-2 text-[12px] text-muted">{label as string}</div>
                       {(list as Notice[]).map((n) => {
                         const Icon = ICON[n.kind];
                         return (
-                          <Link key={n.id} href={n.href} onClick={() => setOpen(false)} className="flex gap-3 px-4 py-2.5 transition-colors hover:bg-[#fafafa]">
-                            <span className={clsx("mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border", n.kind === "approval" ? "border-ink bg-ink text-white" : n.urgent ? "border-red/25 bg-red-soft text-red" : n.kind === "resolved" ? "border-green/25 bg-green-soft text-green" : "border-line bg-surface text-ink-2")}>
-                              <Icon className="size-3.5" strokeWidth={2} />
-                            </span>
+                          <Link key={n.id} href={n.href} onClick={() => setOpen(false)} className="mx-1.5 flex gap-3 rounded-[8px] px-2.5 py-2 transition-colors hover:bg-hover">
+                            <Icon className={clsx("mt-0.5 size-4 shrink-0", n.urgent && n.kind === "deadline" ? "text-red" : n.kind === "resolved" ? "text-green" : "text-muted")} strokeWidth={1.8} />
                             <span className="min-w-0 flex-1">
                               <span className="flex items-start gap-2">
-                                <span className="min-w-0 flex-1 text-[12.5px] font-medium leading-snug text-ink">{n.title}</span>
-                                {!seen.has(n.id) ? <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-ink" /> : null}
+                                <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-ink">{n.title}</span>
+                                {!seen.has(n.id) ? <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-ink" aria-label="unread" /> : null}
                               </span>
-                              <span className="mt-0.5 block truncate text-[11.5px] text-muted">{n.detail}</span>
-                              {n.kind !== "deadline" ? <span suppressHydrationWarning className="mt-0.5 block text-[11px] text-faint">{relTime(n.at, now)}</span> : null}
+                              <span className="mt-0.5 block truncate text-[12px] text-muted">{n.detail}</span>
+                              {n.kind !== "deadline" ? <span suppressHydrationWarning className="mt-0.5 block text-[12px] text-faint">{relTime(n.at, now)}</span> : null}
                             </span>
                           </Link>
                         );

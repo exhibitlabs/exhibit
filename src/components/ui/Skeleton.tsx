@@ -1,22 +1,21 @@
 import { clsx } from "clsx";
 
-/** Loading placeholder. Pass a size with className; it shimmers unless the visitor prefers less motion. */
+/** Loading placeholder: a flat bar at the real size of the value it stands for. No shimmer. */
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div aria-hidden className={clsx("shimmer rounded-md", className)} style={style} />;
+  return <div aria-hidden className={clsx("skeleton rounded-[6px]", className)} style={style} />;
 }
 
-/** A page header placeholder that matches PageHeader's layout. */
-export function HeaderSkeleton({ actions = 0 }: { actions?: number }) {
+/** A page header placeholder that matches PageHeader: the title and its one line, the actions on the right. */
+export function HeaderSkeleton({ actions = 0, subtitle = true }: { actions?: number; subtitle?: boolean }) {
   return (
-    <div className="flex items-end justify-between gap-6 border-b border-line px-4 pb-5 pt-7 sm:px-6 lg:px-8">
+    <div className="flex items-end justify-between gap-6 px-4 pt-6 sm:px-6">
       <div className="space-y-2.5">
-        <Skeleton className="h-3 w-28" />
-        <Skeleton className="h-7 w-64" />
-        <Skeleton className="h-3.5 w-[420px] max-w-[70vw]" />
+        <Skeleton className="h-7 w-56" />
+        {subtitle ? <Skeleton className="h-4 w-[460px] max-w-[70vw]" /> : null}
       </div>
       <div className="hidden gap-2 sm:flex">
         {Array.from({ length: actions }, (_, i) => (
-          <Skeleton key={i} className="h-8 w-28 rounded-lg" />
+          <Skeleton key={i} className="h-8 w-32 rounded-[8px]" />
         ))}
       </div>
     </div>

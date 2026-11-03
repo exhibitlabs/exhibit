@@ -34,13 +34,13 @@ function Thought({ text, live }: { text: string; live: boolean }) {
   const long = clean.length > 240;
   return (
     <div className="flex gap-3">
-      <div className="flex w-7 shrink-0 justify-center pt-0.5">
-        <Brain className="size-4 text-faint" strokeWidth={1.75} />
+      <div className="flex w-5 shrink-0 justify-center pt-0.5">
+        <Brain className="size-4 text-ghost" strokeWidth={1.7} />
       </div>
-      <button type="button" onClick={() => setOpen(!open)} className="min-w-0 flex-1 text-left">
-        <p className={clsx("whitespace-pre-wrap text-[13px] leading-relaxed text-muted", !open && long && "line-clamp-3")}>
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={long ? open : undefined} className="min-w-0 flex-1 rounded-[4px] text-left">
+        <p className={clsx("whitespace-pre-wrap text-[13px] leading-[20px] text-muted", !open && long && "line-clamp-3")}>
           {clean}
-          {live ? <span className="pulse-dot ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 bg-faint" /> : null}
+          {live ? <span className="pulse-dot ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 bg-ghost" /> : null}
         </p>
       </button>
     </div>
@@ -53,26 +53,24 @@ function ToolStep({ s }: { s: Extract<Step, { type: "tool" }> }) {
   const pending = !s.result;
   return (
     <div className="rise flex gap-3">
-      <div className="flex w-7 shrink-0 justify-center">
-        <span className={clsx("flex size-7 items-center justify-center rounded-lg border", s.kind === "brief" ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink-2")}>
-          <Icon className="size-3.5" strokeWidth={1.9} />
-        </span>
+      <div className="flex w-5 shrink-0 justify-center pt-0.5">
+        <Icon className={clsx("size-4", s.kind === "brief" ? "text-ink" : "text-muted")} strokeWidth={1.7} />
       </div>
       <div className="min-w-0 flex-1">
-        <button type="button" onClick={() => setOpen(!open)} className="group flex w-full items-center gap-2 text-left">
-          <span className="text-[13.5px] font-medium">{s.label}</span>
-          <span className="num text-[11.5px] text-faint">{s.name}</span>
-          <span className="ml-auto flex items-center gap-2 text-[11.5px] text-faint">
-            {pending ? <Loader2 className="size-3.5 animate-spin text-ink-2" /> : s.result?.ok ? <Check className="size-3.5 text-green" /> : <X className="size-3.5 text-red" />}
-            {s.result ? `${s.result.ms} ms` : "running"}
-            <ChevronRight className={clsx("size-3.5 transition-transform", open && "rotate-90")} />
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="group flex w-full items-center gap-2 rounded-[4px] text-left">
+          <span className="text-[14px] font-medium text-ink">{s.label}</span>
+          <span className="mono hidden text-[12px] text-faint sm:inline">{s.name}</span>
+          <span className="ml-auto flex items-center gap-2 text-[12px] text-muted">
+            {pending ? <Loader2 className="size-3.5 animate-spin text-ink-2" /> : s.result?.ok ? <Check className="size-3.5 text-green" strokeWidth={2.4} /> : <X className="size-3.5 text-red" strokeWidth={2.4} />}
+            <span className="mono">{s.result ? `${s.result.ms} ms` : "running"}</span>
+            <ChevronRight className={clsx("size-3.5 text-ghost transition-transform group-hover:text-ink", open && "rotate-90")} />
           </span>
         </button>
-        <div className={clsx("mt-0.5 text-[13px]", s.result?.ok === false ? "text-red" : "text-ink-2")}>{s.result ? s.result.summary : <span className="shimmer inline-block h-3 w-48 rounded" />}</div>
+        <div className={clsx("mt-0.5 text-[13px] leading-[20px]", s.result?.ok === false ? "text-red" : "text-ink-2")}>{s.result ? s.result.summary : <span className="skeleton inline-block h-3 w-48 rounded" />}</div>
         {open ? (
-          <div className="mt-2 grid gap-2 text-[11.5px]">
-            <pre className="num scroll-thin max-h-40 overflow-auto rounded-lg bg-sunken p-2.5 text-ink-2">{JSON.stringify(s.input, null, 2)}</pre>
-            {s.result ? <pre className="num scroll-thin max-h-72 overflow-auto rounded-lg bg-sunken p-2.5 text-ink-2">{JSON.stringify(s.result.output, null, 2)}</pre> : null}
+          <div className="mt-2 grid gap-2 text-[12px]">
+            <pre className="mono scroll-thin max-h-40 overflow-auto rounded-[8px] bg-sunken p-3 leading-[18px] text-ink-2">{JSON.stringify(s.input, null, 2)}</pre>
+            {s.result ? <pre className="mono scroll-thin max-h-72 overflow-auto rounded-[8px] bg-sunken p-3 leading-[18px] text-ink-2">{JSON.stringify(s.result.output, null, 2)}</pre> : null}
           </div>
         ) : null}
       </div>
@@ -86,7 +84,7 @@ export function AgentTrace({ events, running }: { events: RunEvent[]; running: b
     <div className="space-y-4">
       {steps.map((s, i) => (s.type === "thought" ? <Thought key={`t${i}`} text={s.text} live={running && i === steps.length - 1} /> : <ToolStep key={s.id} s={s} />))}
       {running && steps[steps.length - 1]?.type !== "thought" && steps.every((s) => s.type !== "tool" || s.result) ? (
-        <div className="flex items-center gap-3 pl-1 text-[13px] text-muted">
+        <div className="flex items-center gap-3 text-[13px] text-muted">
           <Loader2 className="size-4 animate-spin" /> Thinking…
         </div>
       ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Menu, Sparkle } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,10 +9,11 @@ import type { DemoStatus } from "@/lib/demo";
 import type { NavCounts, Notice } from "@/lib/nav";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
-import { Logo } from "../ui/Logo";
+import { Kbd } from "../ui/Kbd";
+import { LogoMark } from "../ui/Logo";
 import { toast, Toaster } from "../ui/Toast";
-import { DemoBanner } from "./DemoBanner";
-import { DemoGuide } from "./DemoGuide";
+import { DemoStrip, EnvLine, WhatsReal } from "./DemoBanner";
+import { DemoGuideProvider, GuideButton } from "./DemoGuide";
 import { Notifications } from "./Notifications";
 import { Shortcuts } from "./Shortcuts";
 import { Sidebar, type AiProviderKind } from "./Sidebar";
@@ -22,6 +23,24 @@ type Nav = { counts: NavCounts; notices: Notice[] };
 /** Asks the shell to reset the demo (with a confirmation) from anywhere in the app. */
 export const requestDemoReset = () => window.dispatchEvent(new Event("exhibit:reset-demo"));
 
+const openAsk = () => window.dispatchEvent(new CustomEvent("exhibit:ask"));
+
+/** The sheet's two top corners, drawn over content that scrolls under the sticky top bar so the sheet keeps its shape. */
+function Corner({ side }: { side: "l" | "r" }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={clsx("pointer-events-none absolute top-full", side === "l" ? "left-0" : "right-2 -scale-x-100")}>
+      <path d="M0 0H12V0.5A11.5 11.5 0 0 0 0.5 12H0Z" fill="var(--frame)" />
+      <path d="M12 0.5A11.5 11.5 0 0 0 0.5 12" fill="none" stroke="var(--line)" />
+    </svg>
+  );
+}
+
+/**
+ * The frame: a tinted L of sidebar and top bar on #f6f6f5 with no rule between them, and the work on a white
+ * sheet inset 8px from the window's right and bottom edges, 12px corners, a 1px edge and no shadow. The page
+ * scrolls as a document, so the sheet's content passes under the sticky top bar. On phones and tablets the frame
+ * folds: a 48px bar with the menu, the mark, Ask and notifications, and the sheet becomes the screen.
+ */
 export function AppShell({ merchant, mode, provider, nav: initialNav, demo, palette, children }: { merchant: string; mode: "demo" | "sandbox"; provider: AiProviderKind; nav: Nav; demo: DemoStatus | null; palette: React.ReactNode; children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
@@ -29,6 +48,7 @@ export function AppShell({ merchant, mode, provider, nav: initialNav, demo, pale
   const [menu, setMenu] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [real, setReal] = useState(false);
   const lastBeat = useRef(0);
 
   const loadNav = useCallback(async () => {
@@ -45,7 +65,7 @@ export function AppShell({ merchant, mode, provider, nav: initialNav, demo, pale
     };
   }, [loadNav]);
 
-  // Refresh badges on every navigation (a filing on one page changes another page's count).
+  // Refresh counts on every navigation (a filing on one page changes another page's count).
   useEffect(() => {
     const t = setTimeout(loadNav, 0);
     return () => clearTimeout(t);
@@ -89,33 +109,56 @@ export function AppShell({ merchant, mode, provider, nav: initialNav, demo, pale
     }
   };
 
-  return (
-    <div className="app-shell flex min-h-dvh overflow-x-clip">
-      <Sidebar merchant={merchant} mode={mode} provider={provider} counts={nav.counts} notices={nav.notices} open={menu} onClose={() => setMenu(false)} />
+  const isDemo = mode === "demo" && !!demo;
+  const shell = (
+    <div className="app-shell flex min-h-dvh flex-col overflow-x-clip bg-frame text-ink lg:flex-row">
+      <Sidebar merchant={merchant} mode={mode} counts={nav.counts} open={menu} onClose={() => setMenu(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-white/90 px-3 backdrop-blur lg:hidden">
-          <button type="button" onClick={() => setMenu(true)} aria-label="Open menu" className="flex size-9 items-center justify-center rounded-md text-ink-2 hover:bg-sunken">
+        {/* Desktop top bar: the environment, Ask Exhibit, the guide and notifications. */}
+        <header className="sticky top-0 z-30 hidden h-12 grid-cols-[minmax(0,1fr)_minmax(240px,360px)_minmax(0,1fr)] items-center gap-4 bg-frame pl-6 pr-4 lg:grid xl:grid-cols-[minmax(0,1fr)_minmax(320px,440px)_minmax(0,1fr)]">
+          <EnvLine mode={mode} provider={provider} onWhatsReal={isDemo ? () => setReal(true) : undefined} />
+          <button type="button" onClick={openAsk} className="group flex h-8 w-full items-center gap-2 rounded-[8px] border border-line-strong bg-surface pl-2.5 pr-1.5 text-left text-[13px] text-muted transition-colors hover:border-[#cdcdca] hover:text-ink-2">
+            <Search className="size-3.5 shrink-0" strokeWidth={1.8} />
+            <span className="min-w-0 flex-1 truncate">Ask Exhibit, or jump to a case</span>
+            <span className="flex gap-0.5">
+              <Kbd>⌘</Kbd>
+              <Kbd>K</Kbd>
+            </span>
+          </button>
+          <div className="flex items-center justify-end gap-1">
+            {isDemo ? <GuideButton /> : null}
+            <Notifications notices={nav.notices} />
+          </div>
+          <Corner side="l" />
+          <Corner side="r" />
+          <span aria-hidden className="pointer-events-none absolute left-3 right-5 top-full h-px bg-line" />
+        </header>
+
+        {/* Phone and tablet bar. */}
+        <header className="sticky top-0 z-30 flex h-12 items-center gap-1 border-b border-line bg-frame px-2 sm:px-4 lg:hidden">
+          <button type="button" onClick={() => setMenu(true)} aria-label="Open menu" className="flex size-10 items-center justify-center rounded-[8px] text-ink-2 hover:bg-active">
             <Menu className="size-[18px]" />
           </button>
-          <Link href="/app" aria-label="Overview">
-            <Logo />
+          <Link href="/app" aria-label="Exhibit, overview" className="flex items-center gap-2 rounded-[6px] px-1">
+            <LogoMark size={22} />
+            <span className="text-[15.5px] font-semibold leading-none tracking-[-0.045em]">Exhibit</span>
           </Link>
-          <div className="ml-auto flex items-center gap-1">
-            <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("exhibit:ask"))} aria-label="Ask Exhibit" className="flex size-9 items-center justify-center rounded-md text-ink-2 hover:bg-sunken">
-              <Sparkle className="size-4" />
+          <div className="ml-auto flex items-center gap-0.5">
+            <button type="button" onClick={openAsk} aria-label="Ask Exhibit" className="flex size-10 items-center justify-center rounded-[8px] text-ink-2 hover:bg-active">
+              <Search className="size-4" />
             </button>
+            {isDemo ? <GuideButton compact /> : null}
             <Notifications notices={nav.notices} />
           </div>
         </header>
-        {mode === "demo" && demo ? <DemoBanner provider={provider} idleMinutes={demo.idleMinutes} onReset={() => setConfirmReset(true)} onGuide={() => window.dispatchEvent(new Event("exhibit:guide"))} /> : null}
-        <main key={path} className={clsx("page-in min-w-0 flex-1", mode === "demo" && "pb-16")}>
-          {children}
-        </main>
+        {isDemo ? <DemoStrip provider={provider} onWhatsReal={() => setReal(true)} /> : null}
+
+        <main className="relative min-w-0 flex-1 bg-surface pb-10 lg:mb-2 lg:mr-2 lg:min-h-[calc(100dvh-56px)] lg:rounded-[12px] lg:border lg:border-line">{children}</main>
       </div>
-      {mode === "demo" && demo ? <DemoGuide initial={demo} /> : null}
       {palette}
       <Shortcuts />
       <Toaster />
+      {isDemo ? <WhatsReal open={real} onClose={() => setReal(false)} provider={provider} idleMinutes={demo.idleMinutes} onReset={() => setConfirmReset(true)} /> : null}
       <Dialog
         open={confirmReset}
         onClose={() => !resetting && setConfirmReset(false)}
@@ -132,11 +175,12 @@ export function AppShell({ merchant, mode, provider, nav: initialNav, demo, pale
           </>
         }
       >
-        <p className="text-[13px] leading-relaxed text-ink-2">
+        <p className="text-[14px] leading-[22px] text-ink-2">
           Kora Atelier goes back to a fresh start: eight open disputes with deadlines counted from now, briefs prepared on six of them, prevention orders back on the radar, and the audit log cleared. This is a shared demo, so it also resets on its own after {demo?.idleMinutes ?? 20} quiet minutes.
         </p>
-        <p className="mt-2 text-[12.5px] text-muted">Only the demo merchant is affected. Sandbox mode is never reset.</p>
+        <p className="mt-2 text-[13px] text-muted">Only the demo merchant is affected. Sandbox mode is never reset.</p>
       </Dialog>
     </div>
   );
+  return isDemo ? <DemoGuideProvider initial={demo}>{shell}</DemoGuideProvider> : shell;
 }
