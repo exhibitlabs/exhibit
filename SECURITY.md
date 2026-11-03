@@ -6,7 +6,7 @@ Exhibit works with money and with customers, so a way around its guardrails is a
 
 Please do not open a public issue with the details.
 
-1. Preferred: use GitHub's private vulnerability reporting. On the repository, open the **Security** tab and choose **Report a vulnerability** (https://github.com/shvuuuu/exhibit/security/advisories/new).
+1. Preferred: use GitHub's private vulnerability reporting. On the repository, open the **Security** tab and choose **Report a vulnerability** (https://github.com/exhibitlabs/exhibit/security/advisories/new).
 2. If that page is not available, open an issue titled **Security contact request** that says nothing about the problem itself. The maintainer will reply with a private way to send it.
 
 Include what you did, what you expected, what happened, and the commit you tested. A report that reproduces in demo mode (no credentials) is the easiest to confirm. The maintainer reads every report and aims to reply within a few days. Exhibit is a hackathon project at version 1.0, so only `main` is supported.

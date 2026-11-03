@@ -7,7 +7,7 @@ Thanks for helping. Exhibit is an AI dispute agent for PayPal merchants; the cod
 You need Node.js 24 or newer (`nvm use` reads [`.nvmrc`](.nvmrc)).
 
 ```bash
-git clone https://github.com/shvuuuu/exhibit.git
+git clone https://github.com/exhibitlabs/exhibit.git
 cd exhibit
 npm ci
 npm run dev   # http://localhost:3000

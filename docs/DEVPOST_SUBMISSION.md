@@ -42,14 +42,14 @@ Paste everything between the two rules.
 
 ---
 
-Exhibit is a dispute agent for PayPal merchants. It reads each dispute and chargeback from **PayPal's Disputes API**, investigates it with **Claude Opus 5.5** across eight sources, and files the response back through the Disputes API when the merchant approves: `provide-evidence`, `provide-supporting-info` and `accept-claim`, all verified live on the PayPal sandbox, plus `make-offer` and `send-message`, verified on the simulator. It also uses **Orders v2** (tracking, sandbox orders), **Payments v2** (PayPal's Seller Protection flag on the capture, and refunds) and **webhook signature verification**. Every claim in a response cites a real record, every action is checked against what PayPal allows on the case right now, and when the buyer is right, Exhibit refunds. Other AI agents can use it over MCP, but they can only ask. Built from scratch during the submission period by one founder; the first commit is Oct 20, 2026.
+Exhibit is a dispute agent for PayPal merchants. It reads each dispute and chargeback from **PayPal's Disputes API**, investigates it with **Claude Opus 5.5** across eight sources, and files the response back through the Disputes API when the merchant approves: `provide-evidence`, `provide-supporting-info` and `accept-claim`, all verified live on the PayPal sandbox, plus `make-offer` and `send-message`, verified on the simulator. It also uses **Orders v2** (tracking, sandbox orders), **Payments v2** (PayPal's Seller Protection flag on the capture, and refunds) and **webhook signature verification**. Every claim in a response cites a real record, every action is checked against what PayPal allows on the case right now, and when the buyer is right, Exhibit refunds. Other AI agents can use it over MCP, but they can only ask. Built from scratch during the submission period by its two co-founders, Shivansh Dwivedi and Someet Shende; the first commit is Oct 20, 2026.
 
 **For judges: Exhibit against the five criteria**
 
-- **Technological Implementation.** Disputes API write endpoints called live: 7 dispute responses filed on the PayPal sandbox, 244 logged calls across 12 endpoints, each with HTTP status and PayPal-Debug-Id ([sandbox run](https://github.com/shvuuuu/exhibit/blob/main/docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves and the action is one PayPal allows right now ([guardrails](https://github.com/shvuuuu/exhibit#guardrails)). 300 tests run with `npm test` and no keys.
+- **Technological Implementation.** Disputes API write endpoints called live: 7 dispute responses filed on the PayPal sandbox, 244 logged calls across 12 endpoints, each with HTTP status and PayPal-Debug-Id ([sandbox run](https://github.com/exhibitlabs/exhibit/blob/main/docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves and the action is one PayPal allows right now ([guardrails](https://github.com/exhibitlabs/exhibit#guardrails)). 300 tests run with `npm test` and no keys.
 - **Design.** A complete product: a command center, an inbox with saved views, a case page with a live evidence graph, lifecycle stepper, cited letter and evidence packet, a prevention radar, an Autopilot simulation, agent approvals, a PayPal API inspector and a ⌘K "Ask Exhibit" palette. See the gallery.
-- **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback. Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes labelled before the run, Exhibit's decision matched the label in all 30, it refunded all 9 cases where the buyer was right instead of fighting them, and it made 0 false fights out of 18, in a median of 29 s per case. The builder wrote the cases and labels, with Claude, so this shows Exhibit applies its rules consistently, not real-world accuracy ([evaluation](https://github.com/shvuuuu/exhibit/blob/main/eval/RESULTS.md)).
-- **Innovation/Idea.** PayPal's agent tools can list, read and accept a dispute. Exhibit adds the investigation, the evidence and the filing, as an MCP server where agents request and merchants approve, the rule PayPal applies to its own MCP gateway ([MCP run](https://github.com/shvuuuu/exhibit/blob/main/docs/MCP_DEMO.md)).
+- **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback. Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes labelled before the run, Exhibit's decision matched the label in all 30, it refunded all 9 cases where the buyer was right instead of fighting them, and it made 0 false fights out of 18, in a median of 29 s per case. The builder wrote the cases and labels, with Claude, so this shows Exhibit applies its rules consistently, not real-world accuracy ([evaluation](https://github.com/exhibitlabs/exhibit/blob/main/eval/RESULTS.md)).
+- **Innovation/Idea.** PayPal's agent tools can list, read and accept a dispute. Exhibit adds the investigation, the evidence and the filing, as an MCP server where agents request and merchants approve, the rule PayPal applies to its own MCP gateway ([MCP run](https://github.com/exhibitlabs/exhibit/blob/main/docs/MCP_DEMO.md)).
 - **Presentation.** The demo video: [[VIDEO: YouTube URL]]. The repo runs with `npm install` and `npm run dev`, with no keys, and the proof page lists every live PayPal call.
 
 **Verified live on the PayPal sandbox**
@@ -89,7 +89,7 @@ Then we read PayPal's [agent tools reference](https://developer.paypal.com/ai-to
 - **Guardrails in code, not in the prompt:** evidence refs that must resolve, action checks against the dispute's current HATEOAS links, an approval queue for agent requests, and Autopilot limits that no saved setting can raise. 300 tests, organised by guarantee.
 - **MCP:** a stdio server on the official MCP SDK (`mcp/server.ts`) that can only reach Exhibit's read and request endpoints.
 
-The flow: a merchant or an MCP agent → Exhibit (Next.js) → the Claude agent with read-only tools → the brief check (citations resolve, action allowed) → the merchant's approval → the PayPal client → the PayPal sandbox, or the simulator in demo mode. The [README](https://github.com/shvuuuu/exhibit#architecture) has the diagram.
+The flow: a merchant or an MCP agent → Exhibit (Next.js) → the Claude agent with read-only tools → the brief check (citations resolve, action allowed) → the merchant's approval → the PayPal client → the PayPal sandbox, or the simulator in demo mode. The [README](https://github.com/exhibitlabs/exhibit#architecture) has the diagram.
 
 ## Challenges we ran into
 
@@ -100,7 +100,7 @@ The flow: a merchant or an MCP agent → Exhibit (Next.js) → the Claude agent 
 
 ## Accomplishments that we're proud of
 
-- Six dispute responses filed live through PayPal's Disputes API, each with a PayPal debug id, including the honest path: two claims accepted because the buyer was right.
+- Seven dispute responses filed live through PayPal's Disputes API, each with a PayPal debug id, including the honest path: two claims accepted because the buyer was right.
 - A brief cannot be saved unless every citation resolves to a real record and the action is one PayPal allows on the case right now.
 - The full product runs with no setup, and the same PayPal client runs against the live sandbox.
 - 300 tests that need no keys and no network.
@@ -139,7 +139,7 @@ Every tag is in the code: the PayPal APIs in `src/lib/paypal/client.ts`, Claude 
 ### Try it out (links)
 
 ```
-https://github.com/shvuuuu/exhibit
+https://github.com/exhibitlabs/exhibit
 ```
 
 ```
@@ -152,14 +152,14 @@ Upload in this order (2880 x 1800 PNGs, captured at 1440 x 900 by [`docs/submiss
 
 | File | Caption |
 | --- | --- |
-| `gallery-01-landing.png` | The landing page. The graph replays a real Claude run on a PayPal sandbox chargeback. |
-| `gallery-02-proof.png` | The proof page: 244 logged PayPal sandbox calls and the four live chargebacks, with what Exhibit filed and PayPal's status. |
-| `gallery-03-command-center.png` | Command center on the demo merchant (fictional store, PayPal simulator): recovered, at risk and due next. |
-| `gallery-04-case.png` | A case: the evidence graph, Exhibit's brief and the response to PayPal, every claim cited to a lettered exhibit. Demo merchant. |
-| `gallery-05-prevention.png` | Prevention: a buyer threatened a PayPal dispute in German; Exhibit drafts the reply in German before she files. Demo merchant. |
-| `gallery-06-ask.png` | Ask Exhibit (⌘K): a question about the dispute book, answered from read-only tools. Demo merchant, offline answers. |
-| `gallery-07-agent-approval.png` | An outside AI agent (Claude Code, over MCP) asks to file evidence. Nothing reaches PayPal until the merchant approves. Demo merchant. |
-| `gallery-08-paypal-activity.png` | PayPal activity: every API call with its request, response, latency and debug id. Demo merchant, PayPal simulator. |
+| `gallery-01-landing.png` | The landing page: Exhibit's case page for a PayPal sandbox chargeback, set into Harnett's 1879 letter-rack painting. Kora Atelier is a demo merchant. |
+| `gallery-02-proof.png` | The homepage's proof board: Exhibit's own log of 244 PayPal sandbox calls, one dot each, the 7 responses it filed with debug ids, and the 4 failures. |
+| `gallery-03-command-center.png` | Command center on the demo merchant (fictional store, PayPal simulator, generated 90-day history): recovered, at risk and the cases due next. |
+| `gallery-04-case.png` | A case: the evidence graph, Exhibit's brief (fight, 88%) and the response to PayPal, every claim cited to a lettered exhibit. Demo merchant, recorded run. |
+| `gallery-05-prevention.png` | Prevention: a buyer warns in German that she will open a PayPal dispute; Exhibit flags the order and drafts the reply in German first. Demo merchant. |
+| `gallery-06-ask.png` | Ask Exhibit (⌘K): "What's our win rate by dispute reason?" answered from read-only tools, with its chart. Demo merchant, offline answers. |
+| `gallery-07-agent-approval.png` | An outside AI agent (Claude Code, over MCP) asks to file evidence with PayPal. Nothing is sent until the merchant approves. Demo merchant. |
+| `gallery-08-paypal-activity.png` | PayPal activity with the API inspector open: status, latency, debug id, redacted request, response and a sandbox curl. Demo merchant, PayPal simulator. |
 
 ### Video demo link
 
@@ -179,12 +179,12 @@ These fields vary by hackathon; paste each answer where the form asks for it.
 No keys, accounts or credentials are needed.
 
 1. Install Node.js 24 or newer.
-2. git clone https://github.com/shvuuuu/exhibit && cd exhibit
+2. git clone https://github.com/exhibitlabs/exhibit && cd exhibit
 3. npm install
 4. npm run dev
 5. Open http://localhost:3000/app
 
-You start in demo mode, the offline judge mode: a fictional store (Kora Atelier) on a built-in PayPal simulator with the real API's request and response shapes, error codes and file limits. The banner's "What's real?" link says exactly what is real, simulated or recorded. The Demo guide (bottom right) walks you through six steps: run Exhibit on a case, review the evidence packet, file with PayPal, prevent a dispute, ask a question, and approve an agent request.
+You start in demo mode, the offline judge mode: a fictional store (Kora Atelier) on a built-in PayPal simulator with the real API's request and response shapes, error codes and file limits. The banner's "What's real?" link says exactly what is real, simulated or recorded. The demo guide (**Guide** in the top bar, also shown on the overview) walks you through six steps: run Exhibit on a case, review the evidence packet, file with PayPal, prevent a dispute, ask a question, and approve an agent request.
 
 The AI: if you are signed in to the Claude CLI on your machine, the agent runs live on Claude Opus 5.5 automatically. Set ANTHROPIC_API_KEY in .env.local to use the Claude API instead. With neither, Exhibit replays recorded Claude runs, and every tool call, check and filing still runs live.
 
@@ -216,7 +216,7 @@ How it was built
 ### URL to your code repository
 
 ```
-https://github.com/shvuuuu/exhibit
+https://github.com/exhibitlabs/exhibit
 ```
 
 Public, MIT licensed. GitHub shows the license in the repo's About section.
