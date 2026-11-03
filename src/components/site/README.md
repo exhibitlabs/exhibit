@@ -239,6 +239,13 @@ happened yet), `small?` (the 32 x 24 drawings), `title?` (accessible name; omit 
 
 Use dot art with intent: one piece that says what the section is about, never as filler or wallpaper.
 
+### `DotIcon`
+The product tour's 16 x 12 icons, one for each chapter's piece (`scales`, `magnifier`, `stamp`, `parcel`,
+`bubble`, `terminal`): `name`, `title?`, `className?`, `style?`. Size it 32 px wide (2 px a cell; it reads from
+28 to 36 px). Each has a gold accent of a few cells (the pivot, the found line, the A's crossbar, the label, the
+question, the cursor) that prints in `--s-gold`; set `--s-gold: currentColor` on a parent to print it in ink, as
+the tour does for every chapter but the current one.
+
 ### `DotWordmark`
 The monumental footer wordmark (the logo's E with its gold arm, "xhibit"), solid ink dots. A coarser drawing
 takes over below 640 px so the dots stay large. `accent?` (gold arm, default true), `className?`. Already in
@@ -263,8 +270,11 @@ takes its art as a prop from the page, e.g.
 ### How it is built
 - `dots/generator/drawings.mjs`: every piece drawn by hand in grid cells, twice (`lg` 60 x 45 for the site,
   `sm` 32 x 24), plus the wordmark. Shapes come from `dots/generator/raster.mjs` (rect, roundRect, circle,
-  poly, line, a 5 x 7 dot face for words); a cell takes a tone when its centre is inside the shape.
-- `node src/components/site/dots/generator/generate.mjs` writes `dots/art-data.ts` and `dots/art-small.ts`
+  poly, line, a 5 x 7 dot face for words); a cell takes a tone when its centre is inside the shape. The six
+  product chapters' pieces are drawn a third time as `xs`, the tour's 16 x 12 icons, set cell by cell
+  (`sketch`) because at that size every cell is a decision.
+- `node src/components/site/dots/generator/generate.mjs` writes `dots/art-data.ts` (with `DOT_ART_MINI`, the
+  `xs` icons) and `dots/art-small.ts`
   (one glyph per cell: `.` paper, `:` faint ring, `o` ring, `+` small dot, `*` large dot, `#` full dot, `@`
   gold) and prints every grid to the terminal. Pure Node: no browser, fonts or network. Never edit the grids
   by hand; a new piece only needs a new entry in `PIECES` (the `DotArtName` type is generated).
@@ -380,7 +390,17 @@ column next to a sticky table of contents.
 - `ROUTES`: `home`, `proof`, `product.{overview, investigate, evidencePackets, prevention, askExhibit, aiAgents}`,
   `security`, `docs.{home, api, mcp, sandbox}`, `pricing`, `about`, `contact`, `legal.{privacy, terms}`,
   `app` (`/app`), `github`.
-- `PRODUCT_LINKS`, `COMPANY_LINKS`, `NAV`, `NAV_ACTIONS`, `FOOTER_COLUMNS`.
+- `PRODUCT_LINKS`, `PRODUCT_OVERVIEW`, `COMPANY_LINKS`, `NAV`, `NAV_ACTIONS`, `FOOTER_COLUMNS`.
+
+The header: `SiteNav.tsx` (server) prints the menus' dot drawings and hands them to `NavBar.tsx` (client: the
+logo, the bar, the phone menu); `NavMenus.tsx` holds the dropdowns (`PreviewMenu`, and `Dropdown` for a menu
+without drawings). Product is the wide menu: the five `PRODUCT_LINKS` on the left (icon, title, description), a
+preview card on the right with the hovered or focused item's `art` (a `DotArt` name), its name on a chip and its
+`caption` on an ink bar, and `PRODUCT_OVERVIEW` as the last row. Company is the same panel, narrow: its two
+`COMPANY_LINKS` (Exhibit Labs and Contact, each with `art` and `caption`) above the same card, hanging from its
+button. The card crossfades and is hidden from screen readers (the list carries the meaning). Both are disclosure
+menus: a button with `aria-expanded`; arrow keys, Home and End move through the links; Escape, a click outside or
+focus leaving closes. The bar is exactly `--s-nav-h` tall in every state.
 
 URLs: `/product` (overview), `/product/investigate`, `/product/evidence`, `/product/prevention`, `/product/ask`,
 `/product/agents`, `/security` (anchors `#approvals`, `#audit-log`), `/docs`, `/docs/api`, `/docs/mcp`,
@@ -403,7 +423,8 @@ Stagger heading 0, text 70, picture 140. Transform and opacity only.
 - No invented customers, logos, testimonials, funding, "Backed by YC" or SOC 2 claims. No PayPal logo; PayPal
   is named in text only. The footer carries "Not affiliated with or endorsed by PayPal".
 - Pricing is "Planned" (`PRICING` in `src/components/landing/data.ts`).
-- Founders: Shivansh Dwivedi and Someet Shende, both named wherever the team is (`FOUNDERS`).
+- The team is Exhibit Labs, founded by Shivansh Dwivedi and Someet Shende, both named wherever the team is
+  (`FOUNDERS`). No claim of incorporation, funding, customers or a team beyond the two co-founders.
 
 ## Files
 
@@ -421,7 +442,7 @@ Stagger heading 0, text 70, picture 140. Transform and opacity only.
 | `fragments.tsx`, `packet.tsx`, `drawer.tsx`, `askparts.tsx` | The ready-made fragments; the packet's page parts; the prevention drawer's parts; the Ask palette's answer and chart |
 | `records.tsx` | `Stat`, `Facts`, `StatusCode`, `Tag` |
 | `Faq.tsx`, `PageHeader.tsx`, `Prose.tsx`, `Reveal.tsx` | As named |
-| `SiteNav.tsx`, `SiteFooter.tsx`, `nav.ts` | Navigation, footer, information architecture |
+| `SiteNav.tsx`, `NavBar.tsx`, `NavMenus.tsx`, `SiteFooter.tsx`, `nav.ts` | Navigation (server wrapper, client bar, menus), footer, information architecture |
 
 ## Docs
 
@@ -462,17 +483,22 @@ themselves. Overlays on paintings use the kit's `PlateStage` and `PlateOverlay`.
 | `company/OnThisPage.tsx` | `OnThisPage items={[{ id, label }]}`: a ruled row of anchor links under a page header; scrolls sideways on phones. Used on the trust center (`/security`). |
 | `company/FactStrip.tsx` | `FactStrip items={[{ k, v, note? }]}`: short facts in a ruled strip, key over value. Two columns on phones, one row on desktop. |
 | `company/LegalPage.tsx` | `LegalPage`: header with the last-updated date, a four-point "short version", then `Prose` with a sticky list of sections (each an `h2` with an id). Both legal pages. |
-| `company/MailtoForm.tsx` (client) | The contact form. There is no backend: submit builds a `mailto:` link with the subject and body and opens the visitor's email app, a live preview on a plate shows exactly what that email says, and it never claims a message was sent. Without JavaScript the form still opens a plain-text email through its `mailto:` action. |
+| `company/ContactForm.tsx` (client) | The contact form. It POSTs JSON to `/api/contact`, which on the live site is the static site's Worker (`deploy/site/worker.ts`): Turnstile, then an email to the founders' inbox. "Sent" shows only on a 200. Where there is no sender (the Next app's route answers 501) it opens the visitor's email app with the message written; a failed send says why and offers that email and a copy. The preview on a plate shows the letter exactly as it arrives. Without JavaScript the form opens a plain-text email through its `mailto:` action. |
+| `company/Scheduler.tsx` (client) | The demo-time picker inside the form: the next four weeks, times every half hour from 08:00 to 19:30 in the visitor's detected (changeable) zone, at least 12 hours ahead, up to three picks shown with their IST equivalents. Arrow keys, Home, End and Page keys in the calendar; roving focus in the times. |
+| `company/contact/` | Pure modules the form and the Worker share: `zones.ts` (time zone arithmetic), `schedule.ts` (which times are offered), `submission.ts` (fields, limits, the one validator), `letter.ts` (the email's text and HTML), and `turnstile.ts` (the browser-only widget loader). Tested in `tests/contact-*.test.ts`. |
 | `company/fragments.tsx` | Trust-center fragments from the app and Exhibit's own sandbox log: `ApprovalRequest` (the Nov 3 request with the app's real title, the agent's note and the decision), `AuditTrail` (that approval row by row, with who acted and the re-read of the dispute before filing), `CallInspector` (one stored `api_calls` row: no Authorization header, the packet by name and size), `AutopilotPanel` (Autopilot as it ships, and the default rules run by the app's own `evaluateRules` on the four sandbox chargebacks), `TraceRejection` (the case page's Investigation panel with the two `file_case_brief` steps of evaluation case inr-07: rejected, then fixed). |
 | `company/cases.tsx` | `BriefCard run="fight" \| "refund" \| "refund2"` (the top of the app's brief card for Daniel Reyes, Jordan Kim or Priya Patel, with the four figures) and `PreventionSave` (Lena Hoffmann's at-risk order, the fix and $394 kept; demo merchant). |
-| `company/records.ts` | Facts these pages show that the landing records don't export: the contact email, GitHub links, test counts per file, the Nov 3 approval as the sandbox log holds it, the SQLite tables, the four sandbox cases. Each value names its source. |
+| `company/records.ts` | Facts these pages show that the landing records don't export: the contact email, GitHub links, test counts per file, the Nov 3 approval as the sandbox log holds it, the SQLite tables, the four sandbox cases, the about page's eight facts (`MARKET_FACTS`, `EXHIBIT_FACTS`, each with its quoted source) and where each founder's face sits in their photo (`FOUNDER_PHOTOS`). Each value names its source. |
+| `company/about.tsx` | The about page's pieces: `Portrait name ratio? head? at? alt?` (a founder's photo from `public/team`, cropped so both faces sit alike, grey until its card is hovered or focused), `FounderCard founder` (photo, name, role, GitHub), `FoundersQuote` (the quote, verbatim, attributed to both) and `EightFacts` (Exhibit in 8 facts: the market as a ruled grid of figures with their sources, then Exhibit's two on dark cards with the 3-of-12 `DotTrack`). |
 | `company/meta.ts` | `companyMetadata({ title, description, path })`: canonical URL and share cards with the site's OG and Twitter images. A page that sets `openGraph` otherwise loses the root's images. |
 
 Reusable classes: `s-co-promises` (numbered ruled grid, four across), `s-co-steps` (ordered steps on a rail),
 `s-co-list` (ruled list, an icon per row; works on the night band), `s-co-matrix` (can / cannot table that
 stacks on phones), `s-co-cards` (three cards), `s-co-ledger` (dotted-leader list), `s-co-track` (three-step
 track), `s-co-eptable` (an `s-table` that stacks its rows on phones), `s-co-panel` (quiet grey panel),
-`s-co-notyet` (two-column ruled list), `s-co-timeline` (dated list with a rail), `s-co-people` (founder cards).
+`s-co-notyet` (two-column ruled list), `s-co-standfirst` (an argument's opening paragraph, a step above the lede),
+`s-co-founders` (founder cards, two across from 640 px), `s-co-portrait` (a founder's photo), `s-co-quote` (a large
+quote with its attribution), `s-co-facts` and `s-co-fact` (figure, label, source), `s-co-wedge` (facts on dark cards).
 
 `fragments.tsx` imports `src/lib/autopilot-rules.ts`. It is the one `src/lib` import on the site, and it is safe:
 the file is pure (no database, type-only imports), so the limits and verdicts on `/security` are computed by the
@@ -491,9 +517,10 @@ square, as on the homepage's product sections.
 
 | File | What |
 | --- | --- |
-| `product/capabilities.ts` | `CAPABILITIES`: the five in order with index, painting and dot drawing. Labels, URLs and descriptions come from `PRODUCT_LINKS`, so the menu, sub-nav and pages agree. |
-| `product/ProductNav.tsx` | `ProductNav current="investigate" \| … \| "overview"`: the product sub-nav under the site nav (Overview, 01 to 05), `aria-current` on the page. Scrolls sideways on phones. |
-| `product/ProductPager.tsx` | `ProductPager current=…`: previous and next capability with their paintings as thumbnails; wraps round through the overview. |
+| `product/capabilities.ts` | `CHAPTERS`: the product tour's six chapters, 00 Platform (`PLATFORM`, `/product`) and then the five `CAPABILITIES` (01 to 05), each with its number, name, URL, one line and dot drawing. The five's names, URLs and lines come from `PRODUCT_LINKS` and the platform's URL and drawing from `PRODUCT_OVERVIEW`, so the menu and the tour agree (`tests/product-tour.test.ts`). |
+| `product/ProductTour.tsx`, `TourBar.tsx` (client) | `ProductTour current="platform" \| "investigate" \| …`: the tour bar, first in every product page and sticky right under the header (`top: var(--s-nav-h)`, `--s-tour-h` tall). The six chapters with their `DotIcon`s, joined by a line filled up to the current one (`aria-current="page"`, on a white chip, its icon's gold accent showing), the next chapter on the right (on the last, Back to the platform: the header beside it already carries `CTA.primary`, and the end card offers it) and a reading-progress line along the bottom. The bar's own width picks the layout (container queries, classes `s-tour`): every name from 1240 px, icons only for the other chapters from 660 px, and below that the current chapter as a button that opens all six. Anchors on product pages clear both bars. |
+| `product/TourMap.tsx` | The platform page's map, under its header: chapters 01 to 05 as cards with their drawings, number, name and line, joined by arrows, then "Start the tour". |
+| `product/NextChapter.tsx` | `NextChapter current=…`: the end of each capability page, above its closing band: the next chapter as one card (its drawing, "Next chapter · 02 of 05", name, line, Continue), then links to the previous chapter and back to the platform. On 05 it points at `CTA.primary`. |
 | `product/ProductCta.tsx` | `ProductCta id title rest lede art note?`: the closing band (grey) with the site's two actions and one framed dot drawing. |
 | `product/meta.ts` | `productMetadata({ title, description, path })`: canonical URL and share cards that name the site's OG and Twitter images (a page `openGraph` otherwise drops them). |
 | `product/data.ts` | Page-level views of the records: the Reyes run as the eight sources (`SOURCES`, with each tool's summary, exhibit and the reasoning points that cite it), every run on the case, the refunds, the filings, Lena Hoffmann, the radar, the Ask answer. Same records as `facts.ts`; server only. |

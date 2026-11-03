@@ -437,6 +437,8 @@
   }
 
   /* ---------------------------------------------------------------- navigation */
+  /* The bar is exactly --s-nav-h tall at every width and in every state (anything sticky under it uses
+     top: var(--s-nav-h)). Menus and the phone menu float over the page and add no height. */
   .s-nav {
     position: sticky;
     top: 0;
@@ -448,29 +450,71 @@
     box-shadow: 0 1px 0 var(--s-line);
   }
   .s-nav__in {
+    position: relative;
     height: var(--s-nav-h);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
   }
+
+  /* The logo: the mark and a tight wordmark, a size up from the app's. The gold arm replays the demo
+     video's move on hover and keyboard focus (NavBar.tsx sets data-play). */
   .s-brand {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 15.5px;
-    font-weight: 600;
-    letter-spacing: -0.045em;
+    gap: 9px;
+    flex: none;
+    justify-self: start;
     color: var(--s-ink);
-    border-radius: 6px;
+    border-radius: 8px;
   }
+  .s-brand__mark {
+    display: block;
+    width: 26px;
+    height: 26px;
+    flex: none;
+  }
+  .s-brand__plate {
+    fill: var(--s-ink);
+  }
+  .s-brand__e {
+    fill: #fff;
+  }
+  .s-brand__arm {
+    fill: var(--s-gold);
+  }
+  .s-brand__word {
+    font-size: 19px;
+    font-weight: 640;
+    line-height: 1;
+    letter-spacing: -0.052em;
+  }
+  .s-brand[data-play] .s-brand__arm {
+    animation: s-brand-arm 0.8s both;
+  }
+  /* Into the stem (the clip hides it there), then out to its place on the video's power3 out. */
+  @keyframes s-brand-arm {
+    0% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+    }
+    28% {
+      transform: translateX(-26px);
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
   .s-nav__links {
     display: none;
   }
   .s-nav__cta {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
   .s-nav__cta .s-nav__signin,
   .s-nav__cta .s-nav__secondary {
@@ -478,6 +522,10 @@
   }
   .s-nav__item {
     position: relative;
+  }
+  /* The Product menu is as wide as the bar allows, so it hangs from the bar, not from its button. */
+  .s-nav__item--mega {
+    position: static;
   }
   .s-nav__link {
     display: inline-flex;
@@ -490,6 +538,7 @@
     font: inherit;
     font-size: 14px;
     color: var(--s-ink-2);
+    white-space: nowrap;
     cursor: pointer;
     border-radius: 6px;
     transition: color 0.15s ease;
@@ -508,61 +557,290 @@
   .s-nav__link[aria-expanded="true"] .s-nav__chev {
     transform: rotate(180deg);
   }
-  .s-menu {
+
+  /* Menus: one panel style for Product and Company. White, 16px corners, a soft float; fades in and out. */
+  .s-menu,
+  .s-mega {
     position: absolute;
-    top: calc(100% + 10px);
-    left: -18px;
-    width: 340px;
+    z-index: 1;
     padding: 8px;
     background: #fff;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.06),
-      0 12px 32px -8px rgb(0 0 0 / 0.18),
-      0 2px 6px rgb(0 0 0 / 0.05);
+      0 0 0 1px rgb(25 14 4 / 0.07),
+      0 2px 4px rgb(25 14 4 / 0.04),
+      0 22px 48px -14px rgb(30 16 4 / 0.24);
     display: none;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition-property: opacity, transform, display;
+    transition-duration: 0.16s, 0.22s, 0.22s;
+    transition-timing-function: ease, var(--s-ease), linear;
+    transition-behavior: allow-discrete;
+  }
+  .s-menu[data-open="true"],
+  .s-mega[data-open="true"] {
+    opacity: 1;
+    transform: none;
   }
   .s-menu[data-open="true"] {
     display: block;
-    animation: s-menu-in 0.16s ease both;
   }
-  @keyframes s-menu-in {
-    from {
+  .s-mega[data-open="true"] {
+    display: grid;
+  }
+  @starting-style {
+    .s-menu[data-open="true"],
+    .s-mega[data-open="true"] {
       opacity: 0;
-      transform: translateY(-4px);
+      transform: translateY(-6px);
     }
   }
-  .s-menu--narrow {
-    width: 280px;
+  /* A bridge over the 14px gap under the button, so the pointer never leaves the menu on its way down (and
+     never covers the neighbouring links). */
+  .s-menu::before,
+  .s-mega::before {
+    content: "";
+    position: absolute;
+    inset: -14px 0 auto;
+    height: 14px;
   }
-  .s-menu ul {
-    list-style: none;
+  .s-menu {
+    top: calc(100% + 14px);
+    left: -20px;
+    width: 320px;
+  }
+  .s-menu__list {
+    display: grid;
+    gap: 2px;
     margin: 0;
     padding: 0;
+    list-style: none;
   }
-  .s-menu a {
-    display: block;
+  .s-menu__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
     padding: 10px 12px;
-    border-radius: 8px;
-    transition: background-color 0.12s ease;
+    border-radius: 10px;
+    color: var(--s-ink);
+    transition: background-color 0.14s ease;
   }
-  .s-menu a:hover,
-  .s-menu a:focus-visible {
+  .s-menu__item:focus-visible {
+    outline-offset: -2px;
+  }
+  .s-menu .s-menu__item:hover,
+  .s-menu .s-menu__item:focus-visible,
+  .s-mega .s-menu__item[data-active] {
     background: var(--s-band);
+  }
+  .s-menu__tile {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow:
+      inset 0 0 0 1px var(--s-line-2),
+      0 1px 2px rgb(25 14 4 / 0.05);
+    color: var(--s-ink);
+  }
+  .s-menu__tile svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.6;
   }
   .s-menu__label {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: var(--s-ink);
+    line-height: 20px;
     letter-spacing: -0.01em;
   }
   .s-menu__desc {
     display: block;
-    margin-top: 2px;
-    font-size: 12.5px;
+    font-size: 13px;
+    line-height: 18px;
     color: var(--s-muted);
   }
+
+  /* The Product menu: the list, then the preview card (warm grey, the item's dot drawing, its name on a chip
+     with the gold square, one line on an ink bar). The card crossfades between items: the outgoing slide
+     fades faster than the incoming one (a transition takes the duration of the state it goes to). */
+  .s-mega {
+    top: calc(100% - 2px);
+    left: 50%;
+    translate: -50% 0;
+    width: min(800px, 100%);
+    grid-template-columns: 336px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .s-mega__side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .s-mega__head {
+    margin: 0;
+    padding: 10px 12px 8px;
+    font-size: 12.5px;
+    line-height: 18px;
+    color: var(--s-muted);
+  }
+  .s-mega__all {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 11px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--s-ink);
+    transition: background-color 0.14s ease;
+  }
+  .s-mega__all::before {
+    content: "";
+    position: absolute;
+    inset: -6px 12px auto;
+    height: 1px;
+    background: var(--s-line);
+  }
+  .s-mega__all .s-icon {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.2s var(--s-ease);
+  }
+  .s-mega__all[data-active] {
+    background: var(--s-band);
+  }
+  .s-mega__all[data-active] .s-icon {
+    transform: translateX(2px);
+  }
+  .s-mega__all:focus-visible {
+    outline-offset: -2px;
+  }
+  .s-mega__card {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--s-band);
+    color: var(--s-ink);
+  }
+  .s-mega__stage {
+    display: grid;
+    min-height: 0;
+  }
+  .s-mega__slide {
+    grid-area: 1 / 1;
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: 52px 36px 30px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .s-mega__slide[data-active] {
+    opacity: 1;
+    transition-duration: 0.24s;
+  }
+  .s-mega__art {
+    width: min(100%, 324px);
+  }
+  .s-mega__art .s-dots {
+    transform: scale(0.97);
+    transition: transform 0.45s var(--s-ease);
+  }
+  .s-mega__slide[data-active] .s-dots {
+    transform: none;
+  }
+  .s-mega__chip {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+    padding: 0 11px 0 10px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgb(25 14 4 / 0.06);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+  .s-mega__chip::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    flex: none;
+    background: var(--s-gold);
+    border-radius: 1.5px;
+  }
+  .s-mega__bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 14px 18px;
+    background: var(--s-ink);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.01em;
+  }
+  .s-mega__captions {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+  .s-mega__captions > span {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .s-mega__captions > span[data-active] {
+    opacity: 1;
+    transition-duration: 0.24s;
+  }
+  .s-mega__bar .s-icon {
+    color: rgb(255 255 255 / 0.55);
+    transition:
+      color 0.2s ease,
+      transform 0.2s var(--s-ease);
+  }
+  .s-mega__card:hover .s-mega__bar .s-icon {
+    color: #fff;
+    transform: translateX(2px);
+  }
+  /* The Company menu: two links over a smaller card, in a narrow panel that hangs from its button like any
+     dropdown (its item is not --mega). */
+  .s-mega--stack {
+    top: calc(100% + 14px);
+    left: -20px;
+    translate: none;
+    width: 344px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .s-mega--stack .s-mega__head {
+    padding-bottom: 6px;
+  }
+  .s-mega--stack .s-mega__slide {
+    padding: 44px 32px 20px;
+  }
+  .s-mega--stack .s-mega__art {
+    width: min(100%, 208px);
+  }
+
   .s-nav__burger {
     display: inline-grid;
     place-items: center;
@@ -575,6 +853,8 @@
     color: var(--s-ink);
     cursor: pointer;
   }
+
+  /* The phone menu: a full-screen sheet under the bar. Product items carry a small dot drawing. */
   .s-mnav {
     position: fixed;
     inset: var(--s-nav-h) 0 0;
@@ -610,6 +890,48 @@
     letter-spacing: -0.02em;
     color: var(--s-ink);
   }
+  .s-mnav__arrow {
+    color: var(--s-faint);
+  }
+  .s-mnav__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 6px 0;
+    color: var(--s-ink);
+  }
+  .s-mnav__thumb {
+    display: block;
+    width: 72px;
+    border-radius: 8px;
+    background: var(--s-band);
+  }
+  .s-mnav__label {
+    display: block;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 22px;
+    letter-spacing: -0.02em;
+  }
+  .s-mnav__desc {
+    display: block;
+    margin-top: 1px;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--s-muted);
+  }
+  .s-mnav a.s-mnav__all {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    padding: 10px 0 2px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--s-ink);
+  }
   .s-mnav__actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -620,19 +942,36 @@
     height: 46px;
   }
   @media (min-width: 640px) {
+    .s-nav__cta {
+      gap: 10px;
+    }
     .s-nav__cta .s-nav__secondary {
       display: inline-flex;
     }
   }
+  /* 1024 to 1279: the links sit centred between the logo and the actions (the actions are wider than half the
+     space that is left). From 1280 there is room to centre them on the page. */
   @media (min-width: 1024px) {
     .s-nav__in {
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+    }
+    .s-brand {
+      gap: 10px;
+    }
+    .s-brand__mark {
+      width: 28px;
+      height: 28px;
+    }
+    .s-brand__word {
+      font-size: 20.5px;
     }
     .s-nav__links {
       display: flex;
       align-items: center;
-      gap: 28px;
+      justify-content: center;
+      gap: 24px;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -647,6 +986,19 @@
     .s-nav__burger,
     .s-mnav {
       display: none;
+    }
+  }
+  @media (min-width: 1280px) {
+    .s-nav__in {
+      grid-template-columns: 1fr auto 1fr;
+    }
+    .s-nav__links {
+      gap: 28px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .s-brand[data-play] .s-brand__arm {
+      animation: none;
     }
   }
 

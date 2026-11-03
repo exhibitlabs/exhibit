@@ -3,6 +3,7 @@
 // later passes (product pages, security, pricing, company, docs, legal); link to them anyway.
 
 import { DEMO_URL, GITHUB_URL } from "@/components/landing/data";
+import type { DotArtName } from "./dots/art-data";
 
 export const ROUTES = {
   home: "/",
@@ -35,25 +36,51 @@ export const ROUTES = {
   github: GITHUB_URL,
 } as const;
 
-export type NavLink = { label: string; href: string; description?: string; external?: boolean };
+export type NavLink = {
+  label: string;
+  href: string;
+  description?: string;
+  external?: boolean;
+  /** Menus with a preview card (Product, Company): the dot drawing the card shows, and the one short line under it. */
+  art?: DotArtName;
+  caption?: string;
+};
 
-/** The Product menu, in order. Descriptions show in the dropdown. */
+/**
+ * The Product menu, in order. Descriptions show in the menu, the phone menu and on the product pages
+ * (src/components/site/product/capabilities.ts reads this list by position, so keep it to the five).
+ * `art` and `caption` fill the menu's preview card.
+ */
 export const PRODUCT_LINKS: NavLink[] = [
-  { label: "Investigate", href: ROUTES.product.investigate, description: "Eight sources, one cited decision" },
-  { label: "Evidence packets", href: ROUTES.product.evidencePackets, description: "Exhibit A to F, filed through PayPal" },
-  { label: "Prevention", href: ROUTES.product.prevention, description: "Stops disputes before they are filed" },
-  { label: "Ask Exhibit", href: ROUTES.product.askExhibit, description: "Questions answered from your records" },
-  { label: "For AI agents", href: ROUTES.product.aiAgents, description: "Agents request, merchants approve" },
+  { label: "Investigate", href: ROUTES.product.investigate, description: "Eight sources, one cited decision", art: "magnifier", caption: "Every reason points to a record." },
+  { label: "Evidence packets", href: ROUTES.product.evidencePackets, description: "Exhibit A to F, filed through PayPal", art: "stamp", caption: "No record, no filing." },
+  { label: "Prevention", href: ROUTES.product.prevention, description: "Stops disputes before they are filed", art: "parcel", caption: "Most disputes give a warning first." },
+  { label: "Ask Exhibit", href: ROUTES.product.askExhibit, description: "Questions answered from your records", art: "bubble", caption: "Press ⌘K and ask in plain words." },
+  { label: "For AI agents", href: ROUTES.product.aiAgents, description: "Agents request, merchants approve", art: "terminal", caption: "Nothing reaches PayPal until you approve." },
 ];
 
+/** The Product menu's last row, to the overview page. `label` names it on the preview card; `text` is the row itself. */
+export const PRODUCT_OVERVIEW: NavLink & { text: string } = {
+  label: "Overview",
+  text: "See the whole platform",
+  href: ROUTES.product.overview,
+  art: "scales",
+  caption: "One agent for the whole dispute.",
+};
+
+/** The Company menu: the team behind Exhibit, and how to reach it. `art` and `caption` fill its preview card. */
 export const COMPANY_LINKS: NavLink[] = [
-  { label: "About", href: ROUTES.about, description: "Who builds Exhibit, and why" },
-  { label: "Contact", href: ROUTES.contact, description: "Book a demo or ask a question" },
+  { label: "Exhibit Labs", href: ROUTES.about, description: "The team behind Exhibit", art: "scales", caption: "Let the evidence decide." },
+  { label: "Contact", href: ROUTES.contact, description: "Book a demo or ask a question", art: "letter", caption: "Straight to the founders' inbox." },
 ];
 
-/** Top-level bar, left to right. Items with `children` render as an accessible dropdown. */
-export const NAV: { label: string; href?: string; children?: NavLink[] }[] = [
-  { label: "Product", children: PRODUCT_LINKS },
+/**
+ * Top-level bar, left to right. Items with `children` render as an accessible dropdown with a dot-art preview
+ * card: one with an `overview` as the wide menu (list beside the card, the overview as its last row), the
+ * others as a narrow one (the card under the list).
+ */
+export const NAV: { label: string; href?: string; children?: NavLink[]; overview?: NavLink & { text: string } }[] = [
+  { label: "Product", children: PRODUCT_LINKS, overview: PRODUCT_OVERVIEW },
   { label: "Security", href: ROUTES.security },
   { label: "Docs", href: ROUTES.docs.home },
   { label: "Pricing", href: ROUTES.pricing },
@@ -95,7 +122,7 @@ export const FOOTER_COLUMNS: { title: string; links: NavLink[] }[] = [
   {
     title: "Company",
     links: [
-      { label: "About", href: ROUTES.about },
+      { label: "Exhibit Labs", href: ROUTES.about },
       { label: "Contact", href: ROUTES.contact },
       { label: "Founders", href: `${ROUTES.about}#founders` },
     ],
