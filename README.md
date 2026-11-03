@@ -412,7 +412,7 @@ The suite in [`tests/`](tests) is organised around the guardrails above. It forc
 - **Shared demo state.** Everyone on the same server works the same demo merchant, so one visitor's filing or fix changes what the next one sees until the demo resets (after 20 quiet minutes, or with **Reset demo**).
 - **`make-offer` and `send-message` are verified only on the simulator.** PayPal allows them only at the inquiry stage. Sandbox chargebacks from `process-chargeback` skip that stage, and opening a buyer-side inquiry needs PayPal partner consent.
 - **Tracking push and capture refunds are verified only on the simulator.** Both are implemented and tested, but have not been called on the live sandbox.
-- **Webhooks need a public HTTPS URL.** Nothing is deployed yet, so PayPal has not delivered a webhook to Exhibit. Signature checks use PayPal's `verify-webhook-signature` API and run in the simulator.
+- **Webhooks need a public HTTPS URL.** Only the website is deployed so far, not the app, so PayPal has not delivered a webhook to Exhibit. Signature checks use PayPal's `verify-webhook-signature` API and run in the simulator.
 - **Simulated disputes reuse the demo cases.** Each **Simulate new dispute** takes the next of the eight demo cases, with new ids and order numbers. On recorded runs, its brief is that case's recorded reasoning.
 - **No store or carrier connectors yet.** Order, carrier, inbox and checkout records come from the built-in demo store, also in sandbox mode. Shopify, WooCommerce and carrier APIs are next.
 - **Sandbox outcomes are not PayPal decisions on the merits.** The one resolved case closed after a sandbox-only `adjudicate` call.
@@ -443,7 +443,7 @@ Everything is optional. Copy [`.env.example`](.env.example) to `.env.local`.
 
 ## Team
 
-Exhibit is built by its two co-founders, **[Shivansh Dwivedi](https://github.com/shvuuuu)** and **[Someet Shende](https://github.com/someetshende)**, for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). The website will live at [exhibit.9to5code.com](https://exhibit.9to5code.com); until it does, `npm run dev` serves the same site at http://localhost:3000. Write to [contact@exhibit.9to5code.com](mailto:contact@exhibit.9to5code.com). Contributions follow [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Exhibit is built by its two co-founders, **[Shivansh Dwivedi](https://github.com/shvuuuu)** and **[Someet Shende](https://github.com/someetshende)**, for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). The website is at [exhibit.9to5code.com](https://exhibit.9to5code.com), and `npm run dev` serves the same site at http://localhost:3000. Write to [contact@exhibit.9to5code.com](mailto:contact@exhibit.9to5code.com). Contributions follow [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License and credits
 

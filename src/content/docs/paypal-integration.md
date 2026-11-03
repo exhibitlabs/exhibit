@@ -174,7 +174,7 @@ Content-Type: application/json
 
 A verified `CUSTOMER.DISPUTE.*` event refreshes the dispute from PayPal. `CUSTOMER.DISPUTE.CREATED` also starts an investigation, and the webhook is answered without waiting for it.
 
-In demo mode there is no PayPal to sign events, so the listener skips verification. The simulator implements the verify endpoint (it always answers `SUCCESS`) so the client call is tested. PayPal only delivers webhooks to a public HTTPS URL, and Exhibit is not deployed yet, so no real PayPal webhook has reached it.
+In demo mode there is no PayPal to sign events, so the listener skips verification. The simulator implements the verify endpoint (it always answers `SUCCESS`) so the client call is tested. PayPal only delivers webhooks to a public HTTPS URL, and only the website is deployed so far, not the app, so no real PayPal webhook has reached it.
 
 > [!WARNING] No sign-in yet
 > Exhibit has no authentication. If you expose it to receive webhooks, through a deployment or a tunnel, anyone who can reach it can use the app with your sandbox credentials. See [Security model](/docs/security-model#limits).

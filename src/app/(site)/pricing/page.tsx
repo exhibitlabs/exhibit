@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { companyMetadata } from "@/components/site/company/meta";
 import { Bot, Check, FileStack, Gauge, MessageCircleQuestion, ScrollText, Search, ShieldCheck } from "lucide-react";
-import { DEMO_URL, PAYPAL_FEES, PRICING } from "@/components/landing/data";
-import { Actions, Body, ButtonLink, Container, DotArt, Eyebrow, Facts, Faq, Heading, Lede, PageHeader, PlateCaption, PlateOverlay, PlateStage, ROUTES, Section, SectionHead, Small, Tag } from "@/components/site";
+import { PAYPAL_FEES, PRICING } from "@/components/landing/data";
+import { Actions, Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Facts, Faq, Heading, Lede, PageHeader, PlateCaption, PlateOverlay, PlateStage, ROUTES, Section, SectionHead, Small, Tag } from "@/components/site";
 import { BriefCard, PreventionSave } from "@/components/site/company/cases";
 import { GITHUB } from "@/components/site/company/records";
 
@@ -69,11 +69,11 @@ export default function PricingPage() {
         lede={`${PRICING.note} Today the code is open source, and you can run it on your own PayPal sandbox for free.`}
         actions={
           <>
-            <ButtonLink href={DEMO_URL} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }
@@ -248,8 +248,8 @@ export default function PricingPage() {
             <div className="lg:col-span-5">
               <Body>The live demo runs on a fictional store and a PayPal simulator. Your own sandbox takes a REST app and two keys.</Body>
               <Actions>
-                <ButtonLink href={DEMO_URL} arrow>
-                  Try the live demo
+                <ButtonLink href={CTA.primary.href} arrow>
+                  {CTA.primary.label}
                 </ButtonLink>
                 <ButtonLink href={GITHUB.repo} variant="ghost">
                   Get the code

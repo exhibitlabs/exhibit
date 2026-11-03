@@ -167,9 +167,11 @@ export function SiteNav() {
           </ul>
         </nav>
         <div className="s-nav__cta">
-          <Link href={NAV_ACTIONS.signIn.href} className="s-nav__link s-nav__signin">
-            {NAV_ACTIONS.signIn.label}
-          </Link>
+          {NAV_ACTIONS.signIn ? (
+            <Link href={NAV_ACTIONS.signIn.href} className="s-nav__link s-nav__signin">
+              {NAV_ACTIONS.signIn.label}
+            </Link>
+          ) : null}
           <ButtonLink href={NAV_ACTIONS.secondary.href} variant="ghost" size="sm" className="s-nav__secondary">
             {NAV_ACTIONS.secondary.label}
           </ButtonLink>
@@ -208,12 +210,14 @@ export function SiteNav() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link href={NAV_ACTIONS.signIn.href} className="s-mnav__link" onClick={() => setMobileOpen(false)}>
-                  {NAV_ACTIONS.signIn.label}
-                  <ArrowRight className="s-icon" aria-hidden style={{ color: "var(--s-faint)" }} />
-                </Link>
-              </li>
+              {NAV_ACTIONS.signIn ? (
+                <li>
+                  <Link href={NAV_ACTIONS.signIn.href} className="s-mnav__link" onClick={() => setMobileOpen(false)}>
+                    {NAV_ACTIONS.signIn.label}
+                    <ArrowRight className="s-icon" aria-hidden style={{ color: "var(--s-faint)" }} />
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </div>
           <div className="s-mnav__actions">

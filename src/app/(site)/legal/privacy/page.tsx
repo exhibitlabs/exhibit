@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { companyMetadata } from "@/components/site/company/meta";
 import Link from "next/link";
 import { Cookie, Database, Mail, Network } from "lucide-react";
-import { ROUTES } from "@/components/site";
+import { HAS_APP, ROUTES } from "@/components/site";
 import { LegalPage } from "@/components/site/company/LegalPage";
 import { CONTACT_EMAIL } from "@/components/site/company/records";
 
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy"
       rest="This website collects nothing about you."
-      lede="Exhibit is an open-source hackathon project. Here, in plain words: what this website records (nothing of its own), what the live demo keeps, and what a copy of Exhibit you run yourself stores and shares."
+      lede={`Exhibit is an open-source hackathon project. Here, in plain words: what this website records (nothing of its own),${HAS_APP ? " what the live demo keeps," : ""} and what a copy of Exhibit you run yourself stores and shares.`}
       updated="November 3, 2026"
       art="letter"
       short={[
@@ -38,8 +38,8 @@ export default function PrivacyPage() {
         },
         {
           id: "live-demo",
-          title: "The live demo",
-          body: (
+          title: HAS_APP ? "The live demo" : "The hosted demo",
+          body: HAS_APP ? (
             <>
               <p>
                 The live demo at <Link href={ROUTES.app}>/app</Link> runs on a fictional store, Kora Atelier, and Exhibit&apos;s built-in PayPal simulator, so nothing you do there reaches PayPal.
@@ -48,6 +48,8 @@ export default function PrivacyPage() {
               <p>Questions you ask Ask Exhibit are answered and not stored. When the demo runs live on Claude, your question and the demo records needed to answer it are sent to Anthropic to produce the answer. The same goes for an investigation you start: the demo case&apos;s records go to Claude.</p>
               <p>For the app, your browser keeps two small notes in local storage: whether you hid the demo guide strip on the overview, and which notifications you have seen. They aren&apos;t cookies and they aren&apos;t sent anywhere. Clearing this site&apos;s data in your browser removes them.</p>
             </>
+          ) : (
+            <p>Exhibit&apos;s app isn&apos;t hosted on this website yet, so there is no shared demo here and nothing from one is kept. Until it is, the app runs on your own machine, and the next section says what it stores.</p>
           ),
         },
         {

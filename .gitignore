@@ -49,3 +49,7 @@ docs/exhibit-demo.mp4
 docs/*.mp4
 docs/exhibit-demo-v2.mp4
 .taste-skill/
+
+# static website deploy (scripts/build-site.mjs) and wrangler's local state
+/deploy/site/dist/
+.wrangler/

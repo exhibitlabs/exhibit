@@ -1,0 +1,14 @@
+// The marketing website and docs on Cloudflare Workers static assets (no server code, no app).
+// Build with `node scripts/build-site.mjs`, then deploy with `npx wrangler deploy --config deploy/site/wrangler.jsonc`.
+{
+  "name": "exhibit-site",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "exhibit.9to5code.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false
+}

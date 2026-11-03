@@ -4,7 +4,7 @@ import { fmtDay, RECORD, REYES } from "../facts";
 import { FitBox } from "../FitBox";
 import { CasePage } from "../fragments";
 import { Container } from "../layout";
-import { ROUTES } from "../nav";
+import { CTA, ROUTES } from "../nav";
 import { Plate, PlateCaption } from "../Plate";
 import { Eyebrow, Heading, Lede } from "../type";
 import { UiWindow } from "../ui";
@@ -22,11 +22,11 @@ export function Hero() {
           <div className="s-hero__r">
             <Lede>Exhibit reads each case from PayPal&apos;s Disputes API, investigates it with Claude, cites every claim to a real record and files through PayPal once you approve.</Lede>
             <div className="s-actions s-hero__actions">
-              <ButtonLink href={ROUTES.app} arrow>
-                Try the live demo
+              <ButtonLink href={CTA.primary.href} arrow>
+                {CTA.primary.label}
               </ButtonLink>
-              <ButtonLink href={ROUTES.contact} variant="ghost">
-                Book a demo
+              <ButtonLink href={CTA.secondary.href} variant="ghost">
+                {CTA.secondary.label}
               </ButtonLink>
             </div>
           </div>

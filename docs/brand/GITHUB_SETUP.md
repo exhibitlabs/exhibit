@@ -10,7 +10,7 @@ Open **github.com/exhibitlabs → Settings → Profile** (`https://github.com/or
 | :--- | :--- |
 | Organization display name | `Exhibit` (already set) |
 | Description | `The AI dispute agent for PayPal merchants. Disputes, answered with evidence. Refunds when the buyer is right.` (replaces the shorter one that is set now; 109 characters) |
-| URL (website) | Leave it empty until https://exhibit.9to5code.com is live, then enter that address. A link that doesn't load is worse than none. |
+| URL (website) | https://exhibit.9to5code.com (set Nov 4, 2026). |
 | Location | `India` |
 | Public email | `contact@exhibit.9to5code.com` (already set) |
 | Profile picture | **Upload new picture** → [`docs/brand/org-avatar.png`](org-avatar.png) (1024 x 1024). GitHub rounds the corners itself. |
@@ -36,7 +36,7 @@ Open **github.com/exhibitlabs/exhibit** and click the gear next to **About**.
 The AI dispute agent for PayPal merchants. Claude investigates each dispute, cites every claim to a real record and files through PayPal's Disputes API once the merchant approves. When the buyer is right, it refunds.
 ```
 
-**Website:** empty until https://exhibit.9to5code.com is live, then that address.
+**Website:** https://exhibit.9to5code.com (set Nov 4, 2026).
 
 **Topics** (20, GitHub's maximum). Eighteen are already set; add the last two, `claude-agent-sdk` and `ag-charts`:
 
@@ -62,7 +62,6 @@ paypal paypal-api paypal-ai-hackathon disputes chargebacks merchants ecommerce f
 ## Later
 
 - **When the video is on YouTube:** replace every `<!-- VIDEO_URL -->` with a link, for example `<a href="https://www.youtube.com/watch?v=…">Demo video</a> ·`. There are three in `README.md` (the link row, the "For judges" list and the top of "What the demo video shows") and one in `profile/README.md` of `exhibitlabs/.github` (the link row).
-- **When the website is live:** fill in the Website fields in steps 1 and 4.
 - **When a CI run on `main` is green:** add the CI badge to the badge row of `README.md`; the line is in a comment under "Tests and CI".
 - **Optional, a "Verified" badge:** Settings → **Verified and approved domains** → **Add a domain** → `exhibit.9to5code.com`, then add the TXT record GitHub shows in Cloudflare DNS and press **Verify**. GitHub shows the badge only when the profile's website and email are both on the verified domain, so do this once the Website field is set, and only if the option appears for the organisation's plan.
 

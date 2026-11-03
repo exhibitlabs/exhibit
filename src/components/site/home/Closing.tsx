@@ -6,7 +6,7 @@ import { Faq } from "../Faq";
 import { FitBox } from "../FitBox";
 import { AuditLog } from "../fragments";
 import { Container, Section } from "../layout";
-import { ROUTES } from "../nav";
+import { CTA, ROUTES } from "../nav";
 import { PAINTINGS } from "../paintings";
 import { PlateCaption, PlateOverlay, PlateStage } from "../Plate";
 import { Tag } from "../records";
@@ -192,11 +192,11 @@ function CtaCard({ headingId }: { headingId: string }) {
       <Heading id={headingId} title="Answer it" rest="with the record." />
       <Body className="s-cta__body">Run a case end to end in the live demo, or book a walkthrough on your own PayPal sandbox.</Body>
       <div className="s-actions s-cta__actions">
-        <ButtonLink href={ROUTES.app} arrow>
-          Try the live demo
+        <ButtonLink href={CTA.primary.href} arrow>
+          {CTA.primary.label}
         </ButtonLink>
-        <ButtonLink href={ROUTES.contact} variant="ghost">
-          Book a demo
+        <ButtonLink href={CTA.secondary.href} variant="ghost">
+          {CTA.secondary.label}
         </ButtonLink>
       </div>
     </div>

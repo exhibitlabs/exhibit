@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, Stat, TextLink } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, Stat, TextLink } from "@/components/site";
 import { PreventionSave } from "@/components/site/product/PreventionSave";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
@@ -89,11 +89,11 @@ export default function PreventionPage() {
         lede="A parcel stops moving, a buyer writes twice, a refund runs late. Exhibit watches recent orders for seven of those signals, scores the risk of a dispute and drafts the fix: tracking pushed to PayPal, a refund sent through PayPal, or a reply in the buyer's own language."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }

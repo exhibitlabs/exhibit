@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { User } from "lucide-react";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
 import { ConfigTabs, type ConfigTab } from "@/components/site/product/ConfigTabs";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
@@ -86,11 +86,11 @@ export default function AgentsPage() {
         lede="Exhibit runs as an MCP server. Claude, ChatGPT or an agent built on PayPal's Agent Toolkit can list cases, run an investigation and pull the evidence packet. Anything that would reach PayPal or a buyer becomes a request that waits for the merchant, and approving it runs the same code as the merchant's own button."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, Tag, TextLink } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, Tag, TextLink } from "@/components/site";
 import { CAPABILITIES } from "@/components/site/product/capabilities";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
@@ -36,7 +36,7 @@ const LIMITS = [
   { t: "No store or carrier connectors yet.", d: "Orders, carrier scans, the inbox and checkout signals come from the built-in demo store, in sandbox mode too. Shopify, WooCommerce and carrier APIs are next." },
   { t: "Offers and buyer messages are tested on the simulator only.", d: "PayPal allows them only at the inquiry stage, which sandbox chargebacks skip." },
   { t: "Tracking pushes and capture refunds too.", d: "Both are built and tested against the simulator, and not yet called on the live sandbox." },
-  { t: "No webhooks from PayPal yet.", d: "PayPal delivers them only to a public HTTPS address, and nothing is deployed yet." },
+  { t: "No webhooks from PayPal yet.", d: "PayPal delivers them only to a public HTTPS address, and only the website is deployed so far, not the app." },
   { t: "Sandbox outcomes are not PayPal decisions.", d: "The one resolved sandbox case closed after a sandbox-only call. A real reviewer may rule differently." },
   { t: "No sign-in yet.", d: "Exhibit is a single-merchant app. Don't expose a deployment with live PayPal credentials until authentication sits in front of it." },
 ];
@@ -76,11 +76,11 @@ export default function ProductOverviewPage() {
         lede="Exhibit watches recent orders for the signs that come before a PayPal dispute, investigates each case that opens, writes the response with every claim cited to a record, and files it through PayPal's own API once you approve. When the buyer is right, it refunds."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }
@@ -215,8 +215,8 @@ export default function ProductOverviewPage() {
               <div className="s-pr-run__way">
                 <h3 className="s-h s-h--h3">The live demo</h3>
                 <p>A built-in PayPal simulator with the real API&apos;s request and response shapes, error codes and file limits, for a fictional store, Kora Atelier. Recorded Claude runs replay and every tool call executes live. A banner says what is real, simulated or recorded, and the demo resets after 20 quiet minutes.</p>
-                <ButtonLink href={ROUTES.app} variant="light" arrow>
-                  Try the live demo
+                <ButtonLink href={CTA.primary.href} variant="light" arrow>
+                  {CTA.primary.label}
                 </ButtonLink>
               </div>
               <div className="s-pr-run__way">

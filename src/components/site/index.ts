@@ -14,4 +14,4 @@ export { Facts, Stat, StatusCode, Tag } from "./records";
 export { Reveal } from "./Reveal";
 export { SiteNav } from "./SiteNav";
 export { SiteFooter } from "./SiteFooter";
-export { COMPANY_LINKS, FOOTER_COLUMNS, NAV, NAV_ACTIONS, PRODUCT_LINKS, ROUTES, type NavLink } from "./nav";
+export { COMPANY_LINKS, CTA, FOOTER_COLUMNS, HAS_APP, NAV, NAV_ACTIONS, PRODUCT_LINKS, ROUTES, type NavLink } from "./nav";

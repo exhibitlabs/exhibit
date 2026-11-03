@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, PlateCaption, Plate, Reveal, ROUTES, Section, SectionHead, TextLink, UiCard, UiPill, UiSheet, UiWindow } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink, UiCard, UiPill, UiSheet, UiWindow } from "@/components/site";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
 import { ProductPager } from "@/components/site/product/ProductPager";
@@ -94,11 +94,11 @@ export default function InvestigatePage() {
         lede="For each dispute, Exhibit's agent pulls the case from PayPal and reads the records around it: the order, the carrier scans, the buyer's history and messages, the checkout signals, the store policies and PayPal's Seller Protection rules. Then it decides, and every reason points to the record it came from."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }

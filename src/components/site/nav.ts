@@ -60,11 +60,24 @@ export const NAV: { label: string; href?: string; children?: NavLink[] }[] = [
   { label: "Company", children: COMPANY_LINKS },
 ];
 
+/**
+ * Whether this build serves the app at /app. The static website deploy has no server, so no app: it is built with
+ * NEXT_PUBLIC_EXHIBIT_SITE_ONLY=1 (scripts/build-site.mjs), which turns every "Try the live demo" into "Book a demo"
+ * and hides Sign in.
+ */
+export const HAS_APP = process.env.NEXT_PUBLIC_EXHIBIT_SITE_ONLY !== "1";
+
+/** The site's two calls to action. Without the app, booking a demo leads and the sandbox record follows. */
+export const CTA = {
+  primary: HAS_APP ? { label: "Try the live demo", href: ROUTES.app } : { label: "Book a demo", href: ROUTES.contact },
+  secondary: HAS_APP ? { label: "Book a demo", href: ROUTES.contact } : { label: "See the sandbox proof", href: ROUTES.proof },
+};
+
 export const NAV_ACTIONS = {
-  signIn: { label: "Sign in", href: ROUTES.app },
-  primary: { label: "Try the live demo", href: ROUTES.app },
-  secondary: { label: "Book a demo", href: ROUTES.contact },
-} as const;
+  signIn: HAS_APP ? { label: "Sign in", href: ROUTES.app } : null,
+  primary: CTA.primary,
+  secondary: CTA.secondary,
+};
 
 /** Footer sitemap columns. */
 export const FOOTER_COLUMNS: { title: string; links: NavLink[] }[] = [

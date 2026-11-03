@@ -2,7 +2,7 @@ import { Instrument_Serif } from "next/font/google";
 import { ButtonLink } from "@/components/site/actions";
 import { DotArt } from "@/components/site/dots/DotArt";
 import { Container } from "@/components/site/layout";
-import { ROUTES } from "@/components/site/nav";
+import { CTA, HAS_APP, ROUTES } from "@/components/site/nav";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
 import { Eyebrow, Heading, Lede } from "@/components/site/type";
@@ -23,10 +23,10 @@ export default function NotFound() {
             <div className="s-404__txt">
               <Eyebrow>404</Eyebrow>
               <Heading as="h1" size="h1" title="No such address." rest="This page was returned to sender." />
-              <Lede className="s-404__lede">The link may be old or mistyped, or the page is still being written. The live demo and the record behind it are one click away.</Lede>
+              <Lede className="s-404__lede">The link may be old or mistyped, or the page is still being written. {HAS_APP ? "The live demo" : "A demo"} and the record behind it are one click away.</Lede>
               <div className="s-actions">
-                <ButtonLink href={ROUTES.app} arrow>
-                  Try the live demo
+                <ButtonLink href={CTA.primary.href} arrow>
+                  {CTA.primary.label}
                 </ButtonLink>
                 <ButtonLink href={ROUTES.home} variant="ghost">
                   Home

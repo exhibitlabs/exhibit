@@ -106,7 +106,7 @@ Each of these is implemented and runs against the simulator, which follows PayPa
 |---|---|---|
 | `make-offer` and `send-message` | PayPal allows them only at the inquiry stage. Chargebacks from `process-chargeback` skip that stage, and opening a buyer-side inquiry needs PayPal partner consent. | The simulator and the filing tests |
 | Tracking push and capture refunds | `POST /v2/checkout/orders/{id}/track` and `POST /v2/payments/captures/{id}/refund` are implemented but have not been called on the live sandbox yet. | The simulator and the Prevention tests |
-| Webhooks | PayPal only delivers to a public HTTPS URL, and Exhibit is not deployed yet. | Signature checks through `verify-webhook-signature`, which the simulator implements |
+| Webhooks | PayPal only delivers to a public HTTPS URL, and only the website is deployed so far, not the app. | Signature checks through `verify-webhook-signature`, which the simulator implements |
 | `require-evidence` | A sandbox-only call Exhibit has not needed on the live sandbox. | The simulator |
 | A buyer accepting an offer | Needs buyer credentials. | A demo-only simulator control |
 | A PayPal decision on the merits | The one resolved sandbox case closed after a sandbox-only `adjudicate` call. Sandbox outcomes do not show how a real PayPal reviewer would rule. | Nothing can stand in for it |

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
 import { AskReplay } from "@/components/site/product/AskReplay";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
@@ -53,11 +53,11 @@ export default function AskPage() {
         lede="Press ⌘K and ask in plain words: what is at stake, what is due, why a reason keeps losing, which orders may turn into disputes. Ask Exhibit answers from read-only tools over your own data, and a check rejects any case it names that is not in your book and any chart value no tool returned."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }

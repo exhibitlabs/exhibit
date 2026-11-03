@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Body, ButtonLink, Container, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, TextLink } from "@/components/site";
+import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, TextLink } from "@/components/site";
 import { PacketViewer } from "@/components/site/product/PacketViewer";
 import { ProductCta } from "@/components/site/product/ProductCta";
 import { ProductNav } from "@/components/site/product/ProductNav";
@@ -54,11 +54,11 @@ export default function EvidencePage() {
         lede="Exhibit writes the letter PayPal's reviewer reads and binds each piece of evidence behind it as a lettered exhibit. The packet is rendered from the records themselves, never retyped by the model, and it goes to PayPal through the Disputes API once you approve."
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
-            <ButtonLink href={ROUTES.contact} variant="ghost">
-              Book a demo
+            <ButtonLink href={CTA.secondary.href} variant="ghost">
+              {CTA.secondary.label}
             </ButtonLink>
           </>
         }

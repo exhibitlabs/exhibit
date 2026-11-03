@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { companyMetadata } from "@/components/site/company/meta";
 import type { ReactNode } from "react";
-import { DEMO_URL, EVALUATION, FOUNDER_GITHUB_URL, PAYPAL_AGENT_TOOLS, TEAM } from "@/components/landing/data";
-import { Actions, Body, ButtonLink, Container, DotArt, Eyebrow, Heading, Lede, Mono, PageHeader, PlateCaption, PlateOverlay, PlateStage, ROUTES, Section, SectionHead, Small, Terminal, TextLink } from "@/components/site";
+import { EVALUATION, FOUNDER_GITHUB_URL, PAYPAL_AGENT_TOOLS, TEAM } from "@/components/landing/data";
+import { Actions, Body, ButtonLink, Container, CTA, DotArt, Eyebrow, HAS_APP, Heading, Lede, Mono, PageHeader, PlateCaption, PlateOverlay, PlateStage, ROUTES, Section, SectionHead, Small, Terminal, TextLink } from "@/components/site";
 import { FactStrip } from "@/components/site/company/FactStrip";
 import { CONTACT_EMAIL, GITHUB } from "@/components/site/company/records";
 
@@ -60,8 +60,8 @@ export default function AboutPage() {
         lede={`Exhibit is an AI agent that answers PayPal disputes for merchants. ${TEAM.names} started it for the PayPal AI Hackathon 2026, with the first commit on ${TEAM.firstCommit}. The code is open source.`}
         actions={
           <>
-            <ButtonLink href={DEMO_URL} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
             <ButtonLink href={`${ROUTES.about}#founders`} variant="ghost">
               Meet the founders
@@ -294,11 +294,11 @@ export default function AboutPage() {
                 Write to <a href={`mailto:${CONTACT_EMAIL}`} className="underline decoration-[color:var(--s-line-2)] underline-offset-4 hover:decoration-[color:var(--s-ink)]">{CONTACT_EMAIL}</a>, or run a case end to end in the live demo.
               </Body>
               <Actions>
-                <ButtonLink href={DEMO_URL} arrow>
-                  Try the live demo
+                <ButtonLink href={CTA.primary.href} arrow>
+                  {CTA.primary.label}
                 </ButtonLink>
-                <ButtonLink href={ROUTES.contact} variant="ghost">
-                  Contact us
+                <ButtonLink href={HAS_APP ? ROUTES.contact : CTA.secondary.href} variant="ghost">
+                  {HAS_APP ? "Contact us" : CTA.secondary.label}
                 </ButtonLink>
               </Actions>
             </div>

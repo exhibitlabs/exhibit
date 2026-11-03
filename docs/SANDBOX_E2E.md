@@ -96,7 +96,7 @@ Each of these is now enforced by Exhibit's PayPal client and by the simulator th
 
 Honest gaps. Each one is implemented and runs against the simulator, which follows PayPal's documented request and response shapes.
 
-- **Webhooks.** PayPal only delivers to a public HTTPS URL, and nothing is deployed yet. Signature checks use PayPal's verify-webhook-signature API and run in the simulator.
+- **Webhooks.** PayPal only delivers to a public HTTPS URL, and only the website is deployed so far, not the app. Signature checks use PayPal's verify-webhook-signature API and run in the simulator.
 - **make-offer and send-message.** PayPal allows them only at the inquiry stage. Sandbox chargebacks from process-chargeback skip that stage, and opening a buyer-side inquiry needs PayPal partner consent.
 - **Tracking push and capture refunds.** POST /v2/checkout/orders/{id}/track and POST /v2/payments/captures/{id}/refund are implemented and run against the simulator, but have not been called on the live sandbox.
 - **A PayPal decision on the merits.** The one resolved case closed after a sandbox-only adjudicate call. Sandbox outcomes don't show how a real PayPal reviewer would rule.

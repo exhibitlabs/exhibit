@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { ButtonLink, Container, DotArt, PageHeader, ROUTES, Stat, StatusCode, TextLink, UiPill } from "@/components/site";
+import { ButtonLink, Container, CTA, DotArt, PageHeader, Stat, StatusCode, TextLink, UiPill } from "@/components/site";
 import { callKind, describe, fmtDate, fmtDateTime, fmtMs, fmtSeconds, LESSONS, MODEL_NAME, NOT_LIVE, OUTCOME_TEXT, PROOF, RECORD, shortPath, usd, type CallKind } from "@/components/site/facts";
 import { CallStrip } from "@/components/site/home/ProofBoard";
 import { GITHUB_URL } from "@/components/landing/data";
@@ -82,8 +82,8 @@ export default function ProofPage() {
         }
         actions={
           <>
-            <ButtonLink href={ROUTES.app} arrow>
-              Try the live demo
+            <ButtonLink href={CTA.primary.href} arrow>
+              {CTA.primary.label}
             </ButtonLink>
             <ButtonLink href={`${GITHUB_URL}/blob/main/docs/SANDBOX_E2E.md`} variant="ghost">
               Read the write-up
