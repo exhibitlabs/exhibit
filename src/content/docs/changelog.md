@@ -16,9 +16,14 @@ A new website, the documentation and the final design pass on the app, all in th
 - **The website.** Home, `/proof`, six product pages, security, pricing, about, contact, legal pages and a 404. The product pictures are rebuilt from the app with real records, the homepage packet is the one filed on Nov 3, and the dot art renders the same in Chrome and Safari. A sitemap and robots file. `2abe621`
 - **The docs.** Sixteen pages under `/docs`, written in Markdown, with search, an on-page table of contents and copyable code. Every internal link is checked at build time, and every command, variable, endpoint and UI label is checked against the code. `71288ee`
 - **The website is live** at [exhibit.9to5code.com](https://exhibit.9to5code.com), deployed as static files on Cloudflare. Until the app has a host, its calls to action book a demo instead of opening it. `3081f33`
+- **A pinned product tour.** The six product pages share a tour bar that stays under the header as you scroll: chapters 00 to 05 with mini dot icons, a reading-progress line and the next chapter one click away. `/product` opens with a map of the chapters, and each chapter ends with a card for the next. `4fdc085`
+- **A contact form that reaches the founders.** Visitors pick up to three times on a calendar, in their own time zone with India time beside each, and the message goes straight to the founders' inbox through a small Cloudflare Worker, checked by Turnstile. `a2df3ce`
 
 ### Changed
 
+- **The header and menus.** A larger logo whose gold arm slides on hover, and Product and Company mega menus with ink dot drawings that change as you move through them. `ee30dec`
+- **The company page is Exhibit Labs.** Exhibit in 8 facts, six about the market and two about Exhibit, each with its source, replace the timeline, and the founders appear with their photos and quote. The footer, legal pages and docs credit Exhibit Labs and both co-founders. `514de08`
+- **359 tests in 20 files**, after the contact form and the tour added their own. `d087abb`
 - **The app's final design pass.** One type scale, spacing, radius, button and table style across every screen. A top bar holds the environment line, the Ask Exhibit search and the guide, the case page is calmer, and the empty states use the site's dot art. `f22fd63`
 - **The pitch deck** at `/pitch`, rebuilt from the website's components, with every fact taken from the records. `7cd7b46`
 - **The README, brand assets and Devpost gallery**, rewritten and re-captured in the new design. Every repository link now points at the `exhibitlabs` organisation. `1d1dd06`
