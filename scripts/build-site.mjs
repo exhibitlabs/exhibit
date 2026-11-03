@@ -7,7 +7,12 @@
 // The build runs with NEXT_PUBLIC_EXHIBIT_SITE_ONLY=1: "Try the live demo" becomes "Book a demo", Sign in is hidden
 // and images are served unoptimized (there is no server). Every site page is prerendered, so the output is the
 // prerendered HTML, the hashed assets in /_next/static, /public and the static metadata files (sitemap, robots,
-// Open Graph images, the docs search index). /app, /api and /pitch are left out.
+// Open Graph images, the docs search index). /app, /api and /pitch are left out; the site's Worker
+// (deploy/site/worker.ts) answers the one dynamic route, POST /api/contact.
+//
+// The contact form's Turnstile widget gets the site's public site key. To try the built site locally with
+// `wrangler dev`, build with Cloudflare's test key instead: NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA.
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAFygUWhy3fgpVlKC";
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -22,7 +27,7 @@ if (!process.argv.includes("--no-build")) {
   execFileSync("npx", ["next", "build"], {
     cwd: ROOT,
     stdio: "inherit",
-    env: { ...process.env, NEXT_PUBLIC_EXHIBIT_SITE_ONLY: "1", EXHIBIT_DIST_DIR: ".next-site", EXHIBIT_PAYPAL_MODE: "demo", EXHIBIT_AI_PROVIDER: "replay", NEXT_TELEMETRY_DISABLED: "1" },
+    env: { ...process.env, NEXT_PUBLIC_EXHIBIT_SITE_ONLY: "1", NEXT_PUBLIC_TURNSTILE_SITE_KEY: TURNSTILE_SITE_KEY, EXHIBIT_DIST_DIR: ".next-site", EXHIBIT_PAYPAL_MODE: "demo", EXHIBIT_AI_PROVIDER: "replay", NEXT_TELEMETRY_DISABLED: "1" },
   });
 }
 
@@ -68,3 +73,9 @@ for (const must of ["index.html", "404.html", "proof.html", "docs.html", "sitema
   if (!existsSync(path.join(OUT, must))) throw new Error(`Missing ${must} in ${OUT}`);
 }
 console.log(`Static site: ${pages} pages and ${files} other files in ${path.relative(ROOT, OUT)}`);
+// Cloudflare's test site keys start with 1x, 2x or 3x. The live secret rejects their tokens, so such a build
+// would refuse every contact message if it were deployed.
+if (!process.argv.includes("--no-build")) {
+  if (/^[123]x/.test(TURNSTILE_SITE_KEY)) console.warn(`Turnstile: TEST site key ${TURNSTILE_SITE_KEY}. For local testing only; don't deploy this build.`);
+  else console.log(`Turnstile: site key ${TURNSTILE_SITE_KEY}`);
+}

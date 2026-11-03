@@ -6,7 +6,7 @@ import { HAS_APP, ROUTES } from "@/components/site";
 import { LegalPage } from "@/components/site/company/LegalPage";
 import { CONTACT_EMAIL } from "@/components/site/company/records";
 
-const DESCRIPTION = "Exhibit's privacy page in plain words: this website sets no cookies and runs no analytics, the contact form only opens your email app, and a self-hosted Exhibit keeps its data on your own machine.";
+const DESCRIPTION = "Exhibit's privacy page in plain words: this website sets no cookies and runs no analytics, the contact form emails your message to the founders and stores nothing, and a self-hosted Exhibit keeps its data on your own machine.";
 
 export const metadata: Metadata = companyMetadata({ title: "Privacy", description: DESCRIPTION, path: "/legal/privacy" });
 
@@ -14,13 +14,13 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy"
-      rest="This website collects nothing about you."
-      lede={`Exhibit is an open-source hackathon project. Here, in plain words: what this website records (nothing of its own),${HAS_APP ? " what the live demo keeps," : ""} and what a copy of Exhibit you run yourself stores and shares.`}
-      updated="November 3, 2026"
+      rest="This website stores nothing about you."
+      lede={`Exhibit is open-source software from Exhibit Labs. Here, in plain words: what this website records (nothing of its own),${HAS_APP ? " what the live demo keeps," : ""} and what a copy of Exhibit you run yourself stores and shares.`}
+      updated="November 4, 2026"
       art="letter"
       short={[
         { icon: Cookie, text: "No cookies, analytics or tracking on this website." },
-        { icon: Mail, text: "The contact form opens your own email app. It sends nothing to us." },
+        { icon: Mail, text: "The contact form emails your message to the founders. This site keeps no copy." },
         { icon: Database, text: "A self-hosted Exhibit keeps its data on your machine, in SQLite." },
         { icon: Network, text: "It talks to PayPal and Anthropic only when you set them up." },
       ]}
@@ -30,8 +30,19 @@ export default function PrivacyPage() {
           title: "This website",
           body: (
             <>
-              <p>This website sets no cookies and runs no analytics, advertising or tracking scripts. Its fonts and pictures are served from the site itself, so reading it doesn&apos;t make your browser contact a font service or any other third party.</p>
-              <p>The contact form doesn&apos;t send anything to a server. It writes an email and opens it in your own email app. If you send it, we receive what you wrote, from your email address, and use it to reply to you.</p>
+              <p>This website sets no cookies and runs no analytics, advertising or tracking scripts. Its fonts and pictures are served from the site itself, so reading it doesn&apos;t make your browser contact a font service or any other third party. The one exception is the contact form&apos;s bot check, below.</p>
+              <p>
+                <strong>The contact form.</strong> When you send it, it sends what you entered to the founders: your name and email address, the topic, and your company, website, monthly PayPal disputes and message if you add them. For a demo it also sends the times you picked, in your time zone and in India&apos;s. With them go the page you came from and when you sent the message. We use it only to reply to you.
+              </p>
+              <p>The message passes through this website&apos;s Cloudflare Worker, and Cloudflare Email Routing delivers it as an email to the founders&apos; inbox. Nothing is stored on the website: it keeps no database and no copy of messages. The email stays in our inbox.</p>
+              <p>
+                To keep out spam, the form uses Cloudflare Turnstile. When you start filling it in, your browser loads Turnstile from <code>challenges.cloudflare.com</code>. It checks signals such as your IP address and browser to tell people from bots, and the website confirms the result with Cloudflare before sending. Cloudflare says it doesn&apos;t use these signals to identify, profile or target anyone; its{" "}
+                <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener noreferrer">
+                  Turnstile privacy addendum
+                </a>{" "}
+                has the details.
+              </p>
+              <p>If the form can&apos;t send, for example because something blocks the bot check, it offers to open the message in your own email app instead. Then it reaches us from your email address, like any email you write to {CONTACT_EMAIL}.</p>
               <p>The server that hosts this website may keep standard request logs, such as IP addresses, browser types and the pages requested, as most web servers do. Exhibit adds no tracking of its own.</p>
             </>
           ),

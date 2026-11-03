@@ -3,10 +3,10 @@ import { companyMetadata } from "@/components/site/company/meta";
 import Link from "next/link";
 import { ArrowUpRight, Bug, Code2, ShieldAlert } from "lucide-react";
 import { Body, Container, DotArt, Eyebrow, Heading, Lede, PageHeader, ROUTES, Section, SectionHead, Small } from "@/components/site";
-import { MailtoForm } from "@/components/site/company/MailtoForm";
+import { ContactForm } from "@/components/site/company/ContactForm";
 import { CONTACT_EMAIL, GITHUB } from "@/components/site/company/records";
 
-const DESCRIPTION = `Book a demo of Exhibit or ask a question. Write to ${CONTACT_EMAIL}, or use the form, which opens your own email app with the message ready.`;
+const DESCRIPTION = `Book a demo of Exhibit or ask a question. The form sends your message straight to the founders' inbox, and you can pick times for a demo. Or write to ${CONTACT_EMAIL}.`;
 
 export const metadata: Metadata = companyMetadata({ title: "Contact", description: DESCRIPTION, path: "/contact" });
 
@@ -44,14 +44,14 @@ export default function ContactPage() {
         eyebrow="Contact"
         title="Book a demo, or ask us anything."
         rest="There's no sales team, just the two co-founders."
-        lede={`The form opens a ready-to-send email in your own email app. You can also write to ${CONTACT_EMAIL} directly. This site has no form backend, so nothing is sent until you press Send.`}
+        lede={`The form sends your message straight to the founders' inbox. For a demo, pick a few times that suit you. You can also write to ${CONTACT_EMAIL} directly.`}
         aside={<DotArt name="letter" frame className="w-[180px] sm:w-[220px] lg:w-full lg:max-w-[292px]" />}
       />
 
       {/* The form and the letter it will open */}
       <Section spacing="tight" label="Contact form">
         <Container>
-          <MailtoForm to={CONTACT_EMAIL} />
+          <ContactForm to={CONTACT_EMAIL} privacyHref={ROUTES.legal.privacy} />
         </Container>
       </Section>
 
@@ -104,26 +104,26 @@ export default function ContactPage() {
               <ol className="s-co-steps">
                 <li>
                   <div>
-                    <h3>Your email app opens</h3>
-                    <p>The message is filled in from the form. Change anything you like, then send it from your own address.</p>
-                  </div>
-                </li>
-                <li>
-                  <div>
                     <h3>It reaches the founders</h3>
-                    <p>At {CONTACT_EMAIL}. Nothing passes through this website on the way.</p>
+                    <p>Straight to our inbox, with any times you picked in your time zone and in India&apos;s, where we are.</p>
                   </div>
                 </li>
                 <li>
                   <div>
                     <h3>We reply by email</h3>
-                    <p>We aim to reply within a few days.</p>
+                    <p>To the address you gave. We aim to reply within a few days.</p>
                   </div>
                 </li>
                 <li>
                   <div>
-                    <h3>For a demo, we pick a time</h3>
-                    <p>Then we walk through a case with you, on the live demo or on your own PayPal sandbox.</p>
+                    <h3>For a demo, we confirm a time</h3>
+                    <p>One of the times you picked, or another that suits you.</p>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <h3>We walk through a case with you</h3>
+                    <p>On the live demo or on your own PayPal sandbox.</p>
                   </div>
                 </li>
               </ol>
@@ -131,7 +131,7 @@ export default function ContactPage() {
             <div className="flex flex-col justify-between gap-10 lg:col-span-5 lg:col-start-8">
               <DotArt name="bubble" className="w-full max-w-[420px]" />
               <div>
-                <Lede>This page sends nothing to any server and sets no cookies. What you type stays in your browser until your email app takes it.</Lede>
+                <Lede>The form sends what you see in its preview, plus the page you came from and the time. It goes to our inbox, and this site stores none of it.</Lede>
                 <Body className="mt-3">
                   How Exhibit handles data is on the{" "}
                   <Link href={ROUTES.legal.privacy} className="underline decoration-[color:var(--s-line-2)] underline-offset-4 hover:decoration-[color:var(--s-ink)]">

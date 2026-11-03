@@ -1,13 +1,22 @@
-// The marketing website and docs on Cloudflare Workers static assets (no server code, no app).
-// Build with `node scripts/build-site.mjs`, then deploy with `npx wrangler deploy --config deploy/site/wrangler.jsonc`.
+// The marketing website and docs on Cloudflare Workers static assets, plus a small Worker (worker.ts) that
+// answers POST /api/contact: it checks Turnstile and emails the contact form to the founders. Every other
+// request is a static asset. There is no app here.
+//
+//   node scripts/build-site.mjs
+//   npx wrangler secret put TURNSTILE_SECRET --config deploy/site/wrangler.jsonc   # once; the widget's secret key
+//   npx wrangler deploy --config deploy/site/wrangler.jsonc
 {
   "name": "exhibit-site",
+  "main": "./worker.ts",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
   },
+  // Sends from contact@exhibit.9to5code.com (Email Routing is active on the subdomain), only to this verified address.
+  "send_email": [{ "name": "SEND_EMAIL", "destination_address": "shivansh2283@gmail.com" }],
   "routes": [{ "pattern": "exhibit.9to5code.com", "custom_domain": true }],
   "workers_dev": false,
   "preview_urls": false

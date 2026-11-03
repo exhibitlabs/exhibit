@@ -1,0 +1,555 @@
+/* =================================================================================================
+   The contact form's scheduler and its send states (ContactForm.tsx, Scheduler.tsx). Same tokens and the
+   same components layer as site.css and company.css; prefixed s-sched- (the scheduler) and s-co- (states).
+   Gold marks only the visitor's picks: the dot under a day and before each listed time.
+   ================================================================================================= */
+@layer components {
+  /* ---------------------------------------------------------------- the field */
+  .s-sched {
+    container: sched / inline-size;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .s-sched__head {
+    display: grid;
+    gap: 2px;
+  }
+  .s-sched__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--s-ink);
+  }
+  /* "(optional)" exactly as the form's other labels set it (company.css). */
+  .s-sched__label small {
+    font-size: smaller;
+    font-weight: 400;
+    color: var(--s-muted);
+  }
+  .s-sched__hint {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--s-muted);
+  }
+  .s-sched__body {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  /* ---------------------------------------------------------------- the panel: the month, then the day's times */
+  .s-sched__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    border: 1px solid var(--s-line-2); /* taste-skill-ignore: a form field's edge, like the inputs above it */
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__panel {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    }
+  }
+  .s-sched__panel--waiting {
+    place-items: center;
+    min-height: 600px;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__panel--waiting {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 372px;
+    }
+  }
+  .s-sched__wait {
+    margin: 0;
+    padding: 0 20px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--s-muted);
+  }
+
+  .s-sched__cal {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 12px 10px 10px;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__cal {
+      padding: 14px 12px 12px;
+    }
+  }
+  .s-sched__month {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 6px;
+    padding-left: 6px;
+  }
+  .s-sched__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--s-ink);
+  }
+  .s-sched__navs {
+    display: flex;
+    gap: 2px;
+  }
+  .s-sched__nav {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--s-ink);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .s-sched__nav:hover {
+    background: var(--s-band);
+  }
+  .s-sched__nav[aria-disabled="true"] {
+    background: transparent;
+    color: #c4c4c1;
+    cursor: default;
+  }
+
+  .s-sched__days {
+    width: calc(100% + 4px);
+    margin: 0 -2px;
+    border-collapse: separate;
+    border-spacing: 2px;
+    table-layout: fixed;
+  }
+  .s-sched__days th {
+    padding: 0 0 4px;
+    font-size: 13px;
+    font-weight: 400;
+    text-align: center;
+    color: var(--s-muted);
+  }
+  .s-sched__days th[data-weekend] {
+    color: #8f8f8c;
+  }
+  .s-sched__day {
+    position: relative;
+    height: 44px;
+    padding: 0;
+    border-radius: 7px;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    vertical-align: middle;
+    color: var(--s-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__day {
+      height: 36px;
+      font-size: 13.5px;
+    }
+  }
+  /* Weekends are offered, but read second. */
+  .s-sched__day[data-state="weekend"] {
+    color: var(--s-muted);
+  }
+  .s-sched__day[data-state="none"],
+  .s-sched__day[data-state="out"] {
+    color: #c4c4c1;
+    cursor: default;
+  }
+  .s-sched__day[data-state="open"]:hover,
+  .s-sched__day[data-state="weekend"]:hover {
+    background: var(--s-band);
+  }
+  .s-sched__day[aria-selected="true"],
+  .s-sched__day[aria-selected="true"]:hover {
+    background: var(--s-ink);
+    color: #fff;
+  }
+  .s-sched__day[data-picked]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--s-gold);
+  }
+  .site .s-sched__day:focus-visible {
+    outline: 2px solid var(--s-ink);
+    outline-offset: 1px;
+  }
+
+  .s-sched__tz {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding: 10px 4px 0 6px;
+    font-size: 13px;
+    color: var(--s-muted);
+  }
+  .s-sched__tz .s-icon {
+    width: 14px;
+    height: 14px;
+    color: #8f8f8c;
+  }
+  .s-sched__tz label {
+    flex: none;
+  }
+  /* The chosen zone as text with a chevron; the real select lies over it, transparent, and takes every click and key. */
+  .s-sched__tzpick {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    height: 30px;
+    padding: 0 24px 0 6px;
+    border-radius: 6px;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236b6b6b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 6px center / 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--s-ink);
+    transition: background-color 0.15s ease;
+  }
+  .s-sched__tzpick > span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .s-sched__tzpick:hover {
+    background-color: var(--s-band);
+  }
+  .s-sched__tzpick:has(select:focus-visible) {
+    outline: 2px solid var(--s-ink);
+    outline-offset: 2px;
+  }
+  .s-sched__tzpick select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    font-size: 16px; /* at 16px iOS doesn't zoom the page when the picker opens */
+    cursor: pointer;
+  }
+
+  .s-sched__slots {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 14px 12px;
+    background: var(--s-band);
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__slots {
+      padding: 16px 12px;
+    }
+  }
+  .s-sched__dayname {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--s-ink);
+  }
+  .s-sched__gap {
+    margin: 2px 0 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--s-muted);
+  }
+  .s-sched__times {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__times {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .s-sched__slot {
+    height: 40px;
+    padding: 0 2px;
+    border: 0;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--s-line-2); /* taste-skill-ignore: form control outline, as .s-co-input */
+    font: inherit;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--s-ink);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      box-shadow 0.15s ease,
+      color 0.15s ease;
+  }
+  @container sched (min-width: 500px) {
+    .s-sched__slot {
+      height: 34px;
+    }
+  }
+  .s-sched__slot:hover {
+    box-shadow: inset 0 0 0 1px #b9b9b6; /* taste-skill-ignore: form control outline */
+  }
+  /* "am" and "pm" are read with the 13.5px time they follow, set smaller so "12:30 pm" fits a button. */
+  .s-sched__ampm {
+    font-size: 12px;
+    color: var(--s-muted);
+  }
+  .s-sched__slot[aria-pressed="true"] .s-sched__ampm {
+    color: #cfcfcc;
+  }
+  .s-sched__slot[aria-disabled="true"] .s-sched__ampm {
+    color: inherit;
+  }
+  .s-sched__slot[aria-pressed="true"] {
+    background: var(--s-ink);
+    color: #fff;
+    box-shadow: none; /* taste-skill-ignore: removes the outline */
+  }
+  .s-sched__slot[aria-disabled="true"] {
+    color: #b4b4b1;
+    box-shadow: inset 0 0 0 1px var(--s-line); /* taste-skill-ignore: form control outline */
+    cursor: not-allowed;
+  }
+  .s-sched__none {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--s-muted);
+  }
+  .s-sched__full {
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--s-ink-2);
+  }
+
+  /* ---------------------------------------------------------------- the picks, with India's time */
+  .s-sched__picked {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .s-sched__picked li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 4px 4px 4px 12px;
+    border-radius: 7px;
+    background: var(--s-band);
+  }
+  .s-sched__picked li::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--s-gold);
+  }
+  .s-sched__when {
+    font-size: 13.5px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--s-ink);
+  }
+  .s-sched__ist {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--s-muted);
+  }
+  .s-sched__remove {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--s-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .s-sched__remove:hover {
+    background: #e9e9e6;
+    color: var(--s-ink);
+  }
+  .s-sched__remove .s-icon {
+    width: 15px;
+    height: 15px;
+  }
+  .s-sched__empty {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--s-muted);
+  }
+
+  /* ---------------------------------------------------------------- sending, sent, and when it isn't */
+  /* The honeypot: clipped out of sight in place, out of the tab order and hidden from screen readers. */
+  .s-co-hp {
+    position: absolute;
+    width: 1px;
+    height: 1px; /* taste-skill-ignore: a hidden field, not a rule */
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .s-co-send {
+    display: flex;
+    flex-direction: column;
+  }
+  .s-co-send .s-co-status,
+  .s-co-send .s-co-alert {
+    max-width: 70ch;
+    margin-top: 14px;
+  }
+  .s-co-turnstile.is-on {
+    margin-bottom: 10px;
+  }
+  .s-co-hint {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--s-ink-2);
+  }
+  .s-btn[aria-disabled="true"] {
+    cursor: progress;
+  }
+  .s-co-spin {
+    animation: s-co-spin 0.9s linear infinite;
+  }
+  @keyframes s-co-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .s-co-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px 16px;
+    border-radius: 10px;
+    background: var(--s-red-soft);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--s-ink-2);
+  }
+  .s-co-alert b {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 500;
+    color: var(--s-ink);
+  }
+  .s-co-alert__icon.s-icon {
+    margin-top: 3px;
+    color: var(--s-red);
+  }
+  .s-co-alert__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .s-co-sent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    align-self: start;
+    padding: 28px 26px 30px;
+    border-radius: 12px;
+    background: var(--s-band);
+  }
+  .s-co-sent__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: var(--s-green);
+    color: #fff;
+  }
+  .s-co-sent__mark .s-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .s-co-sent h2 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.25;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--s-ink);
+  }
+  /* Focus moves here only so screen readers announce the result; it isn't a control, so no ring. */
+  .site .s-co-sent h2:focus {
+    outline: none;
+  }
+  .s-co-sent p {
+    max-width: 46ch;
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--s-body);
+  }
+  .s-co-sent p b {
+    font-weight: 500;
+    color: var(--s-ink);
+  }
+  .s-co-sent .s-btn {
+    margin-top: 10px;
+  }
+
+  /* the preview: the "Sent" mark, and a grey stand-in in the header */
+  .s-co-mail__sent {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--ui-green-soft);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ui-green);
+  }
+  .s-co-mail__sent .s-icon {
+    width: 12px;
+    height: 12px;
+  }
+  /* The preview's grey stand-ins for empty fields, dark enough to read (4.6:1 on white). */
+  .s-co-mail .s-co-mail__blank,
+  .s-co-mail .s-co-mail__body .blank {
+    color: #767674;
+  }
+}

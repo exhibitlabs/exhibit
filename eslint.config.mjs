@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     // Extra build outputs (a second dev server, CI build checks) and test coverage.
     ".next-*/**",
     "coverage/**",
+    // The static website build (scripts/build-site.mjs) and wrangler's local state.
+    "deploy/site/dist/**",
+    ".wrangler/**",
   ]),
 ]);
 
