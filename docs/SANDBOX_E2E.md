@@ -4,9 +4,9 @@ Every call below went from Exhibit, in sandbox mode, to `api-m.sandbox.paypal.co
 
 | API calls logged | Returned 2xx | Returned an error | Endpoints | Sandbox chargebacks | Agent runs |
 | --- | --- | --- | --- | --- | --- |
-| 218 | 214 | 4 | 12 | 4 | 12 |
+| 244 | 240 | 4 | 12 | 4 | 13 |
 
-Calls from Oct 20, 13:05 UTC to Nov 2, 22:20 UTC. 8 log rows that replayed a cached dispute read within seconds, with the same debug id and about 0 ms, are left out: they were not separate calls to PayPal.
+Calls from Oct 20, 13:05 UTC to Nov 3, 02:39 UTC. 8 log rows that replayed a cached dispute read within seconds, with the same debug id and about 0 ms, are left out: they were not separate calls to PayPal.
 
 ## The four chargebacks
 
@@ -14,7 +14,7 @@ Opened on sandbox captures with PayPal's sandbox-only `process-chargeback` endpo
 
 | Dispute | Buyer (demo) | Claim | Capture | Exhibit's call | Filed through the API | PayPal status |
 | --- | --- | --- | --- | --- | --- | --- |
-| PP-R-EGO-10193744 | Daniel Reyes | Unauthorized, $420 | `2GW87112CH2430330` | Fight, 88% (6 runs) | `provide-evidence` 200, `f199340a434c8`<br>`provide-supporting-info` 200, `ca4d904350e86`<br>`provide-supporting-info` 200, `f6032251fbc7b` | `UNDER_REVIEW`<br>checked Oct 21, 2026 |
+| PP-R-EGO-10193744 | Daniel Reyes | Unauthorized, $420 | `2GW87112CH2430330` | Fight, 88% (7 runs) | `provide-evidence` 200, `f199340a434c8`<br>`provide-supporting-info` 200, `ca4d904350e86`<br>`provide-supporting-info` 200, `f6032251fbc7b`<br>`provide-supporting-info` 200, `f4652162f684d` | `UNDER_REVIEW`<br>checked Nov 3, 2026 |
 | PP-R-KHB-10193747 | Jordan Kim | Item not received, $68 | `57002361HH0398920` | Refund, 3% (1 run) | `accept-claim` 200, `f229477d6e080` | `UNDER_REVIEW`<br>checked Oct 21, 2026 |
 | PP-R-QJO-10193739 | Megan Hale | Item not received, $284 | `6KA23344L64978705` | Fight, 80% (4 runs) | `provide-supporting-info` 200, `f559160835614`<br>`adjudicate` 200, `f390262856e3a` | `RESOLVED`<br>`RESOLVED_WITH_PAYOUT` / `REPRESENTED_BY_PAYPAL` |
 | PP-R-XTI-10193748 | Priya Patel | Credit not processed, $180 | `1P876401S2873814W` | Refund, 5% (1 run) | `accept-claim` 200, `f308851883563` | `UNDER_REVIEW`<br>checked Oct 29, 2026 |
@@ -42,6 +42,7 @@ Filings, refunds and the sandbox setup behind them, oldest first. The two failed
 | Oct 20, 13:54 | Accepted the claim: refund to the buyer, PP-R-XTI-10193748 | `POST …/disputes/{id}/accept-claim` | 200 | 1,714 ms | `f308851883563` |
 | Oct 20, 15:22 | Filed supporting info (letter, PDF packet), PP-R-EGO-10193744 | `POST …/disputes/{id}/provide-supporting-info` | 200 | 2,078 ms | `ca4d904350e86` |
 | Oct 20, 15:57 | Filed supporting info (letter, PDF packet), PP-R-EGO-10193744 | `POST …/disputes/{id}/provide-supporting-info` | 200 | 2,425 ms | `f6032251fbc7b` |
+| Nov 3, 02:39 | Filed supporting info (letter, PDF packet), PP-R-EGO-10193744, approved by the merchant after an AI agent asked through MCP | `POST …/disputes/{id}/provide-supporting-info` | 200 | 2,614 ms | `f4652162f684d` |
 
 ## Endpoints exercised live
 
@@ -49,22 +50,22 @@ Filings, refunds and the sandbox setup behind them, oldest first. The two failed
 
 | Endpoint | Calls | 2xx | Errors | Median latency |
 | --- | --- | --- | --- | --- |
-| `GET /v1/customer/disputes/{id}` | 131 | 131 | 0 | 1,226 ms |
-| `GET /v1/customer/disputes` | 27 | 27 | 0 | 1,056 ms |
+| `GET /v1/customer/disputes/{id}` | 153 | 153 | 0 | 1,229 ms |
+| `GET /v1/customer/disputes` | 28 | 28 | 0 | 1,070 ms |
 | `GET /v2/checkout/orders/{id}` | 14 | 14 | 0 | 1,030 ms |
 | `POST /v2/checkout/orders` | 13 | 11 | 2× 422 | 1,020 ms |
-| `GET /v2/payments/captures/{id}` | 10 | 10 | 0 | 992 ms |
-| `POST /v1/oauth2/token` | 8 | 8 | 0 | 1,035 ms |
+| `GET /v2/payments/captures/{id}` | 11 | 11 | 0 | 1,009 ms |
+| `POST /v1/oauth2/token` | 9 | 9 | 0 | 1,131 ms |
+| `POST /v1/customer/disputes/{id}/provide-supporting-info` | 4 | 4 | 0 | 2,374 ms |
 | `POST /v1/customer/disputes/{id}/provide-evidence` | 3 | 1 | 1× 400, 1× 500 | 2,401 ms |
 | `POST /v2/checkout/orders/{id}/capture` | 3 | 3 | 0 | 1,961 ms |
 | `POST /v2/customer-support/process-chargeback` | 3 | 3 | 0 | 1,658 ms |
-| `POST /v1/customer/disputes/{id}/provide-supporting-info` | 3 | 3 | 0 | 2,322 ms |
 | `POST /v1/customer/disputes/{id}/accept-claim` | 2 | 2 | 0 | 1,762 ms |
 | `POST /v1/customer/disputes/{id}/adjudicate` | 1 | 1 | 0 | 2,138 ms |
 
 ## Agent runs
 
-12 runs, all Claude Opus 5.5 on the Claude CLI. 8 filed a brief, 3 ended without one and filed nothing, and 1 never finished. Every brief is validated before it is saved: citations must resolve and the action must be one PayPal allows.
+13 runs, all Claude Opus 5.5 on the Claude CLI. 9 filed a brief, 3 ended without one and filed nothing, and 1 never finished. Every brief is validated before it is saved: citations must resolve and the action must be one PayPal allows.
 
 | Started (UTC) | Dispute | Result | Duration |
 | --- | --- | --- | --- |
@@ -80,6 +81,7 @@ Filings, refunds and the sandbox setup behind them, oldest first. The two failed
 | Oct 20, 15:59 | PP-R-EGO-10193744 | No brief: the agent finished without filing a case brief | 3.2 s |
 | Oct 20, 16:44 | PP-R-EGO-10193744 | Fight, 90%, 6 exhibits | 35.9 s |
 | Oct 21, 00:35 | PP-R-EGO-10193744 | Fight, 88%, 6 exhibits | 35.6 s |
+| Nov 3, 02:34 | PP-R-EGO-10193744 | Fight, 88%, 6 exhibits | 33.3 s |
 
 ## What the real API taught us
 

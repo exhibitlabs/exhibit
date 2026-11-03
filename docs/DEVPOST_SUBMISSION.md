@@ -46,7 +46,7 @@ Exhibit is a dispute agent for PayPal merchants. It reads each dispute and charg
 
 **For judges: Exhibit against the five criteria**
 
-- **Technological Implementation.** Disputes API write endpoints called live: 6 dispute responses filed on the PayPal sandbox, 218 logged calls across 12 endpoints, each with HTTP status and PayPal-Debug-Id ([sandbox run](https://github.com/shvuuuu/exhibit/blob/main/docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves and the action is one PayPal allows right now ([guardrails](https://github.com/shvuuuu/exhibit#guardrails)). 286 tests run with `npm test` and no keys.
+- **Technological Implementation.** Disputes API write endpoints called live: 7 dispute responses filed on the PayPal sandbox, 244 logged calls across 12 endpoints, each with HTTP status and PayPal-Debug-Id ([sandbox run](https://github.com/shvuuuu/exhibit/blob/main/docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves and the action is one PayPal allows right now ([guardrails](https://github.com/shvuuuu/exhibit#guardrails)). 300 tests run with `npm test` and no keys.
 - **Design.** A complete product: a command center, an inbox with saved views, a case page with a live evidence graph, lifecycle stepper, cited letter and evidence packet, a prevention radar, an Autopilot simulation, agent approvals, a PayPal API inspector and a ⌘K "Ask Exhibit" palette. See the gallery.
 - **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback. Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes labelled before the run, Exhibit's decision matched the label in all 30, it refunded all 9 cases where the buyer was right instead of fighting them, and it made 0 false fights out of 18, in a median of 29 s per case. The builder wrote the cases and labels, with Claude, so this shows Exhibit applies its rules consistently, not real-world accuracy ([evaluation](https://github.com/shvuuuu/exhibit/blob/main/eval/RESULTS.md)).
 - **Innovation/Idea.** PayPal's agent tools can list, read and accept a dispute. Exhibit adds the investigation, the evidence and the filing, as an MCP server where agents request and merchants approve, the rule PayPal applies to its own MCP gateway ([MCP run](https://github.com/shvuuuu/exhibit/blob/main/docs/MCP_DEMO.md)).
@@ -54,9 +54,9 @@ Exhibit is a dispute agent for PayPal merchants. It reads each dispute and charg
 
 **Verified live on the PayPal sandbox**
 
-From Exhibit's own call log to `api-m.sandbox.paypal.com`, Oct 20 to Nov 2, 2026: 218 calls (214 returned 2xx, 4 returned an error) across 12 endpoints, 4 sandbox chargebacks and 12 agent runs. The dispute responses it filed:
+From Exhibit's own call log to `api-m.sandbox.paypal.com`, Oct 20 to Nov 3, 2026: 244 calls (240 returned 2xx, 4 returned an error) across 12 endpoints, 4 sandbox chargebacks and 13 agent runs. The dispute responses it filed:
 
-- **PP-R-EGO-10193744**, unauthorized, $420. Exhibit's call: fight, 88%. `POST /v1/customer/disputes/{id}/provide-evidence` returned 200 (PayPal-Debug-Id `f199340a434c8`), then `provide-supporting-info` returned 200 twice (`ca4d904350e86`, `f6032251fbc7b`). PayPal status: `UNDER_REVIEW`.
+- **PP-R-EGO-10193744**, unauthorized, $420. Exhibit's call: fight, 88%. `POST /v1/customer/disputes/{id}/provide-evidence` returned 200 (PayPal-Debug-Id `f199340a434c8`), then `provide-supporting-info` returned 200 twice (`ca4d904350e86`, `f6032251fbc7b`). On Nov 3 an outside AI agent (Claude Code, through Exhibit's MCP server) asked to file again; the merchant approved, and `provide-supporting-info` returned 200 (`f4652162f684d`). That moment is in the demo video. PayPal status: `UNDER_REVIEW`.
 - **PP-R-QJO-10193739**, item not received, $284. Fight, 80%. `provide-supporting-info` returned 200 (`f559160835614`). After a sandbox-only `adjudicate` call (200, `f390262856e3a`), PayPal shows it `RESOLVED` (`RESOLVED_WITH_PAYOUT` / `REPRESENTED_BY_PAYPAL`).
 - **PP-R-KHB-10193747**, item not received, $68: the parcel came back to the store undelivered. Refund, 3%. `accept-claim` returned 200 (`f229477d6e080`).
 - **PP-R-XTI-10193748**, credit not processed, $180: the return arrived and was never refunded. Refund, 5%. `accept-claim` returned 200 (`f308851883563`).
@@ -86,7 +86,7 @@ Then we read PayPal's [agent tools reference](https://developer.paypal.com/ai-to
 - **App:** Next.js 16 (App Router, TypeScript, React 19), Tailwind CSS 4, SQLite through `node:sqlite`, AG Grid and AG Charts Community for the inbox, order tables and charts, react-pdf for the evidence packet, Zod for every schema, and Vitest.
 - **AI:** Claude Opus 5.5 with adaptive thinking, behind one tool interface with three providers. By default the agent runs on the local Claude CLI login through the Claude Agent SDK, with Exhibit's tools and nothing else: no shell, no files, no other MCP servers. With `ANTHROPIC_API_KEY` set, it runs on the Claude API through the Anthropic SDK in a streaming tool loop. With neither, recorded Claude runs replay and every tool call still executes live.
 - **PayPal:** one REST client for OAuth, Disputes v1, Orders v2, Payments v2 and webhook verification. It logs status, latency and debug id for every call and never logs a secret. A simulator implements the same endpoints with PayPal's request and response shapes, error codes and limits (file types, 10 MB per file, 50 MB per call, 2,000-character notes), so the product runs with no credentials, and two environment variables switch it to the real sandbox.
-- **Guardrails in code, not in the prompt:** evidence refs that must resolve, action checks against the dispute's current HATEOAS links, an approval queue for agent requests, and Autopilot limits that no saved setting can raise. 286 tests, organised by guarantee.
+- **Guardrails in code, not in the prompt:** evidence refs that must resolve, action checks against the dispute's current HATEOAS links, an approval queue for agent requests, and Autopilot limits that no saved setting can raise. 300 tests, organised by guarantee.
 - **MCP:** a stdio server on the official MCP SDK (`mcp/server.ts`) that can only reach Exhibit's read and request endpoints.
 
 The flow: a merchant or an MCP agent → Exhibit (Next.js) → the Claude agent with read-only tools → the brief check (citations resolve, action allowed) → the merchant's approval → the PayPal client → the PayPal sandbox, or the simulator in demo mode. The [README](https://github.com/shvuuuu/exhibit#architecture) has the diagram.
@@ -103,7 +103,7 @@ The flow: a merchant or an MCP agent → Exhibit (Next.js) → the Claude agent 
 - Six dispute responses filed live through PayPal's Disputes API, each with a PayPal debug id, including the honest path: two claims accepted because the buyer was right.
 - A brief cannot be saved unless every citation resolves to a real record and the action is one PayPal allows on the case right now.
 - The full product runs with no setup, and the same PayPal client runs against the live sandbox.
-- 286 tests that need no keys and no network.
+- 300 tests that need no keys and no network.
 - An evaluation on 30 synthetic disputes across seven reasons, labelled and hashed before one live run: 30 of 30 decisions matched the label, 9 of 9 buyer-right cases were refunded rather than fought, 0 of 18 were false fights, and all 30 briefs passed the citation and action guardrails. The builder wrote the cases and labels, with Claude, so it shows consistency, not real-world accuracy.
 
 ## What we learned
@@ -153,7 +153,7 @@ Upload in this order (2880 x 1800 PNGs, captured at 1440 x 900 by [`docs/submiss
 | File | Caption |
 | --- | --- |
 | `gallery-01-landing.png` | The landing page. The graph replays a real Claude run on a PayPal sandbox chargeback. |
-| `gallery-02-proof.png` | The proof page: 218 logged PayPal sandbox calls and the four live chargebacks, with what Exhibit filed and PayPal's status. |
+| `gallery-02-proof.png` | The proof page: 244 logged PayPal sandbox calls and the four live chargebacks, with what Exhibit filed and PayPal's status. |
 | `gallery-03-command-center.png` | Command center on the demo merchant (fictional store, PayPal simulator): recovered, at risk and due next. |
 | `gallery-04-case.png` | A case: the evidence graph, Exhibit's brief and the response to PayPal, every claim cited to a lettered exhibit. Demo merchant. |
 | `gallery-05-prevention.png` | Prevention: a buyer threatened a PayPal dispute in German; Exhibit drafts the reply in German before she files. Demo merchant. |
@@ -190,7 +190,7 @@ The AI: if you are signed in to the Claude CLI on your machine, the agent runs l
 
 To use your own PayPal sandbox: create a REST app under Apps & Credentials (Sandbox) at developer.paypal.com, copy .env.example to .env.local, set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET, and restart. Settings > Test connection checks OAuth and the Disputes API. Settings > Seed the sandbox opens real sandbox chargebacks in three steps; the README explains each one.
 
-The live sandbox record (218 calls with PayPal debug ids) is at /proof in the running app and in docs/SANDBOX_E2E.md. Tests: npm test (286 tests, no keys, no network).
+The live sandbox record (244 calls with PayPal debug ids) is at /proof in the running app and in docs/SANDBOX_E2E.md. Tests: npm test (300 tests, no keys, no network).
 ```
 
 ### Tools used (required)

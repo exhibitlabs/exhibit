@@ -8,20 +8,21 @@ Exhibit reads each dispute from PayPal's Disputes API and investigates it with C
 
 ## Verified live on the PayPal sandbox
 
-Exhibit has run end to end on `api-m.sandbox.paypal.com`. Its own log holds 218 API calls from Oct 20 to Nov 2, 2026: 214 returned 2xx and 4 returned an error, across 12 endpoints, 4 sandbox chargebacks and 12 agent runs. These are the 6 dispute responses it filed through the API:
+Exhibit has run end to end on `api-m.sandbox.paypal.com`. Its own log holds 244 API calls from Oct 20 to Nov 3, 2026: 240 returned 2xx and 4 returned an error, across 12 endpoints, 4 sandbox chargebacks and 13 agent runs. These are the 7 dispute responses it filed through the API:
 
 | Dispute | Claim | Exhibit's call | Filed | HTTP | PayPal-Debug-Id |
 | --- | --- | --- | --- | --- | --- |
 | PP-R-EGO-10193744 | Unauthorized, $420 | Fight, 88% | `provide-evidence` | 200 | `f199340a434c8` |
 | PP-R-EGO-10193744 | | | `provide-supporting-info` | 200 | `ca4d904350e86` |
 | PP-R-EGO-10193744 | | | `provide-supporting-info` | 200 | `f6032251fbc7b` |
+| PP-R-EGO-10193744 | | | `provide-supporting-info`, approved after an AI agent asked through MCP | 200 | `f4652162f684d` |
 | PP-R-QJO-10193739 | Item not received, $284 | Fight, 80% | `provide-supporting-info` | 200 | `f559160835614` |
 | PP-R-KHB-10193747 | Item not received, $68 | Refund, 3% | `accept-claim` | 200 | `f229477d6e080` |
 | PP-R-XTI-10193748 | Credit not processed, $180 | Refund, 5% | `accept-claim` | 200 | `f308851883563` |
 
 PP-R-QJO-10193739 is now `RESOLVED` (`RESOLVED_WITH_PAYOUT` / `REPRESENTED_BY_PAYPAL`) after a sandbox-only `adjudicate` call. Two earlier `provide-evidence` attempts on it failed (HTTP 400, `f193818fe828e`, and HTTP 500, `f637784337202`), which is why Exhibit now files one evidence per call.
 
-The rows come from Exhibit's call log, exported without credentials, request bodies or buyer emails to [`proof.json`](src/components/landing/records/proof.json) by [`export.mjs`](src/components/landing/records/export.mjs). Run the app and open `/proof` to see all 218 calls with status, latency and debug id. <!-- HOSTED: link the deployed /proof page here once it is live. --> [`docs/SANDBOX_E2E.md`](docs/SANDBOX_E2E.md) has the full run, what the real API taught us, and what has not been tested live yet.
+The rows come from Exhibit's call log, exported without credentials, request bodies or buyer emails to [`proof.json`](src/components/landing/records/proof.json) by [`export.mjs`](src/components/landing/records/export.mjs). Run the app and open `/proof` to see all 244 calls with status, latency and debug id. <!-- HOSTED: link the deployed /proof page here once it is live. --> [`docs/SANDBOX_E2E.md`](docs/SANDBOX_E2E.md) has the full run, what the real API taught us, and what has not been tested live yet.
 
 ## Quick start
 
@@ -190,7 +191,7 @@ Exhibit holds money to the same rule. When the merchant approves, it re-reads th
 ## Tests and CI
 
 ```bash
-npm test            # 286 tests, no credentials needed
+npm test            # 300 tests, no credentials needed
 npm run lint        # ESLint
 npm run typecheck   # tsc --noEmit
 npm run build       # next build
