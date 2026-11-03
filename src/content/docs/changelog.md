@@ -15,6 +15,7 @@ A new website, the documentation and the final design pass on the app, all in th
 
 - **The website.** Home, `/proof`, six product pages, security, pricing, about, contact, legal pages and a 404. The product pictures are rebuilt from the app with real records, the homepage packet is the one filed on Nov 3, and the dot art renders the same in Chrome and Safari. A sitemap and robots file. `2abe621`
 - **The docs.** Sixteen pages under `/docs`, written in Markdown, with search, an on-page table of contents and copyable code. Every internal link is checked at build time, and every command, variable, endpoint and UI label is checked against the code. `71288ee`
+- **The website is live** at [exhibit.9to5code.com](https://exhibit.9to5code.com), deployed as static files on Cloudflare. Until the app has a host, its calls to action book a demo instead of opening it. `3081f33`
 
 ### Changed
 
