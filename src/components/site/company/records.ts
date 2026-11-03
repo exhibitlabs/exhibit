@@ -1,11 +1,80 @@
 // Facts the company pages show that are not already exported to src/components/landing/records.
-// Every value below was read from a real source on Nov 3, 2026; the source is named next to it.
+// Every value below was read from a real source on Nov 3 or 4, 2026; the source is named next to it.
 // Prefer importing from the landing records (data.ts, proof.json, hero-runs.json) where a fact lives there.
 
-import { GITHUB_URL } from "@/components/landing/data";
+import { FOUNDERS, GITHUB_URL, PAYPAL_AGENT_TOOLS, PAYPAL_FEES } from "@/components/landing/data";
 import proof from "@/components/landing/records/proof.json";
 
 export const CONTACT_EMAIL = "contact@exhibit.9to5code.com";
+
+// ------------------------------------------------------------------ Exhibit in 8 facts (the about page)
+
+/** A big-world figure with its label and where it comes from. `spoken` is the figure for screen readers. */
+export type CompanyFact = { figure: string; spoken?: string; label: string; source: { name: string; href: string } };
+
+/**
+ * PayPal's annual report for 2025 (Form 10-K, filed with the SEC). Quoted, read Nov 4, 2026: "In 2025, we processed
+ * $1.79 trillion of total payment volume" and "As of December 31, 2025, we had 439 million active accounts".
+ */
+const PAYPAL_10K = { name: "PayPal, Form 10-K for 2025", href: "https://www.sec.gov/Archives/edgar/data/1633917/000163391726000024/pypl-20251231.htm" };
+
+/**
+ * Mastercard's 2025 State of Chargebacks, based on research from Datos Insights. Quoted, read Nov 4, 2026: global
+ * chargeback volume "reaching 324 million transactions annually" by 2028, from "an estimated 261 million" in 2025;
+ * "the financial impact of global chargebacks is expected to grow from $33.79 billion in 2025 to $41.69 billion in
+ * 2028"; first-party and third-party fraud "accounting for approximately 45% of merchant chargeback volume globally".
+ */
+const MASTERCARD = { name: "Mastercard, 2025 State of Chargebacks", href: "https://www.mastercard.com/ie/en/news-and-trends/Insights/2025/what-s-the-true-cost-of-a-chargeback-in-2025.html" };
+
+const usd = (n: number) => `$${n}`;
+const feeOf = (label: string) => PAYPAL_FEES.fees.find((f) => f.label === label)!.amount;
+const feeRange = PAYPAL_FEES.fees.map((f) => f.amount);
+const readOn = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+/** Facts 1 to 6: the market Exhibit works in. The chargeback figures are worldwide, not PayPal's own. */
+export const MARKET_FACTS: CompanyFact[] = [
+  { figure: "$1.79T", spoken: "$1.79 trillion", label: "paid through PayPal in 2025.", source: PAYPAL_10K },
+  { figure: "439M", spoken: "439 million", label: "active PayPal accounts, consumers and merchants, at the end of 2025.", source: PAYPAL_10K },
+  { figure: "324M", spoken: "324 million", label: "chargebacks a year worldwide by 2028, up from about 261 million in 2025.", source: MASTERCARD },
+  { figure: "$41.7B", spoken: "$41.7 billion", label: "the yearly cost of chargebacks worldwide by 2028, up from $33.8 billion in 2025.", source: MASTERCARD },
+  { figure: "45%", label: "of the chargebacks merchants see are fraudulent, first-party or third-party.", source: MASTERCARD },
+  {
+    figure: `${usd(Math.min(...feeRange))} to ${usd(Math.max(...feeRange))}`,
+    label: `PayPal's fee when a buyer files a dispute claim or chargeback (${usd(feeOf("Card chargeback fee"))} for card chargebacks).`,
+    source: { name: `PayPal business fees, read ${PAYPAL_FEES.retrieved}`, href: PAYPAL_FEES.url },
+  },
+];
+
+/**
+ * The twelve steps of a dispute, as the homepage's gap section draws them (src/components/site/home/Gap.tsx).
+ * PayPal's three agent tools cover steps 1, 2 and 10: list_disputes, get_dispute and accept_dispute_claim.
+ */
+export const DISPUTE_STEPS = 12;
+export const PAYPAL_TOOL_STEPS = [0, 1, 9];
+
+/** Facts 7 and 8: what Exhibit adds, and what it never does. */
+export const EXHIBIT_FACTS = {
+  steps: {
+    figure: `${PAYPAL_AGENT_TOOLS.tools.length} of ${DISPUTE_STEPS}`,
+    label: "steps of a dispute that PayPal's own agent tools cover: list, read and accept. Exhibit covers all twelve.",
+    source: { name: `PayPal agent tools reference, read ${readOn(PAYPAL_AGENT_TOOLS.retrieved)}`, href: PAYPAL_AGENT_TOOLS.url },
+  },
+  filings: {
+    figure: "0",
+    label: "filings sent without the merchant's say-so: their approval, or Autopilot rules they set.",
+  },
+};
+
+// ------------------------------------------------------------------ the founders' photos
+
+/**
+ * The founders' photos (public/team, 640 x 640 WebP), with where each face sits so both crop the same way:
+ * `face` is the centre of the face and `head` the height from hair to chin, as fractions of the photo.
+ */
+export const FOUNDER_PHOTOS: Record<(typeof FOUNDERS)[number]["name"], { src: string; face: [number, number]; head: number; tone: string }> = {
+  "Shivansh Dwivedi": { src: "/team/shivansh-dwivedi.webp", face: [0.508, 0.41], head: 0.275, tone: "brightness(1.07) contrast(0.98)" },
+  "Someet Shende": { src: "/team/someet-shende.webp", face: [0.47, 0.335], head: 0.425, tone: "brightness(0.98) contrast(1.06)" },
+};
 
 /** GitHub places people can reach the project. Discussions are not enabled on the repository (checked Nov 3, 2026). */
 export const GITHUB = {

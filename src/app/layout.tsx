@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: "Exhibit",
   authors: [{ name: "Shivansh Dwivedi", url: "https://github.com/shvuuuu" }, { name: "Someet Shende", url: "https://github.com/someetshende" }],
-  creator: "KaDeep AI",
+  creator: "Exhibit Labs",
   keywords: ["PayPal disputes", "chargebacks", "PayPal Disputes API", "AI agent", "Claude", "MCP", "merchant tools"],
   openGraph: {
     type: "website",

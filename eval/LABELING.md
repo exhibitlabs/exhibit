@@ -2,7 +2,7 @@
 
 These rules set the correct decision for every case in [`cases.ts`](cases.ts). They were written before any case existed, and every label was written, with its one-line rationale, at the same time as its case and before Exhibit ran on anything. A label is not changed after seeing Exhibit's output unless it is objectively wrong (it breaks these rules or misreads the case's own records). Any change is listed with its reason in [`RESULTS.md`](RESULTS.md).
 
-**Who wrote them.** The builder wrote the cases, the labels and these rules: Claude Opus 5.5, an AI coding agent, working for Exhibit's founder. That is the same model family as the agent under test. See the limitations in `RESULTS.md`.
+**Who wrote them.** The builder wrote the cases, the labels and these rules: Claude Opus 5.5, an AI coding agent, working for Exhibit's founders. That is the same model family as the agent under test. See the limitations in `RESULTS.md`.
 
 ## The four decisions
 

@@ -6,7 +6,7 @@ import { ROUTES } from "@/components/site";
 import { LegalPage } from "@/components/site/company/LegalPage";
 import { CONTACT_EMAIL, GITHUB } from "@/components/site/company/records";
 
-const DESCRIPTION = "Plain terms for Exhibit, an open-source hackathon project: the MIT licence, no warranty, the shared live demo, your own accounts, and the fact that PayPal decides every dispute.";
+const DESCRIPTION = "Plain terms for Exhibit, open-source software from Exhibit Labs: the MIT licence, no warranty, the shared live demo, your own accounts, and the fact that PayPal decides every dispute.";
 
 export const metadata: Metadata = companyMetadata({ title: "Terms", description: DESCRIPTION, path: "/legal/terms" });
 
@@ -20,7 +20,7 @@ export default function TermsPage() {
       title="Terms"
       rest="Plain terms for open-source software."
       lede="Exhibit is free, open-source software, and it isn't on sale. These terms cover the code, the live demo and this website, in plain words."
-      updated="November 3, 2026"
+      updated="November 4, 2026"
       art="slip"
       short={[
         { icon: Code2, text: "Exhibit is open source under the MIT licence." },
@@ -33,7 +33,7 @@ export default function TermsPage() {
           id: "what",
           title: "What Exhibit is",
           body: (
-            <p>Exhibit is open-source software that helps merchants answer PayPal disputes. Shivansh Dwivedi and Someet Shende built it for the PayPal AI Hackathon 2026. It is at version 1.0, it has been tested on PayPal&apos;s sandbox, and it has not been used in production. It isn&apos;t on sale, so these terms don&apos;t create a paid service.</p>
+            <p>Exhibit is open-source software that helps merchants answer PayPal disputes. Exhibit Labs, founded by Shivansh Dwivedi and Someet Shende, built it for the PayPal AI Hackathon 2026. It is at version 1.0, it has been tested on PayPal&apos;s sandbox, and it has not been used in production. It isn&apos;t on sale, so these terms don&apos;t create a paid service.</p>
           ),
         },
         {
@@ -43,7 +43,7 @@ export default function TermsPage() {
             <>
               <p>The code is licensed under the MIT licence. You may use, copy, modify, merge, publish, distribute, sublicense and sell copies of it, as long as the copyright notice and the permission notice come with every copy or substantial portion.</p>
               <p>
-                Copyright (c) 2026 Shivansh Dwivedi, Someet Shende, KaDeep AI. The <a href={GITHUB.license}>LICENSE file</a> in the repository is what governs the code.
+                Copyright (c) 2026 Shivansh Dwivedi and Someet Shende. The <a href={GITHUB.license}>LICENSE file</a> in the repository is what governs the code.
               </p>
             </>
           ),

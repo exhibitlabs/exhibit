@@ -165,7 +165,7 @@ export function Questions() {
               },
               {
                 q: "Is Exhibit affiliated with PayPal?",
-                a: "No. Exhibit is built on PayPal's public APIs by Shivansh Dwivedi and Someet Shende for the PayPal AI Hackathon 2026. It is not affiliated with or endorsed by PayPal.",
+                a: "No. Exhibit Labs, founded by Shivansh Dwivedi and Someet Shende, built Exhibit on PayPal's public APIs for the PayPal AI Hackathon 2026. It is not affiliated with or endorsed by PayPal.",
               },
             ]}
           />

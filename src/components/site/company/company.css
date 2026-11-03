@@ -1093,107 +1093,59 @@
     color: #0a0a0a;
   }
 
-  /* ---------------------------------------------------------------- timeline (about) */
-  .s-co-timeline {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .s-co-timeline li {
+  /* ---------------------------------------------------------------- about: portraits */
+  /* A founder's photo in a box of any aspect ratio. about.tsx places the image so every face sits alike; grey at
+     rest, colour while its card is hovered or focused. --s-co-tone evens out the two photos' light (always
+     brightness() then contrast(), so the filter animates). */
+  .s-co-portrait {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px 24px;
-    padding: 0 0 26px 26px;
-  }
-  .s-co-timeline li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 6px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--s-ink);
-  }
-  .s-co-timeline li:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    left: 4px;
-    top: 19px;
-    bottom: 2px;
-    width: 1px;
-    background: var(--s-line-2);
-  }
-  .s-co-timeline li.is-gold::before {
-    background: var(--s-gold);
-  }
-  @media (min-width: 768px) {
-    .s-co-timeline li {
-      grid-template-columns: 112px minmax(0, 1fr);
-    }
-  }
-  .s-co-timeline time {
-    font-family: var(--s-mono);
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--s-muted);
-    white-space: nowrap;
-  }
-  .s-co-timeline b {
     display: block;
-    font-size: 15px;
-    line-height: 1.4;
-    font-weight: 500;
-    letter-spacing: -0.012em;
-    color: var(--s-ink);
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--s-band-2);
+    isolation: isolate;
   }
-  .s-co-timeline p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--s-body);
+  .s-co-portrait::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgb(10 10 10 / 0.07);
+    pointer-events: none;
   }
-  .s-co-timeline code {
-    font-family: var(--s-mono);
-    font-size: 12px;
-    color: var(--s-ink-2);
+  .s-co-portrait__img {
+    position: absolute;
+    max-width: none;
+    filter: grayscale(1) var(--s-co-tone, brightness(1) contrast(1));
+    transition: filter 0.6s var(--s-ease);
   }
 
-  /* ---------------------------------------------------------------- people (about) */
-  .s-co-people {
+  /* ---------------------------------------------------------------- about: founders */
+  .s-co-founders {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 20px;
   }
-  @media (min-width: 768px) {
-    .s-co-people {
+  @media (min-width: 640px) {
+    .s-co-founders {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s-col-gap);
     }
   }
-  .s-co-person {
+  .s-co-founder {
     display: grid;
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: 20px;
-    align-items: center;
-    padding: 22px;
-    border-radius: 10px;
-    box-shadow: inset 0 0 0 1px var(--s-line);
-    background: #fff;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 18px;
+    align-items: end;
   }
-  .s-co-person__mono {
-    display: grid;
-    place-items: center;
-    width: 76px;
-    height: 76px;
-    border-radius: 8px;
-    background: var(--s-band);
-    font-size: 26px;
-    font-weight: 500;
-    letter-spacing: -0.04em;
-    color: var(--s-ink);
+  @media (min-width: 640px) {
+    .s-co-founder {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
   }
-  .s-co-person h3 {
+  .s-co-founder h3 {
     margin: 0;
     font-size: 19px;
     line-height: 1.25;
@@ -1201,15 +1153,298 @@
     letter-spacing: -0.022em;
     color: var(--s-ink);
   }
-  .s-co-person p {
-    margin: 4px 0 0;
+  .s-co-founder p {
+    margin: 3px 0 0;
     font-size: 14px;
     line-height: 1.5;
     color: var(--s-muted);
   }
-  .s-co-person a {
+  .s-co-founder .s-co-founder__gh {
+    margin-top: 12px;
+    font-size: 13.5px;
+    overflow-wrap: anywhere;
+  }
+  .s-co-founder:hover .s-co-portrait__img,
+  .s-co-founder:focus-within .s-co-portrait__img {
+    filter: grayscale(0) brightness(1) contrast(1);
+  }
+
+  /* ---------------------------------------------------------------- about: the founders' quote */
+  .s-co-quote {
+    margin: 0;
+  }
+  .s-co-quote__text {
+    margin: 0;
+  }
+  .s-co-quote__text p {
+    position: relative;
+    margin: 0;
+    font-size: clamp(24px, 14px + 1.55vw, 36px);
+    line-height: 1.22;
+    font-weight: 500;
+    letter-spacing: -0.034em;
+    color: var(--s-ink);
+    text-wrap: pretty;
+  }
+  /* The opening quote hangs in the margin, so the words keep the page's left edge. */
+  .s-co-quote__mark {
+    position: absolute;
+    right: 100%;
+    padding-right: 0.04em;
+  }
+  .s-co-quote__by {
+    display: grid;
+    gap: 2px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--s-line-2);
+    max-width: 360px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--s-muted);
+  }
+  .s-co-quote__by b {
+    font-weight: 500;
+    color: var(--s-ink);
+  }
+
+  /* ---------------------------------------------------------------- about: why Exhibit exists */
+  /* The opening paragraph of an argument, a step above the lede. */
+  .s-co-standfirst {
+    max-width: 34em;
+    margin: 0;
+    font-size: clamp(18px, 15.5px + 0.45vw, 21px);
+    line-height: 1.5;
+    letter-spacing: -0.016em;
+    color: var(--s-ink-2);
+    text-wrap: pretty;
+  }
+
+  /* ---------------------------------------------------------------- about: Exhibit in 8 facts */
+  /* Two groups, each under an ink rule: the market as a ruled grid of figures (1, 2 then 3 across), then
+     Exhibit's two facts on dark cards. */
+  .s-co-facts__group + .s-co-facts__group {
+    margin-top: 72px;
+  }
+  .s-co-facts__head {
+    display: grid;
+    gap: 4px 28px;
+    padding-top: 14px;
+    border-top: 1px solid var(--s-ink);
+  }
+  .s-co-facts__head h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    color: var(--s-ink);
+  }
+  .s-co-facts__head p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--s-muted);
+  }
+  @media (min-width: 1024px) {
+    .s-co-facts__head {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: baseline;
+    }
+    .s-co-facts__head p {
+      grid-column: 2 / 4;
+    }
+  }
+  .s-co-facts__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .s-co-fact {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .s-co-facts__grid > .s-co-fact {
+    padding: 26px 0 28px;
+    border-top: 1px solid var(--s-line);
+  }
+  .s-co-facts__grid > .s-co-fact:first-child {
+    border-top: 0;
+  }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .s-co-facts__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .s-co-facts__grid > .s-co-fact {
+      padding-right: 24px;
+    }
+    .s-co-facts__grid > .s-co-fact:nth-child(-n + 2) {
+      border-top: 0;
+    }
+    .s-co-facts__grid > .s-co-fact:nth-child(2n) {
+      padding-left: 24px;
+      padding-right: 0;
+      border-left: 1px solid var(--s-line);
+    }
+  }
+  @media (min-width: 1024px) {
+    .s-co-facts__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .s-co-facts__grid > .s-co-fact {
+      padding: 32px 28px 30px 0;
+    }
+    .s-co-facts__grid > .s-co-fact:nth-child(-n + 3) {
+      border-top: 0;
+    }
+    .s-co-facts__grid > .s-co-fact:not(:nth-child(3n + 1)) {
+      padding-left: 28px;
+      border-left: 1px solid var(--s-line);
+    }
+  }
+  .s-co-fact__n {
+    margin: 0;
+    font-size: clamp(44px, 28px + 2.8vw, 68px);
+    line-height: 0.95;
+    font-weight: 500;
+    letter-spacing: -0.055em;
+    color: var(--s-ink);
+    white-space: nowrap;
+  }
+  /* "to" and "of" between figures: smaller and grey, so the numbers carry the line. */
+  .s-co-fact__join {
+    font-size: 0.48em;
+    letter-spacing: -0.015em;
+    color: var(--s-dim);
+  }
+  .s-co-fact__l {
+    max-width: 34ch;
+    margin: 16px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--s-ink-2);
+    text-wrap: pretty;
+  }
+  .s-co-fact__src {
+    margin: auto 0 0;
+    padding-top: 18px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--s-muted);
+  }
+  .s-co-fact__src a:not(.s-link) {
     display: inline-flex;
-    margin-top: 10px;
+    align-items: center;
+    gap: 4px;
+    text-decoration: underline;
+    text-decoration-color: var(--s-line-2);
+    text-underline-offset: 3px;
+    transition:
+      color 0.15s ease,
+      text-decoration-color 0.15s ease;
+  }
+  .s-co-fact__src a:not(.s-link):hover {
+    color: var(--s-ink);
+    text-decoration-color: currentColor;
+  }
+  .s-co-fact__src a:not(.s-link) .s-icon {
+    width: 12px;
+    height: 12px;
+  }
+  .s-co-wedge {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 1024px) {
+    .s-co-wedge {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--s-col-gap);
+    }
+  }
+  /* The night tokens, as on Section tone="night": links, dot art and the track turn light by themselves. */
+  .s-co-wedge__card {
+    position: relative;
+    padding: 28px 22px 24px;
+    border-radius: var(--s-radius-ui);
+    background: var(--s-night);
+    color: var(--s-night-text);
+    --s-ink: #fafaf8;
+    --s-ink-2: #deded9;
+    --s-dim: var(--s-night-dim);
+    --s-muted: var(--s-night-muted);
+    --s-line: var(--s-night-line);
+    --s-line-2: #3a3a35;
+    --s-dot: #f2f2ef;
+  }
+  @media (min-width: 640px) {
+    .s-co-wedge__card {
+      padding: 34px 34px 30px;
+    }
+  }
+  .s-co-wedge__card :focus-visible {
+    outline-color: #fff;
+  }
+  .s-co-wedge__card .s-co-fact__l {
+    max-width: 44ch;
+  }
+  .s-co-wedge__tracks {
+    display: grid;
+    gap: 9px;
+    margin-top: 30px;
+  }
+  .s-co-wedge__cap {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--s-muted);
+  }
+  .s-co-wedge__cap:first-child {
+    margin-top: 0;
+  }
+  .s-co-wedge__cap span:first-child {
+    font-weight: 500;
+    color: var(--s-ink-2);
+  }
+  .s-co-wedge .s-track {
+    gap: 5px;
+  }
+  .s-co-wedge .s-track__cell {
+    padding: 6px 5px;
+  }
+  .s-co-wedge .s-track__cell--off {
+    --s-dot: #5c5c55;
+  }
+  /* The shield sits in the flow; from 1280 px, where the card is wide enough, it settles into the card's lower
+     right, beside the link. */
+  .s-co-wedge__art {
+    width: 200px;
+    margin-top: 26px;
+  }
+  @media (min-width: 1280px) {
+    .s-co-wedge__art {
+      position: absolute;
+      right: 30px;
+      bottom: 28px;
+      width: 236px;
+      margin: 0;
+    }
+  }
+  .s-co-facts__note {
+    max-width: 75ch;
+    margin: 28px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--s-muted);
   }
 
   /* ---------------------------------------------------------------- the contact form */

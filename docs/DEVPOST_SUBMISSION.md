@@ -229,7 +229,7 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 
 ### Other fields
 
-- **Submitter type:** [[FOUNDER: Individual, or Organization (KaDeep AI). Prize payment needs identity forms and, for an individual outside the US, a W-8BEN, so decide before submitting.]]
+- **Submitter type:** [[FOUNDER: Individual, or Organization. Prize payment needs identity forms and, for an individual outside the US, a W-8BEN, so decide before submitting.]]
 - **Country of residence:** [[FOUNDER: India]]
 - **If asked how the project was improved during the hackathon:** "Built from scratch during the submission period. The first commit is Oct 20, 2026, and the whole history is public on GitHub."
 - **If asked for a PayPal developer account or app id:** [[FOUNDER: only if the form asks]]

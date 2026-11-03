@@ -5,7 +5,7 @@ import { DotWordmark } from "./dots/DotArt";
 import { FOOTER_COLUMNS, ROUTES } from "./nav";
 import { PAINTING_LIST } from "./paintings";
 
-/** The site's close: about line, full sitemap, painting credits, the monumental dotted wordmark, legal row. */
+/** The site's close: who builds Exhibit, full sitemap, painting credits, the monumental dotted wordmark, legal row. */
 export function SiteFooter() {
   const year = 2026;
   return (
@@ -21,7 +21,7 @@ export function SiteFooter() {
               <span aria-hidden>Exhibit</span>
             </Link>
             <p>
-              The AI dispute agent for PayPal merchants. Built by {FOUNDERS[0].name} and {FOUNDERS[1].name} for the PayPal AI Hackathon 2026.
+              The AI dispute agent for PayPal merchants. Exhibit is built by <Link href={ROUTES.about} className="text-[color:var(--s-ink)] underline decoration-[color:var(--s-line-2)] underline-offset-4 hover:decoration-[color:var(--s-ink)]">Exhibit Labs</Link>, founded by {FOUNDERS[0].name} and {FOUNDERS[1].name}.
             </p>
           </div>
           <nav className="s-foot__cols" aria-label="Sitemap">
@@ -70,7 +70,7 @@ export function SiteFooter() {
         <DotWordmark className="s-foot__mark" />
 
         <div className="s-foot__legal">
-          <p style={{ margin: 0 }}>© {year} Exhibit. Open source under the MIT licence. Not affiliated with or endorsed by PayPal.</p>
+          <p style={{ margin: 0 }}>© {year} Exhibit Labs. Open source under the MIT licence. Not affiliated with or endorsed by PayPal.</p>
           <ul>
             <li>
               <Link href={ROUTES.legal.privacy}>Privacy</Link>

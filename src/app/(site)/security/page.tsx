@@ -834,7 +834,7 @@ export default function SecurityPage() {
       {/* Not yet: the honest gaps */}
       <Section id="status" labelledBy="status-h">
         <Container>
-          <SectionHead aside={<Lede>Exhibit is version 1.0 of a hackathon project, two weeks from its first commit. These are the gaps we know about.</Lede>}>
+          <SectionHead aside={<Lede>Exhibit is at version 1.0, two weeks from its first commit. These are the gaps we know about.</Lede>}>
             <Eyebrow>Honest status</Eyebrow>
             <Heading id="status-h" title="What Exhibit doesn't have yet." />
           </SectionHead>

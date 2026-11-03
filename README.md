@@ -29,7 +29,7 @@ Exhibit is an AI dispute agent for merchants who sell through PayPal. It reads e
 
 When the merchant approves, Exhibit files through the Disputes API, and when the buyer is right, it refunds. It also uses **Orders v2**, **Payments v2** and **webhook signature verification**. Other AI agents can use Exhibit over **MCP**, but they can only ask.
 
-Built from scratch for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/) by its two co-founders, [Shivansh Dwivedi](https://github.com/shvuuuu) and [Someet Shende](https://github.com/someetshende), during the Submission Period: the first commit is Oct 20, 2026, and the whole history is public. MIT licensed.
+Built from scratch for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/) by Exhibit Labs (co-founders [Shivansh Dwivedi](https://github.com/shvuuuu) and [Someet Shende](https://github.com/someetshende)) during the Submission Period: the first commit is Oct 20, 2026, and the whole history is public. MIT licensed.
 
 <br>
 
@@ -443,7 +443,7 @@ Everything is optional. Copy [`.env.example`](.env.example) to `.env.local`.
 
 ## Team
 
-Exhibit is built by its two co-founders, **[Shivansh Dwivedi](https://github.com/shvuuuu)** and **[Someet Shende](https://github.com/someetshende)**, for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). The website is at [exhibit.9to5code.com](https://exhibit.9to5code.com), and `npm run dev` serves the same site at http://localhost:3000. Write to [contact@exhibit.9to5code.com](mailto:contact@exhibit.9to5code.com). Contributions follow [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Exhibit is built by **Exhibit Labs**, founded by **[Shivansh Dwivedi](https://github.com/shvuuuu)** and **[Someet Shende](https://github.com/someetshende)**. They built it for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). The website is at [exhibit.9to5code.com](https://exhibit.9to5code.com), and `npm run dev` serves the same site at http://localhost:3000. Write to [contact@exhibit.9to5code.com](mailto:contact@exhibit.9to5code.com). Contributions follow [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License and credits
 

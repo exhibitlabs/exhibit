@@ -7,7 +7,7 @@ order: 1
 
 Exhibit reads each PayPal dispute through the Disputes API and investigates it with Claude. It decides whether to fight, offer, refund or message the buyer, writes the response to PayPal's reviewer around lettered exhibits that each cite a real record, and builds a PDF of those exhibits from the records themselves. Nothing reaches PayPal until the merchant approves, unless the merchant has switched on Autopilot rules for that kind of case.
 
-It is open source under the MIT licence, built for the PayPal AI Hackathon 2026 by Shivansh Dwivedi and Someet Shende.
+It is open source under the MIT licence. Exhibit Labs, founded by Shivansh Dwivedi and Someet Shende, built it for the PayPal AI Hackathon 2026.
 
 ## Who it is for
 
