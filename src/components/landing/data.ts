@@ -2,7 +2,7 @@
 // ./records/export.mjs). Edit these constants rather than the components.
 
 export const SITE_URL = "https://exhibit.9to5code.com";
-export const GITHUB_URL = "https://github.com/shvuuuu/exhibit";
+export const GITHUB_URL = "https://github.com/exhibitlabs/exhibit";
 export const FOUNDER_GITHUB_URL = "https://github.com/shvuuuu";
 export const DEMO_URL = "/app";
 
@@ -88,8 +88,8 @@ export const PRICING = {
 
 /** Exhibit is a joint entry: both co-founders appear wherever the team is named. */
 export const FOUNDERS = [
-  { name: "Shivansh Dwivedi", role: "Co-founder" },
-  { name: "Someet Shende", role: "Co-founder" },
+  { name: "Shivansh Dwivedi", role: "Co-founder", github: "https://github.com/shvuuuu" },
+  { name: "Someet Shende", role: "Co-founder", github: "https://github.com/someetshende" },
 ] as const;
 
 export const TEAM = {

@@ -1,1 +1,0 @@
-Exhibit's proof page: 244 logged PayPal sandbox API calls, 4 chargebacks and 7 responses filed, with PayPal debug ids.

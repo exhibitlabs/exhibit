@@ -1,29 +1,46 @@
-import Link from "next/link";
-import { DEMO_URL } from "@/components/landing/data";
-import { ButtonLink } from "@/components/landing/Primitives";
-import { Logo } from "@/components/ui/Logo";
+import { Instrument_Serif } from "next/font/google";
+import { ButtonLink } from "@/components/site/actions";
+import { DotArt } from "@/components/site/dots/DotArt";
+import { Container } from "@/components/site/layout";
+import { ROUTES } from "@/components/site/nav";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteNav } from "@/components/site/SiteNav";
+import { Eyebrow, Heading, Lede } from "@/components/site/type";
+import "./(site)/site.css";
 
 export const metadata = { title: "Page not found" };
 
-/** An address that doesn't exist outside /app. Inside /app, unknown pages get the app's own not-found page. */
+const instrument = Instrument_Serif({ weight: "400", style: "italic", subsets: ["latin"], variable: "--font-instrument", display: "swap" });
+
+/** An address that doesn't exist outside /app (the app has its own not-found page). Uses the site's frame. */
 export default function NotFound() {
   return (
-    <main className="lp-page flex min-h-dvh flex-col items-center justify-center bg-white px-6 py-16 text-center text-ink">
-      <Link href="/" aria-label="Exhibit, home" className="mb-10 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink">
-        <Logo mark={28} />
-      </Link>
-      <p className="num text-[13px] text-muted">404</p>
-      <h1 className="mt-2 text-balance text-[28px] font-semibold leading-[1.12] tracking-[-0.032em] sm:text-[34px]">That page doesn&apos;t exist.</h1>
-      <p className="mt-4 max-w-[420px] text-pretty text-[15px] leading-relaxed text-muted">The link may be old or mistyped. The live demo and the proof behind it are one click away.</p>
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <ButtonLink href={DEMO_URL}>Try the live demo</ButtonLink>
-        <ButtonLink href="/" variant="secondary">
-          Home
-        </ButtonLink>
-        <ButtonLink href="/proof" variant="secondary">
-          See the proof
-        </ButtonLink>
-      </div>
-    </main>
+    <div className={`site ${instrument.variable}`}>
+      <SiteNav />
+      <main id="main" tabIndex={-1} style={{ outline: "none" }}>
+        <Container>
+          <div className="s-404">
+            <div className="s-404__txt">
+              <Eyebrow>404</Eyebrow>
+              <Heading as="h1" size="h1" title="No such address." rest="This page was returned to sender." />
+              <Lede className="s-404__lede">The link may be old or mistyped, or the page is still being written. The live demo and the record behind it are one click away.</Lede>
+              <div className="s-actions">
+                <ButtonLink href={ROUTES.app} arrow>
+                  Try the live demo
+                </ButtonLink>
+                <ButtonLink href={ROUTES.home} variant="ghost">
+                  Home
+                </ButtonLink>
+                <ButtonLink href={ROUTES.proof} variant="ghost">
+                  See the record
+                </ButtonLink>
+              </div>
+            </div>
+            <DotArt name="letter" ghost frame className="s-404__art" title="Dot drawing of a letter, in outline: undelivered" />
+          </div>
+        </Container>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

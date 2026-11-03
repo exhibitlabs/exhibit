@@ -1,0 +1,1 @@
+Exhibit's sandbox record: 244 logged PayPal API calls, 7 responses filed, 4 chargebacks, 12 endpoints and 13 agent runs, drawn as one dot per call.
