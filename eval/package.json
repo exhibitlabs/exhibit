@@ -1,0 +1,5 @@
+{
+  "//": "Lets Node run the eval harness as ES modules with native type stripping (no build step), like mcp/.",
+  "type": "module",
+  "private": true
+}

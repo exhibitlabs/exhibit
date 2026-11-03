@@ -29,7 +29,16 @@ export const EVALUATION: null | {
   method: string;
   /** Where the method and raw results live, e.g. a file on GitHub. */
   url?: string;
-} = null;
+} = {
+  // From eval/results.json (node eval/run.ts, 2026-11-03): 30/30 decisions matched, 9/9 buyer-right cases refunded, median 29 s.
+  cases: 30,
+  agreementRate: 100,
+  minutesPerCase: 0.5,
+  correctlyRefunded: 100,
+  method:
+    "30 synthetic disputes, written and labelled with Claude before one live run on Claude Opus 5.5 (Nov 3, 2026). It shows Exhibit applies its rules consistently; it does not measure accuracy on real disputes.",
+  url: `${GITHUB_URL}/blob/main/eval/RESULTS.md`,
+};
 
 /** PayPal's agent tools reference, retrieved 2026-11-03. Dispute tools, quoted. */
 export const PAYPAL_AGENT_TOOLS = {
