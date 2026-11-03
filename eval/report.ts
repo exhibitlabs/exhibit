@@ -229,7 +229,7 @@ export function renderMarkdown(r: EvalResults, x: Readings = { readings: READING
     `| Cases | ${meta.cases_in_set} in the set, **n = ${m.n} scored**${m.excluded.length ? `, ${m.excluded.length} not scored (${m.excluded.map((c) => `${c.id}: ${c.infra ?? c.outcome}`).join("; ")})` : ""} |`,
     `| Date | ${date} (${meta.started_at.slice(11, 16)}–${meta.finished_at.slice(11, 16)} UTC, ${num(meta.wall_minutes_total)} min wall clock) |`,
     `| Model | ${code(meta.model_requested)} requested; the CLI reported ${models} |`,
-    `| Provider | Claude CLI through the Claude Agent SDK (\`EXHIBIT_AI_PROVIDER=claude-code\`), on the machine's Claude login (the founder's plan) |`,
+    `| Provider | Claude CLI through the Claude Agent SDK (\`EXHIBIT_AI_PROVIDER=claude-code\`), on the machine's Claude login (a founder's Claude plan) |`,
     `| Code path | \`runAgent\` (the Run button's code path): the same system prompt, nine tools, brief schema and \`validateBrief\` guardrail as the product. Autopilot off, so no PayPal action executed |`,
     `| PayPal | The in-process simulator (\`EXHIBIT_PAYPAL_MODE=demo\`) in an isolated data dir. No sandbox or live PayPal call. |`,
     `| Concurrency | ${meta.concurrency} |`,

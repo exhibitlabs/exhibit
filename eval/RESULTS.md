@@ -11,7 +11,7 @@
 | Cases | 30 in the set, **n = 30 scored** |
 | Date | 2026-11-03 (00:28–00:36 UTC, 7.6 min wall clock) |
 | Model | `claude-opus-5-5` requested; the CLI reported `claude-opus-5-5` |
-| Provider | Claude CLI through the Claude Agent SDK (`EXHIBIT_AI_PROVIDER=claude-code`), on the machine's Claude login (the founder's plan) |
+| Provider | Claude CLI through the Claude Agent SDK (`EXHIBIT_AI_PROVIDER=claude-code`), on the machine's Claude login (a founder's Claude plan) |
 | Code path | `runAgent` (the Run button's code path): the same system prompt, nine tools, brief schema and `validateBrief` guardrail as the product. Autopilot off, so no PayPal action executed |
 | PayPal | The in-process simulator (`EXHIBIT_PAYPAL_MODE=demo`) in an isolated data dir. No sandbox or live PayPal call. |
 | Concurrency | 2 |

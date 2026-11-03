@@ -86,9 +86,13 @@ export const PRICING = {
   note: "Exhibit is not on sale yet. This is the model we plan to launch with.",
 };
 
-export const FOUNDER = {
-  name: "Shivansh Dwivedi",
-  role: "Founder, KaDeep AI",
-  city: "Mumbai",
+/** Exhibit is a joint entry: both co-founders appear wherever the team is named. */
+export const FOUNDERS = [
+  { name: "Shivansh Dwivedi", role: "Co-founder" },
+  { name: "Someet Shende", role: "Co-founder" },
+] as const;
+
+export const TEAM = {
+  names: "Shivansh Dwivedi and Someet Shende",
   firstCommit: "Oct 20, 2026",
 };

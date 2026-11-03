@@ -234,6 +234,10 @@ Everything is optional. Copy [`.env.example`](.env.example) to `.env.local`.
 | `EXHIBIT_RECORD_REPLAYS=1` | Development: save live runs to `replays/` |
 | `EXHIBIT_URL` | For the MCP server: the address of the running app (default `http://localhost:3000`) |
 
+## Team
+
+Built by Shivansh Dwivedi and Someet Shende, Exhibit's co-founders, for the PayPal AI Hackathon 2026.
+
 ## License
 
 [MIT](LICENSE). Geist and Geist Mono are used under the SIL Open Font License.

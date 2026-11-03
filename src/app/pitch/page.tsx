@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { EVALUATION, FOUNDER, FOUNDER_GITHUB_URL, GITHUB_URL, PAYPAL_AGENT_TOOLS, PAYPAL_FEES, PAYPAL_MCP_QUOTE, PRICING } from "@/components/landing/data";
+import { EVALUATION, FOUNDERS, GITHUB_URL, PAYPAL_AGENT_TOOLS, PAYPAL_FEES, PAYPAL_MCP_QUOTE, PRICING, TEAM } from "@/components/landing/data";
 import { HERO_CASES, PREVENTION_REPLY, RUNS, type RunRecord } from "@/components/landing/hero-data";
 import { sentences, utcDate, utcDateTime } from "@/components/landing/Primitives";
 import { describe, disputeActions, failedWrites, NOT_LIVE, PROOF, reasonLabel, shortPath } from "@/components/landing/proof-data";
@@ -82,12 +82,12 @@ export default function PitchPage() {
   const save = prevention.save;
   const data: DeckData = {
     githubUrl: GITHUB_URL,
-    founderGithubUrl: FOUNDER_GITHUB_URL,
     fees: PAYPAL_FEES,
     agentTools: PAYPAL_AGENT_TOOLS,
     mcpQuote: PAYPAL_MCP_QUOTE,
     pricing: PRICING,
-    founder: FOUNDER,
+    founders: FOUNDERS,
+    team: TEAM,
     evaluation: EVALUATION,
     evalRun: EVALUATION ? evalRun() : null,
     cases: HERO_CASES,

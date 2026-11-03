@@ -1,6 +1,6 @@
 # Devpost submission: copy and paste
 
-The fields below follow the order of Devpost's submission form. Paste the text inside each block as is. Slots the founder must fill are marked **`[[LIKE THIS]]`**; search for `[[` before submitting.
+The fields below follow the order of Devpost's submission form. Paste the text inside each block as is. Slots the founders must fill are marked **`[[LIKE THIS]]`**; search for `[[` before submitting.
 
 - Submit at https://paypalaihackathon.devpost.com/ before **Thu Nov 12, 2026, 12:00 PM PT (Fri Nov 13, 1:30 AM IST)**. Submissions lock at the deadline.
 - Devpost's review team checks entries submitted early for eligibility, and you can keep editing until the deadline.
@@ -209,7 +209,7 @@ Other tools
 - AG Grid and AG Charts Community for the tables and charts; react-pdf for the evidence packet.
 
 How it was built
-- Exhibit was built by its founder, Shivansh Dwivedi, with help from Claude Code as a coding assistant.
+- Exhibit was built by its co-founders, Shivansh Dwivedi and Someet Shende, with help from Claude Code as a coding assistant.
 - [[VIDEO TOOLS: name any AI voice, music or image tools used in the v5 video, or delete this line]]
 ```
 
@@ -239,6 +239,7 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 ## Before you press submit
 
 - [ ] Commit and push, so GitHub matches this copy and the video.
+- [ ] Add Someet Shende as a teammate on the Devpost project (Manage team → invite; he needs a Devpost account and must accept), so the entry is credited to both co-founders. Both must meet the eligibility rules.
 - [ ] Fill every `[[` slot: `VIDEO` (twice), `HOSTED DEMO`, `VIDEO TOOLS`, submitter type and country.
 - [ ] The YouTube video is Public, marked Not made for kids and under 3:00. Ideally PayPal and Claude are both on screen in the first 25 seconds.
 - [ ] Upload the thumbnail and the eight gallery images, with the captions above.

@@ -15,12 +15,12 @@ export type DeckFiling = { label: string; path: string; disputeId: string | null
 
 export type DeckData = {
   githubUrl: string;
-  founderGithubUrl: string;
   fees: { url: string; updated: string; retrieved: string; quote: string; fees: { amount: number; label: string; note: string }[] };
   agentTools: { url: string; retrieved: string; tools: { name: string; description: string }[] };
   mcpQuote: { text: string; title: string; author: string; date: string; url: string };
   pricing: { label: string; line: string; note: string };
-  founder: { name: string; role: string; city: string; firstCommit: string };
+  founders: readonly { name: string; role: string }[];
+  team: { names: string; firstCommit: string };
   evaluation: { cases: number; agreementRate: number; minutesPerCase: number; correctlyRefunded?: number; method: string; url?: string } | null;
   /** The evaluation's headline counts, from eval/results.json. */
   evalRun: { n: number; exact: number; refundTotal: number; refundedNotFought: number; notFightTotal: number; falseFights: number; guardrailsPassed: number; medianSeconds: number; reasons: number; model: string; date: string } | null;
@@ -178,7 +178,7 @@ function buildSlides(d: DeckData): { label: string; render: (n: number, total: n
               Exhibit reads each dispute from PayPal&apos;s Disputes API, investigates it with Claude, cites every claim to a real record and files the response through PayPal. When the buyer is right, it refunds.
             </p>
             <p className="mt-14 text-[17px] text-muted">
-              PayPal AI Hackathon 2026 · {d.founder.name}, {d.founder.role.replace("Founder, ", "")}
+              PayPal AI Hackathon 2026 · {d.team.names}
             </p>
           </div>
         </Frame>
@@ -630,26 +630,30 @@ function buildSlides(d: DeckData): { label: string; render: (n: number, total: n
       ),
     },
     {
-      label: "Founder",
+      label: "Founders",
       render: (n, total) => (
         <Frame n={n} total={total}>
           <div className="grid flex-1 grid-cols-[300px_minmax(0,1fr)] items-center gap-16">
-            <p className="num self-start pt-3 text-[15px] uppercase tracking-[0.12em] text-muted">From the founder</p>
+            <p className="num self-start pt-3 text-[15px] uppercase tracking-[0.12em] text-muted">From the founders</p>
             <div className="max-w-[1000px]">
               <div className="space-y-6 text-[28px] leading-[1.55] text-ink-2">
                 <p>
-                  I&apos;m {d.founder.name}. I run KaDeep AI from {d.founder.city}, and I built Exhibit on my own for the PayPal AI Hackathon, starting with the first commit on {d.founder.firstCommit}.
+                  We&apos;re {d.team.names}, Exhibit&apos;s co-founders. We built it together for the PayPal AI Hackathon, starting with the first commit on {d.team.firstCommit}.
                 </p>
-                <p>I wanted a dispute agent a merchant could actually trust. That means it shows where every claim comes from, never moves money without the merchant, and says so plainly when the buyer is right. The code is open, so you can check all of it.</p>
+                <p>We wanted a dispute agent a merchant could actually trust. That means it shows where every claim comes from, never moves money without the merchant, and says so plainly when the buyer is right. The code is open, so you can check all of it.</p>
               </div>
               <div className="mt-12 flex items-end justify-between gap-10 border-t border-line pt-6">
-                <div>
-                  <div className="text-[20px] font-semibold">{d.founder.name}</div>
-                  <div className="text-[17px] text-muted">
-                    {d.founder.role} · {d.founder.city} · <span className="num text-[15px]">{d.founderGithubUrl.replace("https://", "")}</span>
-                  </div>
+                <div className="flex gap-12">
+                  {d.founders.map((f) => (
+                    <div key={f.name}>
+                      <div className="text-[20px] font-semibold">{f.name}</div>
+                      <div className="text-[17px] text-muted">{f.role}</div>
+                    </div>
+                  ))}
                 </div>
-                <p className="max-w-[520px] text-right text-[16px] leading-relaxed text-muted">KaDeep AI also builds KaDeep Studio, for AI test-case generation and browser QA, and the releasegate CLI.</p>
+                <p className="max-w-[520px] text-right text-[16px] leading-relaxed text-muted">
+                  Source: <span className="num text-[15px]">{d.githubUrl.replace("https://", "")}</span>
+                </p>
               </div>
             </div>
           </div>
