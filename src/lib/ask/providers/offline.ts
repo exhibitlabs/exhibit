@@ -6,6 +6,7 @@ import "server-only";
 import { matchReason, reasonLabel } from "../data";
 import { SUGGESTED_QUESTIONS, type AnswerInput, type AskTurn } from "../schema";
 import { bookFor, callTool, type AskContext } from "../tools";
+import { plain } from "@/lib/plain";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
@@ -95,7 +96,7 @@ async function needsToday(ctx: AskContext): Promise<AnswerInput> {
     const parts = [l.brief_ready ? `${l.brief_ready} ${l.brief_ready === 1 ? "has a brief" : "have briefs"} ready to approve` : null, l.not_investigated ? `${l.not_investigated} ${l.not_investigated === 1 ? "hasn't" : "haven't"} been investigated yet` : null].filter(Boolean) as string[];
     bullets.push(l.brief_ready === l.count ? `${plural(l.count, "case")} need${l.count === 1 ? "s" : ""} you, and every one has Exhibit's brief ready: approving is the only step left.` : `${plural(l.count, "case")} need${l.count === 1 ? "s" : ""} you: ${list(parts)}.`);
     const ready = l.disputes.find((d) => d.exhibit_call && d.headline);
-    if (ready) bullets.push(`Quickest win: ${ready.buyer}, ${lower(ready.headline!)}.`);
+    if (ready) bullets.push(`Quickest win: ${ready.buyer}, ${lower(plain(ready.headline!))}.`);
     bullets.push(`${usd(l.total_amount)} is at stake across them.`);
   }
   if (p.orders[0]) bullets.push(`Upstream, ${plural(p.high, "order")} could become new disputes. Top of the list: ${p.orders[0].buyer}'s ${p.orders[0].item} (${lower(p.orders[0].top_signal ?? "at risk")}).`);
@@ -262,7 +263,7 @@ async function caseSummary(ctx: AskContext, query: string, forAccountant: boolea
   const answered = c.next_step?.startsWith("Answered");
   lines.push(
     c.exhibit_brief
-      ? `**Exhibit's call:** ${DECISION_WORD[c.exhibit_brief.decision] ?? c.exhibit_brief.decision}, ${c.exhibit_brief.win_likelihood_pct}% likely to win. ${c.exhibit_brief.headline.replace(/\.?$/, ".")}${answered ? " The response is filed; PayPal is deciding." : ""}`
+      ? `**Exhibit's call:** ${DECISION_WORD[c.exhibit_brief.decision] ?? c.exhibit_brief.decision}, ${c.exhibit_brief.win_likelihood_pct}% likely to win. ${plain(c.exhibit_brief.headline).replace(/\.?$/, ".")}${answered ? " The response is filed; PayPal is deciding." : ""}`
       : `**Exhibit's call:** not investigated yet. Run Exhibit on the case for a decision and an evidence packet.`,
   );
   if (forAccountant) lines.push(`**Money:** ${usd(c.amount)} disputed${c.dispute_fee ? `; PayPal's US fee schedule lists a ${usd(c.dispute_fee.amount)} ${c.dispute_fee.basis}` : ""}. PayPal decides the outcome${c.response_due && !answered ? `; the response is due ${fmtDate(c.response_due)}` : ""}.`);

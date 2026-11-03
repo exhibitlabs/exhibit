@@ -67,8 +67,8 @@ describe("a run", () => {
   it("logs a recorded run as one, with no investigation time (it replays in seconds, so the clock says nothing about the agent)", async () => {
     await run();
 
-    const filed = listActivity({ disputeId: id }).find((a) => a.message.startsWith("Brief filed"));
-    expect(filed?.message).toBe(`Brief filed for ${id}: REFUND (${scripted.brief!.win_likelihood}%) from a recorded run`);
+    const filed = listActivity({ disputeId: id }).find((a) => a.message.startsWith("Brief ready"));
+    expect(filed?.message).toBe(`Brief ready for ${id}: REFUND (${scripted.brief!.win_likelihood}%) from a recorded run`);
   });
 
   it.each(["manual", "webhook", "batch"] as const)("acts as the merchant's autopilot when the verdict is AUTO (%s)", async (trigger) => {

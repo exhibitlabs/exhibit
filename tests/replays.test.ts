@@ -10,8 +10,8 @@ import { aiProvider } from "@/lib/config";
 import { docList } from "@/lib/db";
 import { cachedDispute, caseFile, latestRun } from "@/lib/disputes";
 import { resolveRef } from "@/lib/evidence";
-import { seedDemo } from "@/lib/seed";
-import type { ScenarioMeta } from "@/lib/store/repo";
+import { seedDemo, simulateIncomingDispute } from "@/lib/seed";
+import { store, type ScenarioMeta } from "@/lib/store/repo";
 import { simGet } from "@/lib/paypal/simulator";
 
 const REPLAY_DIR = path.join(process.cwd(), "replays");
@@ -28,6 +28,12 @@ describe("recorded runs", () => {
     expect(scenarios.length).toBeGreaterThanOrEqual(6);
     const missing = scenarios.map((s) => s.key).filter((key) => !fs.existsSync(path.join(REPLAY_DIR, `${key}.json`)));
     expect(missing, "every demo case needs a recorded run in replays/").toEqual([]);
+
+    // "Simulate new dispute" takes the demo cases in turn, so each arrival is a different case on a new order.
+    const arrived = scenarios.map(() => simulateIncomingDispute()!);
+    const arrivedKeys = arrived.map((d) => store.scenario(d.dispute_id)?.key);
+    expect(new Set(arrivedKeys).size, "each simulated dispute is a different case").toBe(scenarios.length);
+    for (const d of arrived) expect(store.order(store.scenario(d.dispute_id)!.order_id)?.id).toMatch(/^KA-10[6-8]\d\d$/);
   });
 
   it("replay on every demo case, with a brief that passes validation and cites only real records", async () => {

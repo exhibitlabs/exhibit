@@ -120,7 +120,7 @@ const DECISION_WORD: Record<string, string> = { FIGHT: "fight", OFFER: "offer", 
 
 /** Audit-log lines are written for engineers; the feed reads them back in plain words. */
 function prettify(message: string) {
-  let m = /^Brief filed for \S+: (\w+) \((\d+)%\)/.exec(message);
+  let m = /^Brief (?:ready|filed) for \S+: (\w+) \((\d+)%\)/.exec(message);
   if (m) return `Brief ready: ${DECISION_WORD[m[1]] ?? m[1].toLowerCase()}, ${m[2]}% likely to win`;
   m = /^Exhibit started on \S+ \((\w+)/.exec(message);
   if (m) return m[1] === "webhook" ? "Investigation started on arrival" : "Investigation started";
@@ -225,7 +225,7 @@ export async function buildOverview(): Promise<Overview> {
   const ids = new Set(rows.map((r) => r.id));
   // The feed tells the merchant's story; system housekeeping (seeding, demo resets) stays in the audit trail.
   const log = listActivity({ limit: 80 }).filter((a) => !["api", "settings", "system"].includes(a.kind));
-  const briefed = new Set(log.filter((a) => a.message.startsWith("Brief filed")).map((a) => a.dispute_id));
+  const briefed = new Set(log.filter((a) => /^Brief (ready|filed) for /.test(a.message)).map((a) => a.dispute_id));
   const feed: FeedItem[] = [];
   for (const a of log) {
     if (a.message.startsWith("Exhibit started") && briefed.has(a.dispute_id)) continue;

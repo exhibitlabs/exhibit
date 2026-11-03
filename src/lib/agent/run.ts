@@ -100,7 +100,7 @@ export async function runAgent(disputeId: string, emit: (e: RunEvent) => void = 
       conn.prepare("UPDATE runs SET status = 'done', finished_at = ?, brief = ?, events = ? WHERE id = ?").run(now(), JSON.stringify(brief), JSON.stringify(events), runId);
       // A recorded run replays in seconds, so its clock says nothing about how fast the agent works: don't log one.
       const replayed = (conn.prepare("SELECT provider FROM runs WHERE id = ?").get(runId) as { provider: string } | undefined)?.provider === "replay";
-      if (!seeding) logActivity("agent", `Brief filed for ${disputeId}: ${brief.decision} (${brief.win_likelihood}%) ${replayed ? "from a recorded run" : `in ${(ms / 1000).toFixed(1)}s`}`, disputeId);
+      if (!seeding) logActivity("agent", `Brief ready for ${disputeId}: ${brief.decision} (${brief.win_likelihood}%) ${replayed ? "from a recorded run" : `in ${(ms / 1000).toFixed(1)}s`}`, disputeId);
       if (trigger === "manual" || trigger === "batch") markDemoProgress("run");
 
       if (process.env.EXHIBIT_RECORD_REPLAYS === "1" && provider !== "replay") {

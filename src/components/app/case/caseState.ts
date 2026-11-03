@@ -65,10 +65,11 @@ export function canAct(d: Dispute, brief: CaseBrief | null) {
   return !!brief && d.status !== "RESOLVED" && d.links.some((l) => l.rel === REL_FOR[brief.paypal_action.type]);
 }
 
+/** The most recent answer PayPal accepted on the case, so a re-investigated case shows its latest filing, after its latest brief. */
 export function answeredBy(actions: ActionRow[]) {
   return actions
     .filter((a) => a.status === "ok" && ANSWERS.has(a.kind))
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 }
 
 export function actorLabel(actor: string) {

@@ -359,7 +359,7 @@ server.registerTool(
           if (!line) continue;
           const e = JSON.parse(line.slice(6)) as { t: string; label?: string; message?: string };
           if (e.t === "tool_call" && e.label) void notify(e.label);
-          else if (e.t === "brief") void notify("Case brief filed");
+          else if (e.t === "brief") void notify("Case brief ready");
           else if (e.t === "error") runError = e.message ?? "The run failed.";
         }
       }

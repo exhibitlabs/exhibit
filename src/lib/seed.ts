@@ -48,8 +48,12 @@ export function ensureSeeded() {
 /** Demo only: a new dispute "arrives" by the same path a CUSTOMER.DISPUTE.CREATED webhook takes. */
 export function simulateIncomingDispute(): Dispute | undefined {
   const base = new Date();
-  const template = buildScenarios(base).find((s) => s.key === "inr-delivered-signed");
-  if (!template) return undefined;
+  // Each call takes the next demo case in turn, so repeated simulations arrive as different buyers and reasons.
+  const scenarios = buildScenarios(base);
+  if (scenarios.length === 0) return undefined;
+  const turn = kvGet<number>("simulated_incoming", 0);
+  kvSet("simulated_incoming", turn + 1);
+  const template = scenarios[turn % scenarios.length];
   const n = 50300 + Math.floor(Math.random() * 600);
   const id = `PP-D-${n}`;
   const orderNo = String(10600 + (n % 300));
@@ -61,7 +65,7 @@ export function simulateIncomingDispute(): Dispute | undefined {
   s.shipments = s.shipments.map((sh) => ({ ...sh, id: `SHP-${orderNo}`, order_id: s.order.id }));
   s.conversation.order_id = s.order.id;
   s.risk.order_id = s.order.id;
-  s.customer.order_ids = [s.order.id, ...s.customer.order_ids.slice(1)];
+  s.customer.order_ids = [s.order.id, ...s.customer.order_ids];
   const d: Dispute = {
     ...s.dispute,
     dispute_id: id,

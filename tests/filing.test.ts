@@ -4,6 +4,7 @@
 // source records. The simulator enforces PayPal's rules on every call, so a wrong call fails here.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { executeBriefAction } from "@/lib/actions";
+import { answeredBy } from "@/components/app/case/caseState";
 import { refs } from "@/lib/evidence";
 import { packetExhibits, packetFilename, renderPacket } from "@/lib/packet/render";
 import { simGet } from "@/lib/paypal/simulator";
@@ -71,6 +72,10 @@ describe("filing evidence", () => {
     expect(r).toMatchObject({ ok: true, kind: "provide_supporting_info" });
     expect(request(id)).toMatchObject({ notes: expect.any(String), files: [{ name: packetFilename(id) }] });
     expect(simGet(id)?.status).toBe("UNDER_REVIEW");
+
+    // A case answered twice shows its latest answer on the case page, not the first.
+    const row = (created_at: string) => ({ id: created_at, kind: "provide_supporting_info", actor: "merchant", status: "ok", created_at, response: null });
+    expect(answeredBy([row("2026-10-20T15:22:12Z"), row("2026-11-03T02:39:18Z")])?.created_at).toBe("2026-11-03T02:39:18Z");
   });
 });
 
