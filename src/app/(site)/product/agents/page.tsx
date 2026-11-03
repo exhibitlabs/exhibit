@@ -3,8 +3,8 @@ import { User } from "lucide-react";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
 import { ConfigTabs, type ConfigTab } from "@/components/site/product/ConfigTabs";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
-import { ProductPager } from "@/components/site/product/ProductPager";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { NextChapter } from "@/components/site/product/NextChapter";
 import { seconds, utcDate } from "@/components/site/product/data";
 import { ActivityEvent, ApprovalBannerView } from "@/components/site/fragments";
 import { FILING } from "@/components/site/product/filing";
@@ -77,7 +77,7 @@ const TRIAGE = [
 export default function AgentsPage() {
   return (
     <>
-      <ProductNav current="agents" />
+      <ProductTour current="agents" />
       <PageHeader
         eyebrow="For AI agents"
         eyebrowIndex="05"
@@ -357,7 +357,7 @@ export default function AgentsPage() {
         </Container>
       </Section>
 
-      <ProductPager current="agents" />
+      <NextChapter current="agents" />
       <ProductCta
         id="agents-cta"
         title="Play the agent yourself."

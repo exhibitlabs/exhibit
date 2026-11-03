@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, Stat, TextLink } from "@/components/site";
 import { PreventionSave } from "@/components/site/product/PreventionSave";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
-import { ProductPager } from "@/components/site/product/ProductPager";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { NextChapter } from "@/components/site/product/NextChapter";
 import { LENA, RADAR, itemName, money, utcDate } from "@/components/site/product/data";
 import { DrawerHeadView, FixSectionView } from "@/components/site/drawer";
 import { LENA_DRAWER } from "@/components/site/facts";
@@ -80,7 +80,7 @@ function RiskStrip() {
 export default function PreventionPage() {
   return (
     <>
-      <ProductNav current="prevention" />
+      <ProductTour current="prevention" />
       <PageHeader
         eyebrow="Prevention"
         eyebrowIndex="03"
@@ -231,7 +231,7 @@ export default function PreventionPage() {
         </Container>
       </Section>
 
-      <ProductPager current="prevention" />
+      <NextChapter current="prevention" />
       <ProductCta
         id="prevention-cta"
         title="Reply before the case opens."

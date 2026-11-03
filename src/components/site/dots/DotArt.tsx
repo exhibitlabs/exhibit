@@ -1,16 +1,17 @@
 import { clsx } from "clsx";
 import type { CSSProperties } from "react";
-import { DOT_ART, DOT_WORDMARK, type DotArtName } from "./art-data";
+import { DOT_ART, DOT_ART_MINI, DOT_WORDMARK, type DotArtName, type DotMiniName } from "./art-data";
 import { DOT_ART_SMALL } from "./art-small";
 import { DotSvg } from "./DotSvg";
 import type { DotGrid } from "./paint";
 
 // Ink halftone dot art as static SVG. The drawings live in generator/drawings.mjs; generator/generate.mjs
-// prints them into grids (art-data.ts for the site's 60 x 45, art-small.ts for 32 x 24) and paint.ts
-// turns a grid into SVG paths. Everything renders on the server and ships no JavaScript. The app's
-// DotArt (src/components/ui/DotArt.tsx) is the same renderer and data at its own sizes.
+// prints them into grids (art-data.ts for the site's 60 x 45 and the product tour's 16 x 12 icons,
+// art-small.ts for 32 x 24) and paint.ts turns a grid into SVG paths. Everything renders on the server and
+// ships no JavaScript. The app's DotArt (src/components/ui/DotArt.tsx) is the same renderer and data at its
+// own sizes.
 
-export type { DotArtName, DotGrid };
+export type { DotArtName, DotGrid, DotMiniName };
 export { DotSvg };
 
 /**
@@ -22,6 +23,16 @@ export { DotSvg };
  */
 export function DotArt({ name, frame, ghost, small, title, className, style }: { name: DotArtName; frame?: boolean; ghost?: boolean; small?: boolean; title?: string; className?: string; style?: CSSProperties }) {
   return <DotSvg grid={(small ? DOT_ART_SMALL : DOT_ART)[name]} frame={frame} ghost={ghost} title={title} className={clsx("s-dots", className)} style={style} />;
+}
+
+/**
+ * One of the six 16 x 12 dot icons, the product tour's chapters (scales, magnifier, stamp, parcel, bubble,
+ * terminal). Size it with CSS width: 32 px prints 2 px a cell, and it reads from 28 to 36 px. Decorative
+ * unless `title`. Its few-cell gold accent prints in --s-gold; set `--s-gold: currentColor` on a parent to
+ * print it in the icon's ink.
+ */
+export function DotIcon({ name, title, className, style }: { name: DotMiniName; title?: string; className?: string; style?: CSSProperties }) {
+  return <DotSvg grid={DOT_ART_MINI[name]} title={title} className={clsx("s-dots", className)} style={style} />;
 }
 
 /**

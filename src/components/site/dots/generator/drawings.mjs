@@ -1,11 +1,17 @@
 // Exhibit dot art: the drawings. Each piece is drawn twice, by hand, in grid cells: `lg` on the site's
-// 60 x 45 grid and `sm` on 32 x 24 for small placements. Rules of the family:
-// - Bold silhouettes; structural strokes at least two cells (one on sm); straight text lines are rows of dots.
+// 60 x 45 grid and `sm` on 32 x 24 for small placements. The six product chapters' pieces (scales,
+// magnifier, stamp, parcel, bubble, terminal) are drawn a third time as `xs`, a 16 x 12 icon for the
+// product tour, printed at 2 px a cell (32 x 24 px). Rules of the family:
+// - Bold silhouettes; structural strokes at least two cells (one on sm and xs); straight text lines are
+//   rows of dots.
 // - Full dots (FULL) are solid ink, small dots (SMALL) mid tones, rings (RING) light tones, faint rings
 //   (FAINT) shadows. Rings never draw an outline that has to read solid.
 // - Words only in the 5 x 7 dot face (canvas.text), big enough to read.
 // - Keep framed pieces inside cells 4..55 x 4..40: DotArt's frame prints on the outer two rings.
-import { FAINT, FULL, GOLD, LARGE, PAPER, RING, SMALL, and, annulus, circle, ellipse, line, minus, or, poly, quad, rect, roundRect, textWidth } from "./raster.mjs";
+// - xs icons are set cell by cell (sketch), since at that size every cell is a decision: nothing finer than
+//   a cell, and one gold accent ("@") of a few cells. The tour prints the accent in gold on the current
+//   chapter only; everywhere else it takes the icon's ink.
+import { FAINT, FULL, GLYPHS, GOLD, LARGE, PAPER, RING, SMALL, and, annulus, circle, ellipse, line, minus, or, poly, quad, rect, roundRect, textWidth } from "./raster.mjs";
 
 /** A rectangle outline `t` cells thick. */
 const frameRect = (x, y, w, h, t, r = 0) => (r ? minus(roundRect(x, y, w, h, r), roundRect(x + t, y + t, w - 2 * t, h - 2 * t, Math.max(0, r - t))) : minus(rect(x, y, w, h), rect(x + t, y + t, w - 2 * t, h - 2 * t)));
@@ -14,6 +20,18 @@ const frameRect = (x, y, w, h, t, r = 0) => (r ? minus(roundRect(x, y, w, h, r),
 const at = (o, a, b, u, v) => [o[0] + u * a[0] + v * b[0], o[1] + u * a[1] + v * b[1]];
 const quadPts = (o, a, b, u0, u1, v0, v1) => [at(o, a, b, u0, v0), at(o, a, b, u1, v0), at(o, a, b, u1, v1), at(o, a, b, u0, v1)];
 const sub = (p, q) => [p[0] - q[0], p[1] - q[1]];
+
+/** Sets a hand-drawn grid cell by cell: one string per row, one glyph per cell, in art-data.ts's glyphs. */
+function sketch(c, rows) {
+  if (rows.length !== c.rows || rows.some((r) => r.length !== c.cols)) throw new Error(`sketch: expected ${c.cols} x ${c.rows} cells`);
+  rows.forEach((row, j) =>
+    [...row].forEach((ch, i) => {
+      const level = GLYPHS.indexOf(ch);
+      if (level < 0) throw new Error(`sketch: unknown glyph "${ch}"`);
+      c.dot(i, j, level);
+    }),
+  );
+}
 
 export const PIECES = {
   // A letter tucked into an open envelope: arriving mail, a dispute opening, contact.
@@ -64,6 +82,24 @@ export const PIECES = {
       c.fill(poly(quadPts(T, L, R, 0, 1, 0.42, 0.58)), FULL);
       c.fill(poly(quadPts(Lv, sub(F, Lv), V, 0.42, 0.58, 0, 0.6)), FULL); // no label: too small to read here
     },
+    // The tour's icon: the same box on clean 2:1 steps, the tape across the top and down the front, and
+    // the label on the dark face as the gold accent.
+    xs(c) {
+      sketch(c, [
+        "......####......",
+        "....##....##....",
+        "..##......####..",
+        "##......##....##",
+        "##....##......##",
+        "#+####......####",
+        "#+++##....######",
+        "#+++#######@@###",
+        "##++##+####@@###",
+        "..####+#######..",
+        "....##+#####....",
+        "......####......",
+      ]);
+    },
   },
 
   // The signed delivery slip: a barcode, two lines, an X and a signature, with a faint drop shadow.
@@ -106,6 +142,24 @@ export const PIECES = {
       c.fill(frameRect(3, 2, 26, 20, 1, 2), FULL);
       c.text("A", 11, 5, FULL, { scale: 2 });
     },
+    // The tour's icon: the frame, the EXHIBIT line in small dots and a pointed A whose crossbar is the gold
+    // accent, like the logo's arm.
+    xs(c) {
+      sketch(c, [
+        ".##############.",
+        "#..............#",
+        "#..++++++++++..#",
+        "#..............#",
+        "#......##......#",
+        "#.....#..#.....#",
+        "#....#....#....#",
+        "#....@@@@@@....#",
+        "#....#....#....#",
+        "#....#....#....#",
+        "#..............#",
+        ".##############.",
+      ]);
+    },
   },
 
   // A RESOLVED stamp with a check: the outcome. DotArt draws it `ghost` while a case is undecided.
@@ -142,6 +196,24 @@ export const PIECES = {
         c.fill(or(line([[cx, 7], [cx - 3.5, 13.5]], 1), line([[cx, 7], [cx + 3.5, 13.5]], 1)), SMALL);
         c.fill(and(ellipse(cx, 13.5, 5, 3.2), rect(cx - 5, 13.5, 10, 4)), FULL);
       }
+    },
+    // The tour's icon: the beam, two pans on small-dot strings, the post and its foot. The pivot is the
+    // gold accent.
+    xs(c) {
+      sketch(c, [
+        ".......@@.......",
+        ".##############.",
+        "..+....##....+..",
+        ".+.+...##...+.+.",
+        ".+.+...##...+.+.",
+        "+...+..##..+...+",
+        "#####..##..#####",
+        ".###...##...###.",
+        ".......##.......",
+        ".......##.......",
+        ".....######.....",
+        "....########....",
+      ]);
     },
   },
 
@@ -184,6 +256,24 @@ export const PIECES = {
       c.fill(rect(15, 13, 11, 1), PAPER);
       c.fill(rect(15, 16, 7, 1), PAPER);
     },
+    // The tour's icon: the question outlined with its tail, the solid reply with one line knocked out.
+    // The question's first line is the gold accent.
+    xs(c) {
+      sketch(c, [
+        ".########.......",
+        "#........#......",
+        "#.@@@@@@.#......",
+        "#........#......",
+        "#.###...........",
+        ".####..########.",
+        ".##...##########",
+        ".#....##......##",
+        "......##########",
+        "......##########",
+        ".......########.",
+        "............##..",
+      ]);
+    },
   },
 
   // A terminal window: solid title bar with three buttons, a white screen, a prompt and its command in
@@ -209,6 +299,24 @@ export const PIECES = {
       c.fill(rect(6, 16, 15, 1), SMALL);
       c.fill(rect(22, 15, 2, 3), FULL);
     },
+    // The tour's icon: the window with its solid title bar and three buttons, the prompt and the cursor,
+    // which is the gold accent.
+    xs(c) {
+      sketch(c, [
+        ".##############.",
+        "##.#.#.#########",
+        "################",
+        "#..............#",
+        "#.#............#",
+        "#..#...........#",
+        "#...#..........#",
+        "#..#...........#",
+        "#.#...@@@@@....#",
+        "#..............#",
+        "#..............#",
+        ".##############.",
+      ]);
+    },
   },
 
   // A magnifier over a page: investigating the records.
@@ -232,6 +340,24 @@ export const PIECES = {
       c.fill(circle(19, 12, 4.5), RING);
       c.fill(annulus(19, 12, 4.5, 6.6), FULL);
       c.fill(line([[23.5, 16.5], [27.5, 20.5]], 2.6), FULL);
+    },
+    // The tour's icon: the page in large dots with its lines, the lens over its edge and the handle. The
+    // line the lens finds is the gold accent.
+    xs(c) {
+      sketch(c, [
+        "**********......",
+        "*........*......",
+        "*.#####..*......",
+        "*........###....",
+        "*.####..#...#...",
+        "*......#.....#..",
+        "*.###..#.@@@.#..",
+        "*......#.....#..",
+        "*.####..#...#...",
+        "*........###.#..",
+        "*........*...##.",
+        "**********....##",
+      ]);
     },
   },
 

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink, UiCard, UiPill, UiSheet, UiWindow } from "@/components/site";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
-import { ProductPager } from "@/components/site/product/ProductPager";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { NextChapter } from "@/components/site/product/NextChapter";
 import { BriefCardView, RunTimeline } from "@/components/site/fragments";
 import { SourceGraph } from "@/components/site/product/SourceGraph";
 import { REFUNDS, REYES, REYES_RUNS, REYES_TIMELINE, RUNS, SOURCES, hhmm, money, seconds, utc, utcDate } from "@/components/site/product/data";
@@ -85,7 +85,7 @@ const CHECKS = [
 export default function InvestigatePage() {
   return (
     <>
-      <ProductNav current="investigate" />
+      <ProductTour current="investigate" />
       <PageHeader
         eyebrow="Investigate"
         eyebrowIndex="01"
@@ -388,7 +388,7 @@ export default function InvestigatePage() {
         </Container>
       </Section>
 
-      <ProductPager current="investigate" />
+      <NextChapter current="investigate" />
       <ProductCta
         id="investigate-cta"
         title="Each dispute has a record."

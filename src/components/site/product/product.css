@@ -1,145 +1,636 @@
 /* =================================================================================================
-   Product pages (/product/**). Patterns the kit did not have, in the kit's language: the product sub-nav,
-   the pager, the closing band, the flow plate and each page's product UI rebuilds. Every class is
-   prefixed s-pr- and lives in the components layer, so Tailwind utilities still override.
+   Product pages (/product/**). Patterns the kit did not have, in the kit's language: the product tour (the
+   pinned tour bar, s-tour, the platform page's map and the next-chapter card), the closing band, the flow
+   plate and each page's product UI rebuilds. Every other class is prefixed s-pr- and lives in the
+   components layer, so Tailwind utilities still override.
    Imported by src/app/(site)/product/layout.tsx. Documented in src/components/site/README.md
    ("Product pages").
    ================================================================================================= */
 @layer components {
-  /* ---------------------------------------------------------------- product sub-nav */
-  .s-pr-subnav {
-    border-bottom: 1px solid var(--s-line);
+  /* ---------------------------------------------------------------- the product tour bar (ProductTour, TourBar) */
+  /* Pinned right under the site header, which keeps --s-nav-h exact in every state. --s-tour-h is the bar's height;
+     anchor jumps clear both bars (Section sets scroll-margin-top inline, hence !important). */
+  main:has(> .s-tour) {
+    --s-tour-h: 48px;
   }
-  .s-pr-subnav__list {
+  @media (min-width: 1024px) {
+    main:has(> .s-tour) {
+      --s-tour-h: 54px;
+    }
+  }
+  main:has(> .s-tour) [id] {
+    scroll-margin-top: calc(var(--s-nav-h) + var(--s-tour-h) + 16px) !important;
+  }
+  .s-tour {
+    position: sticky;
+    top: var(--s-nav-h);
+    z-index: 40;
+    height: var(--s-tour-h);
+    background: var(--s-band);
+  }
+  /* The bar's own width picks its layout (the container queries below), not the window's. */
+  .s-tour__in {
+    container: s-tour / inline-size;
+    position: relative;
     display: flex;
-    gap: 26px;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+  }
+  .s-tour__steps {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
     margin: 0;
     padding: 0;
     list-style: none;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
   }
-  .s-pr-subnav__list::-webkit-scrollbar {
-    display: none;
-  }
-  .s-pr-subnav__link {
-    display: inline-flex;
+  /* Every step after the first is its line and its link; the lines share the room that is left. */
+  .s-tour__step {
+    display: flex;
+    flex: 1 1 auto;
     align-items: center;
-    gap: 7px;
-    height: 48px;
-    margin-bottom: -1px;
-    border-bottom: 1.5px solid transparent;
-    font-size: 13.5px;
+    min-width: 0;
+  }
+  .s-tour__step:first-child {
+    flex: none;
+  }
+  .s-tour__line {
+    position: relative;
+    flex: 1;
+    min-width: 10px;
+    height: 1.5px;
+    margin: 0 6px;
+    overflow: hidden;
+    border-radius: 1px;
+    background: var(--s-line-2);
+  }
+  .s-tour__line i {
+    position: absolute;
+    inset: 0;
+    background: var(--s-ink);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .s-tour__step:not([data-state="next"]) .s-tour__line i {
+    transform: none;
+  }
+  /* Arriving on a chapter, the line fills up to it. (The icon's gold is never animated: Chrome stops painting an
+     svg dot path once an opacity animation on it has run.) */
+  .s-tour__step[data-state="now"] .s-tour__line i {
+    animation: s-tour-fill 0.7s var(--s-ease) 0.1s both;
+  }
+  @keyframes s-tour-fill {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes s-tour-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @keyframes s-tour-fill-y {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  .s-tour__link,
+  .s-tour__now {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 8px 0 4px;
+    border-radius: 9px;
     color: var(--s-muted);
     white-space: nowrap;
     transition:
       color 0.15s ease,
-      border-color 0.15s ease;
+      background-color 0.15s ease;
   }
-  .s-pr-subnav__link:hover {
+  .s-tour__icon {
+    flex: none;
+    width: 32px;
+    --s-dot: var(--s-muted);
+  }
+  .s-tour__icon .s-dots {
+    transition: color 0.15s ease;
+  }
+  @media (hover: hover) {
+    .s-tour__link:hover,
+    .s-tour__now:hover {
+      color: var(--s-ink);
+      background: rgb(10 10 10 / 0.045);
+    }
+    .s-tour__step[data-state="next"] .s-tour__link:hover .s-tour__icon {
+      --s-dot: #4f4f4d;
+    }
+  }
+  /* Passed chapters and the current one in ink. The gold accent shows on the current chapter only; elsewhere it
+     prints in the icon's own ink. */
+  .s-tour__step:not([data-state="next"]) .s-tour__link,
+  .s-tour__now {
     color: var(--s-ink);
   }
-  .s-pr-subnav__link[aria-current="page"] {
-    color: var(--s-ink);
-    border-bottom-color: var(--s-ink);
+  .s-tour__step:not([data-state="next"]) .s-tour__icon,
+  .s-tour__now .s-tour__icon {
+    --s-dot: var(--s-ink);
   }
-  .s-pr-subnav__idx {
-    font-family: var(--s-mono);
-    font-size: 11px;
+  .s-tour__step:not([data-state="now"]) .s-tour__icon {
+    --s-gold: currentColor;
+  }
+  .s-tour__meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .s-tour__num {
+    font-family: var(--s-mono); /* taste-skill-ignore: the founders asked for the small mono chapter number */
+    font-size: 12px;
+    font-feature-settings: normal;
+    font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }
-  .s-pr-subnav__link[aria-current="page"] .s-pr-subnav__idx {
-    color: var(--s-ink);
+  .s-tour__label {
+    font-size: 13px;
+    letter-spacing: -0.008em;
+  }
+  .s-tour__step[data-state="now"] .s-tour__label,
+  .s-tour__now .s-tour__label {
+    font-weight: 600;
+    letter-spacing: -0.014em;
+  }
+  /* You are here: the current chapter sits on white, a step up from the bar's grey. */
+  .s-tour__step[data-state="now"] .s-tour__link {
+    background: #fff;
+  }
+  .s-tour__next {
+    flex: none;
+    margin-left: 8px;
+    font-size: 13px;
+  }
+  /* The last chapter's way back: the arrow leads left; "Platform" alone on phones. */
+  .s-tour__back {
+    transition: transform 0.2s var(--s-ease);
+  }
+  .s-tour__next:hover .s-tour__back {
+    transform: translateX(-2px);
+  }
+  .s-tour__homeshort {
+    display: none;
+  }
+  /* The phone button: the current chapter, which opens the list of all six. */
+  .s-tour__now {
+    display: none;
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+  }
+  .s-tour__chev {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--s-muted);
+    transition: transform 0.2s var(--s-ease);
+  }
+  .s-tour__now[aria-expanded="true"] .s-tour__chev {
+    transform: rotate(180deg);
+  }
+  /* Reading progress along the bottom edge (TourBar sets the fill's scale as the page scrolls). */
+  .s-tour__progress {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    overflow: hidden;
+    background: var(--s-line);
+  }
+  .s-tour__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--s-ink);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  /* Medium widths: icons only for the chapters that aren't current; a name shows under its icon on hover and focus. */
+  @container s-tour (660px <= width < 1240px) {
+    .s-tour__step:not([data-state="now"]) .s-tour__link {
+      position: relative;
+      padding: 0 3px;
+    }
+    .s-tour__step:not([data-state="now"]) .s-tour__meta {
+      position: absolute;
+      width: 1px;
+      height: 1px; /* taste-skill-ignore: visually hidden text, not a rule */
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .s-tour__step:not([data-state="now"]) .s-tour__link:is(:hover, :focus-visible) .s-tour__meta {
+      top: calc(100% + 7px);
+      left: 50%;
+      z-index: 2;
+      width: auto;
+      height: auto;
+      margin: 0;
+      padding: 5px 9px 6px;
+      overflow: visible;
+      clip: auto;
+      transform: translateX(-50%);
+      border-radius: 7px;
+      background: var(--s-ink);
+      color: #fff;
+    }
+  }
+  /* Phones: the current chapter as a button that opens all six as a list, and Next. */
+  @container s-tour (width < 660px) {
+    .s-tour__now {
+      display: flex;
+      gap: 6px;
+      padding: 0 8px 0 4px;
+      background: #fff;
+    }
+    .s-tour__now .s-tour__chev {
+      width: 12px;
+      height: 12px;
+    }
+    .s-tour__now .s-tour__label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .s-tour__steps {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      left: 0;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 6px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: var(--s-float-sm); /* taste-skill-ignore: the open list floats over the page, like a menu */
+    }
+    .s-tour[data-open] .s-tour__steps {
+      display: flex;
+      animation: s-tour-drop 0.18s var(--s-ease) both;
+    }
+    .s-tour__step {
+      position: relative;
+      display: block;
+      flex: none;
+    }
+    .s-tour__step + .s-tour__step {
+      margin-top: 2px;
+    }
+    .s-tour__link {
+      height: 46px;
+      padding: 0 12px 0 10px;
+    }
+    .s-tour__step[data-state="now"] .s-tour__link {
+      background: var(--s-band);
+    }
+    /* The line runs down between the icons, filled up to the current chapter. */
+    .s-tour__line {
+      position: absolute;
+      top: -9px;
+      left: 25px;
+      width: 1.5px;
+      height: 16px;
+      min-width: 0;
+      margin: 0;
+    }
+    .s-tour__line i {
+      transform: scaleY(0);
+      transform-origin: top;
+    }
+    .s-tour__step[data-state="now"] .s-tour__line i {
+      animation-name: s-tour-fill-y;
+    }
+    .s-tour__next {
+      margin-left: auto;
+      padding: 0 11px;
+    }
+    .s-tour__nextname,
+    .s-tour__homelong {
+      position: absolute;
+      width: 1px;
+      height: 1px; /* taste-skill-ignore: visually hidden text, not a rule */
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .s-tour__homeshort {
+      display: inline;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .s-tour__line i,
+    .s-tour__steps {
+      animation: none !important;
+    }
   }
 
-  /* ---------------------------------------------------------------- pager (previous / next product page) */
-  .s-pr-pager {
-    padding-top: var(--s-section-y);
-  }
-  .s-pr-pager__grid {
+  /* ---------------------------------------------------------------- the tour map (Platform page, TourMap) */
+  /* Chapters 01 to 05 as cards joined by arrows: a list down the page on phones and tablets, a row of five from
+     1024 px. The drawings switch from the 32 x 24 grid to the 60 x 45 one at 1280 px, where a card is wide enough. */
+  .s-pr-map__list {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    border-top: 1px solid var(--s-ink);
+    gap: 26px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
-  .s-pr-pager__link {
-    display: flex;
+  .s-pr-map__item {
+    position: relative;
+  }
+  .s-pr-map__card {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
     gap: 18px;
     align-items: center;
-    padding: 22px 0;
-    border-bottom: 1px solid var(--s-line);
+    height: 100%;
+    padding: 14px 18px 14px 14px;
+    border-radius: 12px;
+    background: var(--s-band);
+    transition: background-color 0.2s ease;
   }
-  .s-pr-pager__thumb {
-    position: relative;
-    flex: none;
-    width: 112px;
-    height: 76px;
-    overflow: hidden;
-    border-radius: 4px;
+  .s-pr-map__card:hover {
+    background: var(--s-band-2);
   }
-  .s-pr-pager__img {
-    object-fit: cover;
-    transition: transform 0.6s var(--s-ease);
+  .s-pr-map__art {
+    display: block;
+    transition: transform 0.35s var(--s-ease);
   }
-  .s-pr-pager__link:hover .s-pr-pager__img {
-    transform: scale(1.06);
+  .s-pr-map__card:hover .s-pr-map__art {
+    transform: translateY(-2px);
   }
-  .s-pr-pager__text {
+  .s-pr-map__lg {
+    display: none;
+  }
+  .s-pr-map__text {
     display: grid;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
   }
-  .s-pr-pager__dir {
+  .s-pr-map__num {
+    font-family: var(--s-mono); /* taste-skill-ignore: the chapter number, as in the tour bar */
+    font-size: 12px;
+    font-feature-settings: normal;
+    letter-spacing: 0;
+    color: var(--s-muted);
+  }
+  .s-pr-map__name {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: -0.022em;
+    color: var(--s-ink);
+  }
+  .s-pr-map__desc {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--s-body);
+  }
+  /* On the list the arrows point down between the cards; in the row, across. */
+  .s-pr-map__arrow {
+    position: absolute;
+    bottom: -21px;
+    left: 54px;
+    width: 16px;
+    height: 16px;
+    color: var(--s-faint);
+    transform: rotate(90deg);
+  }
+  .s-pr-map__foot {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 24px;
+  }
+  .s-pr-map__start .s-mono {
+    font-size: 12.5px;
+  }
+  @media (min-width: 640px) {
+    .s-pr-map__card {
+      grid-template-columns: 128px minmax(0, 1fr);
+    }
+    .s-pr-map__arrow {
+      left: 70px;
+    }
+    .s-pr-map__foot {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+  /* Tablets: each card is a row of the contents, the drawing, then the number and name, then the line. */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .s-pr-map__card {
+      grid-template-columns: 128px minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 0 28px;
+      padding-right: 28px;
+    }
+    .s-pr-map__text {
+      display: contents;
+    }
+    .s-pr-map__num {
+      grid-column: 2;
+      align-self: end;
+    }
+    .s-pr-map__name {
+      grid-column: 2;
+      align-self: start;
+      margin-top: 2px;
+    }
+    .s-pr-map__desc {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      align-self: center;
+      font-size: 15px;
+    }
+    .s-pr-map__art {
+      grid-row: 1 / span 2;
+    }
+  }
+  @media (min-width: 1024px) {
+    .s-pr-map__list {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 32px;
+    }
+    .s-pr-map__card {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      align-items: start;
+      gap: 14px;
+      padding: 14px 14px 18px;
+    }
+    .s-pr-map__text {
+      padding: 0 4px;
+    }
+    .s-pr-map__arrow {
+      top: calc(50% - 8px);
+      right: -24px;
+      bottom: auto;
+      left: auto;
+      transform: none;
+    }
+    .s-pr-map__foot {
+      margin-top: 28px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .s-pr-map__lg {
+      display: block;
+    }
+    .s-pr-map__sm {
+      display: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------- next chapter (end of each capability page, NextChapter) */
+  .s-pr-next {
+    padding-top: var(--s-section-y);
+  }
+  /* One card, one link: Continue's ::after covers the card. */
+  .s-pr-next__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding: 20px 20px 22px;
+    border-radius: 14px;
+    background: var(--s-band);
+    transition: background-color 0.2s ease;
+  }
+  .s-pr-next__card:hover {
+    background: var(--s-band-2);
+  }
+  .s-pr-next__art {
+    width: min(100%, 200px);
+    transition: transform 0.4s var(--s-ease);
+  }
+  .s-pr-next__card:hover .s-pr-next__art {
+    transform: translateY(-3px);
+  }
+  .s-pr-next__kicker {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--s-muted);
+  }
+  .s-pr-next__kicker .s-mono {
+    font-size: 12px;
+    color: var(--s-ink);
+  }
+  .s-pr-next__title {
+    margin: 8px 0 0;
+    font-size: var(--s-text-h2);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.032em;
+    color: var(--s-ink);
+    text-wrap: balance;
+  }
+  .s-pr-next__desc {
+    margin: 8px 0 0;
+    font-size: var(--s-text-lede);
+    line-height: 1.55;
+    color: var(--s-body);
+    text-wrap: pretty;
+  }
+  /* The link itself paints nothing (its ::after covers the card); the button's look is the span inside it. */
+  .s-pr-next__go {
+    display: inline-flex;
+    justify-self: start;
+    border-radius: var(--s-radius);
+  }
+  .s-pr-next__go::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+  }
+  .s-pr-next__card:hover .s-btn {
+    background: #2a2a2a;
+  }
+  .s-pr-next__card:hover .s-btn__arrow {
+    transform: translateX(2px);
+  }
+  .s-pr-next__go:active .s-btn {
+    transform: translateY(1px);
+  }
+  .s-pr-next__more {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px 24px;
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+  .s-pr-next__link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12.5px;
+    font-size: 13.5px;
     color: var(--s-muted);
+    transition: color 0.15s ease;
   }
-  .s-pr-pager__dir .s-icon {
+  .s-pr-next__link:hover {
+    color: var(--s-ink);
+  }
+  .s-pr-next__link .s-mono {
+    font-size: 12px;
+  }
+  .s-pr-next__back {
     width: 14px;
     height: 14px;
     transition: transform 0.2s var(--s-ease);
   }
-  .s-pr-pager__link--prev:hover .s-pr-pager__dir .s-icon {
+  .s-pr-next__link:hover .s-pr-next__back {
     transform: translateX(-2px);
   }
-  .s-pr-pager__link--next:hover .s-pr-pager__dir .s-icon {
-    transform: translateX(2px);
-  }
-  .s-pr-pager__label {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    font-size: 19px;
-    font-weight: 500;
-    letter-spacing: -0.022em;
-    color: var(--s-ink);
-  }
-  .s-pr-pager__idx {
-    font-family: var(--s-mono);
-    font-size: 12px;
-    letter-spacing: 0;
-  }
-  .s-pr-pager__desc {
-    font-size: 13.5px;
-    color: var(--s-muted);
-  }
   @media (min-width: 768px) {
-    .s-pr-pager__grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      column-gap: var(--s-col-gap);
+    .s-pr-next__card {
+      grid-template-columns: 200px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 32px;
+      padding: 24px 32px 24px 24px;
     }
-    .s-pr-pager__link--next {
-      flex-direction: row-reverse;
-      text-align: right;
+    .s-pr-next__art {
+      width: 200px;
     }
-    .s-pr-pager__link--next .s-pr-pager__text {
-      justify-items: end;
+  }
+  @media (min-width: 1024px) {
+    .s-pr-next__card {
+      grid-template-columns: 240px minmax(0, 1fr) auto;
+      gap: 48px;
+      padding: 28px 44px 28px 28px;
     }
-    .s-pr-pager__thumb {
-      width: 150px;
-      height: 96px;
+    .s-pr-next__art {
+      width: 240px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .s-pr-next__card {
+      grid-template-columns: 280px minmax(0, 1fr) auto;
+      gap: 56px;
+      padding: 32px 52px 32px 32px;
+    }
+    .s-pr-next__art {
+      width: 280px;
     }
   }
 
@@ -946,7 +1437,7 @@
   @media (min-width: 1024px) {
     .s-pr-packet__side {
       position: sticky;
-      top: calc(var(--s-nav-h) + 24px);
+      top: calc(var(--s-nav-h) + var(--s-tour-h, 0px) + 24px);
       grid-template-columns: 40px minmax(0, 1fr);
       gap: 0 12px;
       margin-top: 64px;
@@ -2691,23 +3182,10 @@
     }
   }
 
-  /* ---------------------------------------------------------------- phone: captions inside the page margin, sub-nav that wraps */
+  /* ---------------------------------------------------------------- phone: captions inside the page margin */
   @media (max-width: 767px) {
     .s-figure > .s-pr-flow + .s-cap {
       padding-inline: 10px;
-    }
-  }
-  @media (max-width: 639px) {
-    .s-pr-subnav__list {
-      flex-wrap: wrap;
-      gap: 0 16px;
-      padding: 6px 0 4px;
-      overflow: visible;
-    }
-    .s-pr-subnav__link {
-      height: 32px;
-      font-size: 12.5px;
-      margin-bottom: 0;
     }
   }
 

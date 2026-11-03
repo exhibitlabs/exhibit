@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, TextLink } from "@/components/site";
 import { AskReplay } from "@/components/site/product/AskReplay";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
-import { ProductPager } from "@/components/site/product/ProductPager";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { NextChapter } from "@/components/site/product/NextChapter";
 import { ASK, seconds, utcDate } from "@/components/site/product/data";
 import { productMetadata } from "@/components/site/product/meta";
 import { GITHUB_URL } from "@/components/landing/data";
@@ -44,7 +44,7 @@ const atStake = ASK.chart.series[0].values.reduce((a, v) => a + v, 0);
 export default function AskPage() {
   return (
     <>
-      <ProductNav current="ask" />
+      <ProductTour current="ask" />
       <PageHeader
         eyebrow="Ask Exhibit"
         eyebrowIndex="04"
@@ -160,7 +160,7 @@ export default function AskPage() {
         </Container>
       </Section>
 
-      <ProductPager current="ask" />
+      <NextChapter current="ask" />
       <ProductCta
         id="ask-cta"
         title="Ask your own question."

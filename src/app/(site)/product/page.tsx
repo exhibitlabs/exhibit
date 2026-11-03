@@ -4,7 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, Tag, TextLink } from "@/components/site";
 import { CAPABILITIES } from "@/components/site/product/capabilities";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { TourMap } from "@/components/site/product/TourMap";
 import { LIVE, REFUNDS, utc } from "@/components/site/product/data";
 import { AskTurnTop, ApprovalBannerView, BriefCardView, LENA_ORDER, PacketPage } from "@/components/site/fragments";
 import { DrawerHeadView, DrawerSuccess } from "@/components/site/drawer";
@@ -68,7 +69,7 @@ export default function ProductOverviewPage() {
   const patel = REFUNDS.find((r) => r.buyer === "Priya Patel")!;
   return (
     <>
-      <ProductNav current="overview" />
+      <ProductTour current="platform" />
       <PageHeader
         eyebrow="Product"
         title="One agent for the whole dispute."
@@ -86,6 +87,8 @@ export default function ProductOverviewPage() {
         }
         aside={<DotArt name="scales" frame className="w-[210px] sm:w-[260px] lg:w-[300px]" />}
       />
+
+      <TourMap />
 
       {/* 1. The five capabilities, pinned to Harnett's rack */}
       <Section id="capabilities" labelledBy="capabilities-title">

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Body, ButtonLink, Container, CTA, DotArt, Eyebrow, Heading, PageHeader, Plate, PlateCaption, Reveal, ROUTES, Section, SectionHead, StatusCode, TextLink } from "@/components/site";
 import { PacketViewer } from "@/components/site/product/PacketViewer";
 import { ProductCta } from "@/components/site/product/ProductCta";
-import { ProductNav } from "@/components/site/product/ProductNav";
-import { ProductPager } from "@/components/site/product/ProductPager";
+import { ProductTour } from "@/components/site/product/ProductTour";
+import { NextChapter } from "@/components/site/product/NextChapter";
 import { FILINGS, REFUNDS, hhmm, utc, utcDate } from "@/components/site/product/data";
 import { EXHIBIT_PAGES, FILING, LETTERHEAD, PACKET_COVER, pdfDate } from "@/components/site/product/filing";
 import { PdfFacts, PdfLabel, PdfLetterhead, PdfPage, PdfTitle, type PdfFact } from "@/components/site/packet";
@@ -45,7 +45,7 @@ const failed = FILINGS.filter((f) => f.status >= 400);
 export default function EvidencePage() {
   return (
     <>
-      <ProductNav current="evidence" />
+      <ProductTour current="evidence" />
       <PageHeader
         eyebrow="Evidence packets"
         eyebrowIndex="02"
@@ -306,7 +306,7 @@ export default function EvidencePage() {
         </Container>
       </Section>
 
-      <ProductPager current="evidence" />
+      <NextChapter current="evidence" />
       <ProductCta
         id="evidence-cta"
         title="Build a packet yourself."
