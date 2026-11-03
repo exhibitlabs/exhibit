@@ -323,8 +323,12 @@ async function frameCase() {
   await wait(500);
   for (let i = 0, still = 0; i < 24 && still < 2; i++) {
     const off = graph().getBoundingClientRect().top - ((head()?.getBoundingClientRect().bottom ?? 48) + 16);
-    if (Math.abs(off) < 2) still++;
-    else (still = 0), window.scrollBy({ top: off, behavior: "instant" });
+    if (Math.abs(off) < 2) {
+      still++;
+    } else {
+      still = 0;
+      window.scrollBy({ top: off, behavior: "instant" });
+    }
     await wait(350);
   }
 }
