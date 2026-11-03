@@ -10,7 +10,7 @@ import { CONTACT_EMAIL, GITHUB, NOV3, SQLITE_TABLES, TEST_FILES, TEST_TOTAL } fr
 import { AUTOPILOT_LIMITS } from "@/lib/autopilot-rules";
 
 const DESCRIPTION =
-  "How Exhibit keeps money and customers safe: every claim cited to a record, only the actions PayPal allows, merchant approval for AI agents, Autopilot hard limits and an audit log of every PayPal call. Open source, 300 tests, tested on PayPal's sandbox, no certification yet.";
+  "How Exhibit keeps money and customers safe: every claim cited to a record, only the actions PayPal allows, merchant approval for AI agents, Autopilot hard limits and an audit log of every PayPal call. Open source, 359 tests, tested on PayPal's sandbox, no certification yet.";
 
 export const metadata: Metadata = companyMetadata({ title: "Security", description: DESCRIPTION, path: "/security" });
 

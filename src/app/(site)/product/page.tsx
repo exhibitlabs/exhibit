@@ -255,7 +255,7 @@ export default function ProductOverviewPage() {
                 </div>
                 <div className="mt-3">
                   <span className="p">$ </span>
-                  <span className="c">npm test</span> <span className="p"># 300 tests, no credentials needed</span>
+                  <span className="c">npm test</span> <span className="p"># 359 tests, no credentials needed</span>
                 </div>
               </div>
               <TextLink href={ROUTES.github}>Open source on GitHub, MIT</TextLink>

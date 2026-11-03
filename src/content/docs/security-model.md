@@ -126,7 +126,7 @@ Include what you did, what you expected, what happened and the commit you tested
 The policy itself is [`SECURITY.md`](https://github.com/exhibitlabs/exhibit/blob/main/SECURITY.md).
 
 :::cards
-- [Testing and evaluation](/docs/testing-and-evaluation): The 300 tests behind these guarantees.
+- [Testing and evaluation](/docs/testing-and-evaluation): The 359 tests behind these guarantees.
 - [MCP server](/docs/mcp): The nine tools and the approval flow.
 - [Configuration](/docs/configuration): Every environment variable, and which ones hold secrets.
 :::

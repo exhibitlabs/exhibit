@@ -1,16 +1,16 @@
 ---
 title: Testing and evaluation
-description: The 300 tests behind Exhibit's guarantees, the CI that runs them, and how the agent's decisions were evaluated, with the caveat.
+description: The 359 tests behind Exhibit's guarantees, the CI that runs them, and how the agent's decisions were evaluated, with the caveat.
 section: Trust
 order: 2
 ---
 
-Exhibit has 300 automated tests in 16 files, organised around the guarantees it makes rather than around its source files. They need no credentials, no network and no Claude login. A separate evaluation ran the real agent on 30 labelled disputes; read its caveat before its numbers.
+Exhibit has 359 automated tests in 20 files, organised around the guarantees it makes rather than around its source files. They need no credentials, no network and no Claude login. A separate evaluation ran the real agent on 30 labelled disputes; read its caveat before its numbers.
 
 ## Run the tests
 
 ```bash
-npm test            # 300 tests with Vitest
+npm test            # 359 tests with Vitest
 npm run test:watch  # re-run on every change
 npm run lint        # ESLint
 npm run typecheck   # tsc --noEmit
@@ -42,15 +42,19 @@ npx vitest run tests/autopilot.test.ts
 | `autopilot` | 26 | Off by default, low confidence always to a person, each rule's inclusive limits, the hard limits, the match between decision and action, saved settings and the settings endpoint. |
 | `playbook` | 26 | Seller Protection checks against PayPal's published US rules for each claim type, address matching, and a playbook that recommends only evidence types PayPal accepts and does not fight what it cannot win. |
 | `action-guardrail` | 22 | A brief's action must be one the dispute allows now, in every state. Offer types and amounts. The brief schema refuses values the model should never send. |
+| `contact-validation` | 21 | The contact form's checks, shared by the browser and the website's Worker: required fields, a Reply-To-safe email, length limits, up to three times that are still ahead, time zones and summer time, the half-hour slots and four-week calendar, and the email's text in the visitor's zone and in IST. |
 | `approvals-api` | 19 | Only a same-origin browser request can decide an approval, and an agent can only create and read requests. |
+| `contact-mime` | 18 | The contact email's MIME: control characters and smuggled headers stay out of every header, display names and addresses are quoted or refused, non-ASCII is encoded, lines are folded and wrapped, and there are plain-text and HTML parts. |
 | `filing` | 18 | Filings call PayPal correctly: requested evidence types, tracking from the carrier record, supporting info under review, refunds, offers, messages, PayPal's errors, and an evidence packet built from source records. |
 | `ask-grounding` | 17 | Ask Exhibit sends back chart values and ids no tool returned, its tools change nothing, and six offline answers work. |
 | `citation-guardrail` | 15 | Every ref resolves to a stored record on the same case. A brief with an invented ref goes back to the model and nothing is filed. |
+| `contact-worker` | 15 | The website's contact Worker answers 200 only after Turnstile passes and the email is accepted, refuses other sites, non-JSON, oversized bodies, a filled honeypot or invalid fields, says so when its secret is missing, and serves every other request from the static site. |
 | `api-bad-input` | 13 | Unknown dispute ids, malformed batch bodies and malformed webhooks get a 404 or 400 and start nothing. |
 | `agent-run` | 12 | A run stores its brief and trace, lets Autopilot act only on manual, webhook and batch runs, never on agent or seed runs, and never overlaps another run on the same dispute. |
 | `config` | 12 | The test environment itself, the PayPal mode, the AI provider order and the data folder. |
 | `mcp-server` | 9 | The MCP tools are an allow-list, the request tools cannot choose the action or the amount, the only writes are requests and investigations, and agent runs never trigger Autopilot. |
 | `agent-tools` | 7 | The agent has eight lookups and the brief filer, a full investigation changes nothing, bad input is refused, and on the Claude CLI the agent and Ask Exhibit get only their own tools. |
+| `product-tour` | 5 | The product tour numbers six chapters from 00, matches the Product menu's names, links and drawings, and draws each mini icon as a 16 x 12 dot grid with one gold accent. |
 | `replays` | 3 | Recorded runs replay on every demo case and pass validation. |
 
 The [Security model](/docs/security-model#guarantees) maps each guarantee to these files.

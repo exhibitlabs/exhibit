@@ -31,7 +31,7 @@ const ROUTES_OUT = [
     icon: Code2,
     k: "MIT licence",
     title: "The code",
-    body: "Read every prompt, tool and guardrail, and run the 300 tests yourself. Pull requests are welcome.",
+    body: "Read every prompt, tool and guardrail, and run the 359 tests yourself. Pull requests are welcome.",
     href: GITHUB.repo,
     cta: "github.com/exhibitlabs/exhibit",
   },

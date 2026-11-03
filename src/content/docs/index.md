@@ -12,7 +12,7 @@ It is open source under the MIT licence. Exhibit Labs, founded by Shivansh Dwive
 ## Who it is for
 
 - **Merchants who sell through PayPal.** Small teams without a payments operations person, who lose disputes they could win and fight ones they should refund.
-- **Their engineers.** Exhibit is a Next.js app you run yourself: one PayPal client, a typed agent, SQLite for its records and 300 tests.
+- **Their engineers.** Exhibit is a Next.js app you run yourself: one PayPal client, a typed agent, SQLite for its records and 359 tests.
 - **People building AI agents.** Exhibit's MCP server lets Claude, ChatGPT or an agent built on PayPal's Agent Toolkit investigate disputes and ask the merchant to approve a filing.
 
 ## What it does

@@ -13,8 +13,9 @@ import { Tag } from "../records";
 import { Reveal } from "../Reveal";
 import { Body, Eyebrow, Heading, Small } from "../type";
 import { UiSheet } from "../ui";
+import { TEST_TOTAL } from "../company/records";
 
-const TESTS = 300; // README: "npm test  # 300 tests"
+const TESTS = TEST_TOTAL; // the suite, as records.ts lists it
 
 export function Security() {
   const guards = [

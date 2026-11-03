@@ -92,7 +92,7 @@ export const GITHUB = {
   file: (path: string) => `${GITHUB_URL}/blob/main/${path}`,
 };
 
-/** The suite as `npx vitest run --reporter=json` reported it on Nov 3, 2026: 300 tests in 16 files, all passing. */
+/** The suite as `npx vitest run --reporter=json` reported it on Nov 4, 2026: 359 tests in 20 files, all passing. */
 export const TEST_FILES: { file: string; tests: number }[] = [
   { file: "simulator.test.ts", tests: 48 },
   { file: "prevention.test.ts", tests: 27 },
@@ -100,15 +100,19 @@ export const TEST_FILES: { file: string; tests: number }[] = [
   { file: "autopilot.test.ts", tests: 26 },
   { file: "playbook.test.ts", tests: 26 },
   { file: "action-guardrail.test.ts", tests: 22 },
+  { file: "contact-validation.test.ts", tests: 21 },
   { file: "approvals-api.test.ts", tests: 19 },
+  { file: "contact-mime.test.ts", tests: 18 },
   { file: "filing.test.ts", tests: 18 },
   { file: "ask-grounding.test.ts", tests: 17 },
   { file: "citation-guardrail.test.ts", tests: 15 },
+  { file: "contact-worker.test.ts", tests: 15 },
   { file: "api-bad-input.test.ts", tests: 13 },
   { file: "agent-run.test.ts", tests: 12 },
   { file: "config.test.ts", tests: 12 },
   { file: "mcp-server.test.ts", tests: 9 },
   { file: "agent-tools.test.ts", tests: 7 },
+  { file: "product-tour.test.ts", tests: 5 },
   { file: "replays.test.ts", tests: 3 },
 ];
 export const TEST_TOTAL = TEST_FILES.reduce((a, f) => a + f.tests, 0);

@@ -14,9 +14,10 @@
 // organisation profile (../exhibit-org-dotgithub next to the repo, or ORG_DIR) is checked too when present.
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const README = path.join(ROOT, "README.md");
@@ -163,8 +164,11 @@ function checkFigures(md) {
   const testCounts = new Set([...prose.matchAll(/(\d+) tests/g), ...prose.matchAll(/tests-(\d+)/g)].map((m) => m[1]));
   if (testCounts.size !== 1) problems.push(`README gives different test counts: ${[...testCounts].join(", ") || "none"}`);
   if (args.has("--tests")) {
-    const out = execFileSync("npx", ["vitest", "run", "--reporter=json"], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 64 << 20 });
-    const total = JSON.parse(out.slice(out.indexOf("{"))).numTotalTests;
+    // The JSON goes to a file: tests may print to stdout, which would break parsing the console output.
+    const report = path.join(os.tmpdir(), `exhibit-readme-facts-${process.pid}.json`);
+    execFileSync("npx", ["vitest", "run", "--reporter=json", `--outputFile=${report}`], { cwd: ROOT, stdio: "ignore" });
+    const total = JSON.parse(readFileSync(report, "utf8")).numTotalTests;
+    rmSync(report, { force: true });
     if (!testCounts.has(String(total)) || testCounts.size !== 1) problems.push(`the suite has ${total} tests; README says ${[...testCounts].join(", ")}`);
     else ok.push(`${total} tests`);
   }

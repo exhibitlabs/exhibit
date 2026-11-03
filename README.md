@@ -22,7 +22,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0a0a0a?style=flat-square&labelColor=efefed"></a>
   <a href=".nvmrc"><img alt="Node.js 24 or newer" src="https://img.shields.io/badge/node-24%2B-0a0a0a?style=flat-square&labelColor=efefed"></a>
-  <a href="#tests-and-ci"><img alt="300 tests, no keys needed" src="https://img.shields.io/badge/tests-300%2C%20no%20keys-0a0a0a?style=flat-square&labelColor=efefed"></a>
+  <a href="#tests-and-ci"><img alt="359 tests, no keys needed" src="https://img.shields.io/badge/tests-359%2C%20no%20keys-0a0a0a?style=flat-square&labelColor=efefed"></a>
 </p>
 
 Exhibit is an AI dispute agent for merchants who sell through PayPal. It reads each dispute and chargeback from **PayPal's Disputes API** and investigates it with **Claude Opus 5.5** across eight sources: the dispute itself, the order and listing, carrier scans, the buyer's history and messages, checkout signals, store policies and PayPal's Seller Protection rules. It decides whether to fight, offer, refund or message the buyer, and writes the response to PayPal's reviewer with every claim cited to a record.
@@ -83,7 +83,7 @@ Every row comes from Exhibit's own call log, exported without credentials, reque
 
 Exhibit against the five equally weighted criteria, with the evidence for each.
 
-- **Technological Implementation.** Disputes API write endpoints called live on the sandbox, each with its PayPal debug id ([the record](#verified-live-on-the-paypal-sandbox), [the full run](docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves to a real record and the action is one PayPal allows on the case right now ([guardrails](#guardrails)). 300 tests that need no keys ([tests](#tests-and-ci)).
+- **Technological Implementation.** Disputes API write endpoints called live on the sandbox, each with its PayPal debug id ([the record](#verified-live-on-the-paypal-sandbox), [the full run](docs/SANDBOX_E2E.md)). A Claude Opus 5.5 agent whose brief is rejected unless every citation resolves to a real record and the action is one PayPal allows on the case right now ([guardrails](#guardrails)). 359 tests that need no keys ([tests](#tests-and-ci)).
 - **Design.** A complete product: a command center, an inbox with saved views, a case page with a live evidence graph and a cited letter, the evidence packet PDF, prevention, Autopilot, agent approvals, a PayPal API inspector and a ⌘K question palette ([how it works](#how-it-works)). The website and docs run in the same app.
 - **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback ([PayPal's fees](https://www.paypal.com/us/business/paypal-business-fees)). Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes, its decision matched the label 30 of 30 times, to be read with its caveat ([evaluation](#evaluation)).
 - **Innovation/Idea.** PayPal's agent tools can read a dispute or concede it. Exhibit adds the investigation, the evidence and the filing, and lets other agents use them under the rule PayPal applies to its own MCP gateway: agents request, merchants approve ([the toolkit gap](#paypals-agent-toolkit-and-exhibit), [MCP](#use-exhibit-from-any-ai-agent-mcp)).
@@ -390,7 +390,7 @@ Each guardrail is enforced in code, not in the prompt, and has its own tests.
 ## Tests and CI
 
 ```bash
-npm test            # 300 tests, no credentials needed
+npm test            # 359 tests, no credentials needed
 npm run lint        # ESLint
 npm run typecheck   # tsc --noEmit
 npm run build       # next build
