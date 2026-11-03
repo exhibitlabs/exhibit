@@ -31,6 +31,7 @@ export function BriefCard({
   amount,
   expected,
   ms,
+  replayed,
   prepared,
   stale,
   protection,
@@ -41,6 +42,8 @@ export function BriefCard({
   amount: number;
   expected: number;
   ms?: number;
+  /** A recorded run replayed: it has no investigation time worth showing. */
+  replayed?: boolean;
   prepared?: boolean;
   stale?: boolean;
   protection?: { tone: Tone; label: string } | null;
@@ -57,7 +60,7 @@ export function BriefCard({
             <Chip tone={m.tone}>{m.label}</Chip>
             <span className="text-[12px] text-muted">
               {brief.confidence.toLowerCase()} confidence
-              {ms && !prepared ? ` · ${ms < 10_000 ? (ms / 1000).toFixed(1) : Math.round(ms / 1000)}s investigation` : ""}
+              {replayed && !prepared ? " · recorded run, replayed" : ms && !prepared ? ` · ${ms < 10_000 ? (ms / 1000).toFixed(1) : Math.round(ms / 1000)}s investigation` : ""}
             </span>
             {prepared ? (
               <Tip label="Prepared from a recorded run when the demo was reset. Every tool call ran live against this case, and the brief passed the same checks as a live one." wide side="bottom" align="start">

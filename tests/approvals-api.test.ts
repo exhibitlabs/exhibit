@@ -130,7 +130,10 @@ describe("what an agent can reach", () => {
     const { order } = installWatchedOrder();
     const res = await createApproval(json("/api/approvals", "POST", { kind: "prevention_fix", orderId: order.id, client: "Claude Code" }));
     expect(res.status).toBe(201);
-    expect((await res.json()).approval).toMatchObject({ kind: "prevention_fix", target: order.id, action: "push_tracking", status: "pending" });
+    const body = await res.json();
+    expect(body.approval).toMatchObject({ kind: "prevention_fix", target: order.id, action: "push_tracking", status: "pending" });
+    // The link the merchant is sent to must land on the queue where the request can be approved.
+    expect(body.reviewPath).toBe(`/app/approvals?approval=${body.approval.id}`);
   });
 
   it("refuses anything that is not one of the two request kinds, and unknown cases", async () => {

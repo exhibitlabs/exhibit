@@ -90,7 +90,7 @@ export function AppShell({ merchant, mode, provider, nav: initialNav, demo, pale
   };
 
   return (
-    <div className="app-shell flex min-h-dvh">
+    <div className="app-shell flex min-h-dvh overflow-x-clip">
       <Sidebar merchant={merchant} mode={mode} provider={provider} counts={nav.counts} notices={nav.notices} open={menu} onClose={() => setMenu(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-white/90 px-3 backdrop-blur lg:hidden">

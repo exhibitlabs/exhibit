@@ -8,6 +8,8 @@ import { cachedDisputes, latestBriefs } from "@/lib/disputes";
  */
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { ids?: unknown };
+  // A malformed list must not fall through to "investigate everything".
+  if (body.ids !== undefined && !Array.isArray(body.ids)) return Response.json({ error: "Send { ids: [dispute ids] }, or no body to investigate every case without a brief." }, { status: 400 });
   const ids = Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string").slice(0, 50) : null;
   const briefs = latestBriefs();
   const open = cachedDisputes().filter((d) => d.status !== "RESOLVED");

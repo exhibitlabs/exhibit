@@ -83,9 +83,9 @@ function Radar() {
 function FixChip({ fix }: { fix: Order["fix"] }) {
   if (!fix) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-line bg-white px-2 py-1 text-[11.5px] font-medium text-ink-2">
-      {fix.label}
-      <span className="font-normal text-muted">{fix.channel === "paypal" ? "PayPal API" : "Inbox"}</span>
+    <span className="inline-flex max-w-full flex-col rounded-md border border-line bg-white px-2 py-1 text-[11.5px] font-medium leading-tight text-ink-2">
+      <span className="truncate">{fix.label}</span>
+      <span className="truncate text-[10.5px] font-normal text-muted">{fix.channel === "paypal" ? "PayPal API" : "Inbox"}</span>
     </span>
   );
 }
@@ -136,7 +136,7 @@ export function Prevention() {
             </div>
 
             <div className="min-w-0">
-              <div className="hidden grid-cols-[52px_minmax(0,1.3fr)_minmax(0,1.2fr)_76px_minmax(0,1fr)] gap-4 border-b border-line bg-[#fafafa] px-5 py-2.5 text-[11px] uppercase tracking-[0.08em] text-muted md:grid">
+              <div className="hidden grid-cols-[52px_minmax(0,1.2fr)_minmax(0,1.1fr)_76px_minmax(0,1.3fr)] gap-4 border-b border-line bg-[#fafafa] px-5 py-2.5 text-[11px] uppercase tracking-[0.08em] text-muted md:grid">
                 <span>Risk</span>
                 <span>Order</span>
                 <span>Warning sign</span>
@@ -145,7 +145,7 @@ export function Prevention() {
               </div>
               <ul className="divide-y divide-line">
                 {rows.map((o, i) => (
-                  <li key={o.id} className={clsx("grid-cols-[44px_minmax(0,1fr)] gap-x-3 gap-y-2 px-5 py-3.5 md:grid md:grid-cols-[52px_minmax(0,1.3fr)_minmax(0,1.2fr)_76px_minmax(0,1fr)] md:items-center md:gap-4", i < 4 ? "grid" : "hidden")}>
+                  <li key={o.id} className={clsx("grid-cols-[44px_minmax(0,1fr)] gap-x-3 gap-y-2 px-5 py-3.5 md:grid md:grid-cols-[52px_minmax(0,1.2fr)_minmax(0,1.1fr)_76px_minmax(0,1.3fr)] md:items-center md:gap-4", i < 4 ? "grid" : "hidden")}>
                     <span className={clsx("num flex h-6 w-10 items-center justify-center rounded-md text-[12px] font-semibold", BAND_STYLE[o.band].chip)}>{o.score}</span>
                     <div className="min-w-0">
                       <div className="truncate text-[13px] font-medium text-ink">{o.buyer}</div>

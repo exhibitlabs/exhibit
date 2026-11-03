@@ -329,7 +329,8 @@ body {
 }
 
 /* ---- App shell (product UI under /app) ------------------------------------------------------ */
-.app-shell :focus-visible:not([tabindex="-1"]) {
+/* Components that opt out with `outline-none` (bare inputs inside a bordered field, the Ask palette) draw their own focus state, so the ring skips them. */
+.app-shell :focus-visible:not([tabindex="-1"]):not(.outline-none) {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
   border-radius: 6px;

@@ -6,6 +6,7 @@ import { runAgent, type RunEvent } from "@/lib/agent/run";
 import type { ToolContext } from "@/lib/agent/tools";
 import { setAutopilot } from "@/lib/autopilot";
 import { DEFAULT_AUTOPILOT } from "@/lib/autopilot-rules";
+import { listActivity } from "@/lib/db";
 import { latestRun } from "@/lib/disputes";
 import { simGet } from "@/lib/paypal/simulator";
 import { installCase, insertRun, makeBriefFor, recordedActions, resetState, type CaseKit } from "./support/fixtures";
@@ -61,6 +62,13 @@ describe("a run", () => {
     expect(acted(events)).toBe(false);
     expect(recordedActions()).toEqual([]);
     expect(simGet(id)?.status).toBe("WAITING_FOR_SELLER_RESPONSE");
+  });
+
+  it("logs a recorded run as one, with no investigation time (it replays in seconds, so the clock says nothing about the agent)", async () => {
+    await run();
+
+    const filed = listActivity({ disputeId: id }).find((a) => a.message.startsWith("Brief filed"));
+    expect(filed?.message).toBe(`Brief filed for ${id}: REFUND (${scripted.brief!.win_likelihood}%) from a recorded run`);
   });
 
   it.each(["manual", "webhook", "batch"] as const)("acts as the merchant's autopilot when the verdict is AUTO (%s)", async (trigger) => {

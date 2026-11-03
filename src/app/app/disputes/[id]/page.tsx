@@ -41,6 +41,8 @@ export default async function DisputePage({ params, searchParams }: { params: Pr
     .filter((x) => x.status !== "RESOLVED")
     .sort((a, b) => (a.seller_response_due_date ?? "9999").localeCompare(b.seller_response_due_date ?? "9999"));
   const i = open.findIndex((x) => x.dispute_id === id);
+  // A resolved case isn't in that list, so it gets no "1 of 7 open" pager (a total of 0 hides it).
+  const total = i >= 0 ? open.length : 0;
   const label = (x?: (typeof open)[number]) => (x ? { id: x.dispute_id, buyer: x.disputed_transactions[0]?.buyer?.name ?? x.dispute_id } : null);
 
   return (
@@ -56,7 +58,7 @@ export default async function DisputePage({ params, searchParams }: { params: Pr
       protection={evaluateSellerProtection(cf, store.merchant().address.country)}
       mode={paypalMode()}
       provider={aiProvider()}
-      nav={{ prev: i > 0 ? label(open[i - 1]) : null, next: i >= 0 && i < open.length - 1 ? label(open[i + 1]) : null, index: Math.max(0, i), total: open.length }}
+      nav={{ prev: i > 0 ? label(open[i - 1]) : null, next: i >= 0 && i < open.length - 1 ? label(open[i + 1]) : null, index: Math.max(0, i), total }}
       initialTab={(TABS as readonly string[]).includes(tab ?? "") ? (tab as (typeof TABS)[number]) : null}
       guide={guide ?? null}
     />

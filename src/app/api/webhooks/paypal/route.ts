@@ -12,7 +12,14 @@ type WebhookEvent = { id: string; event_type: string; resource?: { dispute_id?: 
  */
 export async function POST(req: Request) {
   const raw = await req.text();
-  const event = JSON.parse(raw) as WebhookEvent;
+  const event = (() => {
+    try {
+      return JSON.parse(raw) as Partial<WebhookEvent> | null;
+    } catch {
+      return null;
+    }
+  })();
+  if (!event || typeof event.event_type !== "string") return Response.json({ error: "Send a PayPal webhook event." }, { status: 400 });
   if (paypalMode() === "sandbox") {
     const { webhookId } = paypalCredentials();
     if (!webhookId) return Response.json({ error: "PAYPAL_WEBHOOK_ID is not set" }, { status: 500 });
@@ -24,7 +31,7 @@ export async function POST(req: Request) {
       transmission_sig: h("paypal-transmission-sig"),
       transmission_time: h("paypal-transmission-time"),
       webhook_id: webhookId,
-      webhook_event: event,
+      webhook_event: event as WebhookEvent,
     });
     if (verdict.verification_status !== "SUCCESS") {
       logActivity("webhook", `Rejected webhook ${event.id}: signature verification failed`);

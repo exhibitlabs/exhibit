@@ -44,7 +44,7 @@ export function navState(): { counts: NavCounts; notices: Notice[] } {
       title: `${a.client} requests: ${a.title}`,
       detail: a.kind === "dispute_action" ? `${a.target}${a.amount !== null ? ` · $${a.amount.toFixed(2)}` : ""} · waiting for your approval` : `Order ${a.target} · waiting for your approval`,
       at: a.createdAt,
-      href: a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/settings?approval=${a.id}#agent-approvals`,
+      href: a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/approvals?approval=${a.id}`,
       urgent: true,
     });
   }

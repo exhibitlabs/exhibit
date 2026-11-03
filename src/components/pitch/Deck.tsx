@@ -623,7 +623,7 @@ function buildSlides(d: DeckData): { label: string; render: (n: number, total: n
             ))}
           </div>
           <figure className="mt-10 max-w-[1250px] border-l-2 border-ink pl-6">
-            <blockquote className="text-[25px] font-medium leading-snug tracking-[-0.01em]">“It is really all about trust and about the security that we will be providing both to merchants and to consumers.”</blockquote>
+            <blockquote className="text-[25px] font-medium leading-snug tracking-[-0.01em]">“…it’s really all about trust and about the security that we will be providing both to merchants and to consumers.”</blockquote>
             <figcaption className="mt-2 text-[16px] text-muted">Enrique Lores, PayPal CEO, on agentic commerce. Q3 2026 earnings call, Oct 27, 2026.</figcaption>
           </figure>
         </Frame>

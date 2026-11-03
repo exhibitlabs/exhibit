@@ -1,5 +1,7 @@
 import { runAgent, type RunEvent } from "@/lib/agent/run";
 import { touchDemo } from "@/lib/demo";
+import { cachedDispute, refreshDispute } from "@/lib/disputes";
+import { PayPalError } from "@/lib/paypal/client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -8,6 +10,11 @@ export const maxDuration = 300;
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const trigger = new URL(req.url).searchParams.get("trigger") === "agent" ? "agent" : "manual";
+  // An id PayPal doesn't know is a bad request, not a run that starts and then fails (or spends a model call on nothing).
+  if (!cachedDispute(id)) {
+    const found = await refreshDispute(id).then(() => true, (e) => !(e instanceof PayPalError && e.status === 404));
+    if (!found) return Response.json({ error: `PayPal has no dispute ${id}.` }, { status: 404 });
+  }
   touchDemo();
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

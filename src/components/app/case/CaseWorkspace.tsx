@@ -158,6 +158,20 @@ export function CaseWorkspace({
     return () => clearInterval(t);
   }, [refresh]);
 
+  // The demo guide moves between tabs with ?tab= on the case that is already open (the page doesn't remount): follow it and bring the tabs into view.
+  const [linkedTab, setLinkedTab] = useState(initialTab);
+  const [bringTabs, setBringTabs] = useState(0);
+  if (initialTab !== linkedTab) {
+    setLinkedTab(initialTab);
+    if (initialTab) {
+      setTab(initialTab);
+      setBringTabs((n) => n + 1);
+    }
+  }
+  useEffect(() => {
+    if (bringTabs) requestAnimationFrame(() => details.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [bringTabs]);
+
   // The sticky header compacts once the full title scrolls away.
   useEffect(() => {
     const el = sentinel.current;
@@ -176,6 +190,8 @@ export function CaseWorkspace({
   const autopilotEvent = events.find((e): e is Extract<RunEvent, { t: "autopilot" }> => e.t === "autopilot");
   const autoAction = events.find((e): e is Extract<RunEvent, { t: "action" }> => e.t === "action");
   const prepared = startEvent?.trigger === "seed";
+  // A recorded run replays in seconds: its clock says nothing about how fast the agent works, so none is shown.
+  const replayed = run?.provider === "replay" || startEvent?.provider === "replay";
   const amount = Number(dispute.dispute_amount.value);
   const t = dispute.disputed_transactions[0];
   const hours = dispute.seller_response_due_date && dispute.status !== "RESOLVED" ? Math.round((new Date(dispute.seller_response_due_date).getTime() - Date.now()) / 3600_000) : null;
@@ -366,12 +382,12 @@ export function CaseWorkspace({
                   <span className="num mr-1 text-[11.5px]">
                     {nav.index + 1} of {nav.total} open
                   </span>
-                  <Tip label={nav.prev ? `Previous: ${nav.prev.buyer} (K)` : "First case"}>
+                  <Tip label={nav.prev ? `Previous: ${nav.prev.buyer} (K)` : "First case"} align="end">
                     <button type="button" disabled={!nav.prev} onClick={() => nav.prev && router.push(`/app/disputes/${nav.prev.id}`)} aria-label="Previous case" className="flex size-7 items-center justify-center rounded-md border border-line bg-surface hover:border-line-strong disabled:opacity-40">
                       <ChevronLeft className="size-3.5" />
                     </button>
                   </Tip>
-                  <Tip label={nav.next ? `Next: ${nav.next.buyer} (J)` : "Last case"}>
+                  <Tip label={nav.next ? `Next: ${nav.next.buyer} (J)` : "Last case"} align="end">
                     <button type="button" disabled={!nav.next} onClick={() => nav.next && router.push(`/app/disputes/${nav.next.id}`)} aria-label="Next case" className="flex size-7 items-center justify-center rounded-md border border-line bg-surface hover:border-line-strong disabled:opacity-40">
                       <ChevronRight className="size-3.5" />
                     </button>
@@ -406,7 +422,7 @@ export function CaseWorkspace({
                 </p>
               ) : null}
             </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+            <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2.5">
               {hours !== null ? (
                 <Tip label={`PayPal's deadline: ${dateTime(dispute.seller_response_due_date)}. Unanswered cases close for the buyer.`} wide side="bottom" align="end">
                   <span className={clsx("inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-[13px]", hours < 48 ? "border-red/25 bg-red-soft text-red" : "border-line bg-surface text-ink")}>
@@ -501,12 +517,13 @@ export function CaseWorkspace({
         />
 
         {shownBrief ? (
-          <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <BriefCard
               brief={shownBrief}
               amount={amount}
               expected={expectedRecovery(shownBrief, amount)}
               ms={doneEvent?.ms}
+              replayed={replayed}
               prepared={prepared && !!brief}
               stale={!brief}
               protection={protectionChip(protection)}
@@ -540,7 +557,7 @@ export function CaseWorkspace({
             )}
           </div>
         ) : !running ? (
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center">
               <div className="text-[14px] font-medium text-ink">No brief yet</div>
               <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-muted">Run Exhibit and it checks every source above, decides whether to fight, offer, refund or message the buyer, and drafts the response with cited evidence. Nothing is sent until you decide.</p>
@@ -581,11 +598,11 @@ export function CaseWorkspace({
                   {running ? "Investigating" : events.length ? "Investigation" : "No investigation yet"}
                   <span className="font-normal text-muted">
                     · {toolSteps} tool call{toolSteps === 1 ? "" : "s"}
-                    {doneEvent && !prepared ? ` · ${(doneEvent.ms / 1000).toFixed(1)}s` : ""}
+                    {doneEvent && !prepared && !replayed ? ` · ${(doneEvent.ms / 1000).toFixed(1)}s` : ""}
                   </span>
                 </span>
                 <span className="text-muted">
-                  {run?.provider === "replay" || startEvent?.provider === "replay" ? (prepared ? "Recorded run, replayed at demo reset · tools executed live" : "Recorded run · tools executed live") : run?.model ?? startEvent?.model ?? ""}
+                  {replayed ? (prepared ? "Recorded run, replayed at demo reset · tools executed live" : "Recorded run · tools executed live") : run?.model ?? startEvent?.model ?? ""}
                 </span>
               </div>
               <div className="px-5 py-5">{events.length ? <AgentTrace events={events} running={running} /> : <p className="text-[13px] text-muted">Run Exhibit to see each step: the records it reads, what it concludes, and the brief it files.</p>}</div>

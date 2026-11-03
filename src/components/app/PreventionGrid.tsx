@@ -147,8 +147,8 @@ export function PreventionGrid({ orders, onSelect, onFix, working, onPushAll, pu
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-b border-line px-5 py-3.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <h2 className="text-[14px] font-medium">Every watched order</h2>
           <div className="flex items-center rounded-lg bg-sunken p-0.5">
             {TABS.map((t) => {

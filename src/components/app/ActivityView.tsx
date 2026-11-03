@@ -100,7 +100,7 @@ export function ActivityView({ initial, mode }: { initial: TimelineItem[]; mode:
           ))}
         </div>
 
-        <div className="grid items-start gap-5 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[340px_minmax(0,1fr)]">
           <aside className="space-y-4">
             <section className="card overflow-hidden">
               <div className="border-b border-line px-4 py-3 text-[13px] font-medium">API surface</div>

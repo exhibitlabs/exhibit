@@ -95,7 +95,7 @@ const fromRow = (r: Row): Approval => ({
 });
 
 /** Where the merchant reviews a request in the Exhibit UI. */
-export const reviewPath = (a: Approval) => (a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/settings?approval=${a.id}#agent-approvals`);
+export const reviewPath = (a: Approval) => (a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/approvals?approval=${a.id}`);
 
 export const BRIEF_ACTION_TITLE: Record<ActionType, string> = {
   provide_evidence: "File evidence with PayPal",

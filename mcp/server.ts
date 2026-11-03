@@ -206,7 +206,7 @@ function approvalData(a: Approval, reviewPath?: string) {
     created_at: a.createdAt,
     decided_at: a.decidedAt,
     result: a.result,
-    approval_url: `${BASE}${reviewPath ?? (a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/settings?approval=${a.id}#agent-approvals`)}`,
+    approval_url: `${BASE}${reviewPath ?? (a.kind === "dispute_action" ? `/app/disputes/${a.target}?approval=${a.id}` : `/app/approvals?approval=${a.id}`)}`,
   };
 }
 

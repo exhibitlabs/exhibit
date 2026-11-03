@@ -372,7 +372,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
           />
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-12">
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
           <div className="card rise flex flex-col overflow-hidden xl:col-span-7" style={stagger(5)}>
             <CardHead
               title="Needs you"
@@ -423,7 +423,7 @@ export function CommandCenter({ initial }: { initial: Overview }) {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
           <div className="card rise flex flex-col xl:col-span-4" style={stagger(7)}>
             <CardHead
               title="Outcomes by reason"
