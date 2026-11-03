@@ -413,7 +413,7 @@ The suite in [`tests/`](tests) is organised around the guardrails above. It forc
 - **`make-offer` and `send-message` are verified only on the simulator.** PayPal allows them only at the inquiry stage. Sandbox chargebacks from `process-chargeback` skip that stage, and opening a buyer-side inquiry needs PayPal partner consent.
 - **Tracking push and capture refunds are verified only on the simulator.** Both are implemented and tested, but have not been called on the live sandbox.
 - **Webhooks need a public HTTPS URL.** Nothing is deployed yet, so PayPal has not delivered a webhook to Exhibit. Signature checks use PayPal's `verify-webhook-signature` API and run in the simulator.
-- **Simulated disputes reuse recorded text.** **Simulate new dispute** copies the Megan Hale item-not-received case with new ids. On recorded runs, its brief is that case's recorded reasoning.
+- **Simulated disputes reuse the demo cases.** Each **Simulate new dispute** takes the next of the eight demo cases, with new ids and order numbers. On recorded runs, its brief is that case's recorded reasoning.
 - **No store or carrier connectors yet.** Order, carrier, inbox and checkout records come from the built-in demo store, also in sandbox mode. Shopify, WooCommerce and carrier APIs are next.
 - **Sandbox outcomes are not PayPal decisions on the merits.** The one resolved case closed after a sandbox-only `adjudicate` call.
 - **No sign-in yet.** Exhibit is a single-merchant app. Do not expose a deployment with live PayPal credentials until authentication sits in front of it (see [`SECURITY.md`](SECURITY.md)).

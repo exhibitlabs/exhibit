@@ -7,6 +7,31 @@ order: 4
 
 What changed in Exhibit, newest first. Dates are commit dates in India Standard Time (UTC+5:30), and each entry ends with its commit. The full history is on [GitHub](https://github.com/exhibitlabs/exhibit/commits/main).
 
+## November 4, 2026 {#2026-11-04}
+
+A new website, the documentation and the final design pass on the app, all in the design language the co-founders chose: white and warm grey, ink type, public-domain 1880s letter-rack paintings and ink dot art. The repository moved to the `exhibitlabs` organisation on GitHub.
+
+### Added
+
+- **The website.** Home, `/proof`, six product pages, security, pricing, about, contact, legal pages and a 404. The product pictures are rebuilt from the app with real records, the homepage packet is the one filed on Nov 3, and the dot art renders the same in Chrome and Safari. A sitemap and robots file. `2abe621`
+- **The docs.** Sixteen pages under `/docs`, written in Markdown, with search, an on-page table of contents and copyable code. Every internal link is checked at build time, and every command, variable, endpoint and UI label is checked against the code. `71288ee`
+
+### Changed
+
+- **The app's final design pass.** One type scale, spacing, radius, button and table style across every screen. A top bar holds the environment line, the Ask Exhibit search and the guide, the case page is calmer, and the empty states use the site's dot art. `f22fd63`
+- **The pitch deck** at `/pitch`, rebuilt from the website's components, with every fact taken from the records. `7cd7b46`
+- **The README, brand assets and Devpost gallery**, rewritten and re-captured in the new design. Every repository link now points at the `exhibitlabs` organisation. `1d1dd06`
+
+### Fixed
+
+- The case lifecycle and response card show the most recent filing, so a re-investigated case no longer lists its filing before its investigation. `ee82e54`
+- **Simulate new dispute** cycles through the demo cases instead of repeating one. `ee82e54`
+- The activity log says "Brief ready" instead of "Brief filed", which read as filed with PayPal. Brief headlines display without em dashes, and the response letter is shown exactly as filed. `ee82e54`
+
+### Removed
+
+- The old landing page's replay components and styles. `6a5697c`
+
 ## November 3, 2026 {#2026-11-03}
 
 Exhibit was tagged `v1.0.0` ("Exhibit v1.0.0: the dispute agent for PayPal merchants. Submitted to the PayPal AI Hackathon 2026.") at `83bd074`. One commit followed the tag: the landing page's founder note and the pitch deck now speak for both co-founders, Shivansh Dwivedi and Someet Shende, and the licence, site metadata, README and Devpost copy name both (`a543e54`).
