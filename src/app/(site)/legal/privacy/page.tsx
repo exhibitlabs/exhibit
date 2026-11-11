@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { companyMetadata } from "@/components/site/company/meta";
 import Link from "next/link";
 import { Cookie, Database, Mail, Network } from "lucide-react";
+import { HOSTED_DEMO_URL } from "@/components/landing/data";
 import { HAS_APP, ROUTES } from "@/components/site";
 import { LegalPage } from "@/components/site/company/LegalPage";
 import { CONTACT_EMAIL } from "@/components/site/company/records";
@@ -16,7 +17,7 @@ export default function PrivacyPage() {
       title="Privacy"
       rest="This website stores nothing about you."
       lede={`Exhibit is open-source software from Exhibit Labs. Here, in plain words: what this website records (nothing of its own),${HAS_APP ? " what the live demo keeps," : ""} and what a copy of Exhibit you run yourself stores and shares.`}
-      updated="November 4, 2026"
+      updated="November 12, 2026"
       art="letter"
       short={[
         { icon: Cookie, text: "No cookies, analytics or tracking on this website." },
@@ -53,11 +54,15 @@ export default function PrivacyPage() {
           body: HAS_APP ? (
             <>
               <p>
-                The live demo at <Link href={ROUTES.app}>/app</Link> runs on a fictional store, Kora Atelier, and Exhibit&apos;s built-in PayPal simulator, so nothing you do there reaches PayPal.
+                The live demo at{" "}
+                <a href={HOSTED_DEMO_URL} target="_blank" rel="noopener noreferrer">
+                  {new URL(HOSTED_DEMO_URL).host}
+                </a>{" "}
+                runs on Kora Atelier, a fictional demo merchant, and on Exhibit&apos;s built-in PayPal simulator, so nothing you do there reaches PayPal.
               </p>
               <p>It is shared. Everyone using the demo works the same store, so what you do there, such as a filing, an approval or an edited letter, can be seen by the next visitor until the demo resets after 20 quiet minutes. Please don&apos;t type personal information into it.</p>
-              <p>Questions you ask Ask Exhibit are answered and not stored. When the demo runs live on Claude, your question and the demo records needed to answer it are sent to Anthropic to produce the answer. The same goes for an investigation you start: the demo case&apos;s records go to Claude.</p>
-              <p>For the app, your browser keeps two small notes in local storage: whether you hid the demo guide strip on the overview, and which notifications you have seen. They aren&apos;t cookies and they aren&apos;t sent anywhere. Clearing this site&apos;s data in your browser removes them.</p>
+              <p>The demo doesn&apos;t run on live AI. An investigation replays a recorded Claude run against the demo case, and Ask Exhibit gives its offline answers. Nothing you type there is sent to Anthropic. Questions you ask are answered and not stored.</p>
+              <p>In the demo, your browser keeps two small notes in local storage: whether you hid the demo guide strip on the overview, and which notifications you have seen. They aren&apos;t cookies and they aren&apos;t sent anywhere. Clearing the demo&apos;s site data in your browser removes them. Like this website&apos;s server, the demo&apos;s server may keep standard request logs.</p>
             </>
           ) : (
             <p>Exhibit&apos;s app isn&apos;t hosted on this website yet, so there is no shared demo here and nothing from one is kept. Until it is, the app runs on your own machine, and the next section says what it stores.</p>

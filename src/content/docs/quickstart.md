@@ -7,6 +7,8 @@ order: 2
 
 Exhibit is a Next.js app. You need Node.js 24 or newer and git. Nothing else is required: with no keys set, Exhibit runs every PayPal call against its built-in simulator, and the agent runs on your Claude CLI login or replays recorded runs.
 
+To look around without installing anything, open the [hosted demo](https://app.exhibit.9to5code.com/app). It runs demo mode on recorded runs.
+
 ## Run it
 
 :::steps

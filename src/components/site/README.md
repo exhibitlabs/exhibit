@@ -145,8 +145,8 @@ Use the 12-column grid with Tailwind (`grid lg:grid-cols-12 gap-x-6`) or the `s-
 | `TextLink` | `href`, `children` | "Read the security page →". External gets ↗. |
 | `Actions` | `children` | Row of buttons with the standard gap. |
 
-The site's calls to action are always: primary **Try the live demo** → `ROUTES.app` (`/app`), secondary
-**Book a demo** → `ROUTES.contact`.
+The site's calls to action are always: primary **Try the live demo** → `ROUTES.app` (`/app`, or the hosted demo on
+the static website), secondary **Book a demo** → `ROUTES.contact`.
 
 ## Plates (paintings)
 
@@ -389,7 +389,7 @@ column next to a sticky table of contents.
 
 - `ROUTES`: `home`, `proof`, `product.{overview, investigate, evidencePackets, prevention, askExhibit, aiAgents}`,
   `security`, `docs.{home, api, mcp, sandbox}`, `pricing`, `about`, `contact`, `legal.{privacy, terms}`,
-  `app` (`/app`), `github`.
+  `app` (`/app`; `DEMO_URL` in `landing/data.ts`, the hosted demo when `NEXT_PUBLIC_EXHIBIT_DEMO_URL` is set), `github`.
 - `PRODUCT_LINKS`, `PRODUCT_OVERVIEW`, `COMPANY_LINKS`, `NAV`, `NAV_ACTIONS`, `FOOTER_COLUMNS`.
 
 The header: `SiteNav.tsx` (server) prints the menus' dot drawings and hands them to `NavBar.tsx` (client: the

@@ -17,9 +17,10 @@
 //
 // The site shots hold on to stable hooks only (the hero section, its .s-plate or the .s-stage around it,
 // #proof .s-board), never the inner markup of a product picture, so a redrawn picture is captured as it is.
-// The thumbnail is laid out in the page from real parts: the nav's logo mark, the hero's plate cloned whole
-// (painting and product picture), the hero caption's painting credit and type set in the site's Geist, so
-// every edge stays sharp.
+// The thumbnail is laid out in the page from real parts: the nav's logo mark and its wordmark's weight and
+// spacing, the hero's plate cloned whole (painting and product picture), the hero caption's painting credit and
+// type set in the site's Geist, so every edge stays sharp. Home page shots wait for React to hydrate the page
+// (the hero's FitBox sizes its picture then), which takes seconds on a dev server that has just started.
 //
 // It refuses a server in sandbox mode and writes only to the demo merchant, only what the guided demo
 // does: if PP-D-50211 has no brief it runs the recorded agent on it, and for the approval shot it queues one
@@ -375,19 +376,24 @@ function composeThumbnail() {
   const box = plate.getBoundingClientRect();
   const scale = (W - 2 * M) / box.width;
   const mark = document.querySelector("header .s-brand svg")?.cloneNode(true);
+  // The wordmark is set in the nav's weight and letter spacing, scaled up with it.
+  const word = document.querySelector("header .s-brand__word");
+  const ws = word ? getComputedStyle(word) : null;
+  const weight = ws?.fontWeight ?? "600";
+  const tracking = ws ? `${(parseFloat(ws.letterSpacing) / parseFloat(ws.fontSize)).toFixed(3)}em` : "-0.045em";
   const credit = hero.querySelector(".s-cap__art")?.cloneNode(true);
   const stage = document.createElement("div");
   stage.setAttribute("data-thumbnail", "");
+  stage.className = document.querySelector(".site")?.className ?? "site"; // the site's tokens and fonts
   stage.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;z-index:2147483647;background:#fff;overflow:hidden;font-family:var(--s-sans);color:var(--s-ink);-webkit-font-smoothing:antialiased`;
   stage.innerHTML = `
     <div data-brand style="position:absolute;left:80px;top:70px;display:flex;align-items:center;gap:18px">
-      <span style="font-size:68px;font-weight:600;letter-spacing:-0.045em;line-height:1">Exhibit</span>
+      <span style="font-size:68px;font-weight:${weight};letter-spacing:${tracking};line-height:1">Exhibit</span>
     </div>
     <p style="position:absolute;left:80px;top:180px;margin:0;font-size:88px;font-weight:500;letter-spacing:-0.045em;line-height:1">The AI dispute agent<br><span style="color:var(--s-dim)">for PayPal merchants.</span></p>
     <div data-plate style="position:absolute;left:${M}px;top:${PLATE_TOP}px;width:${box.width}px;height:${box.height}px;transform:scale(${scale});transform-origin:0 0"></div>`;
   if (mark) {
-    mark.setAttribute("width", "68");
-    mark.setAttribute("height", "68");
+    mark.style.cssText = "display:block;flex:none;width:68px;height:68px"; // over the nav's own size for it
     stage.querySelector("[data-brand]").prepend(mark);
   }
   if (credit) {
@@ -399,7 +405,9 @@ function composeThumbnail() {
   clone.style.height = `${box.height}px`;
   clone.style.margin = "0";
   stage.querySelector("[data-plate]").append(clone);
-  (document.querySelector(".site") ?? document.body).append(stage);
+  // Outside React's tree: React skips unexpected children of <body>, but a node added inside the tree before
+  // hydration ends fails it, and React throws the node away.
+  document.body.append(stage);
   window.scrollTo(0, 0);
   return { plate: [Math.round(box.width), Math.round(box.height)], scale: Number(scale.toFixed(3)), mark: !!mark };
 }
@@ -412,7 +420,9 @@ async function heroReady(p) {
     `(() => { const plate = ${hero}.querySelector(".s-plate"); const img = plate && plate.querySelector("img"); const block = plate && (plate.closest(".s-stage") ?? plate); return img && img.complete && img.naturalWidth > 0 && block.children.length > 1; })()`,
     { label: "the hero plate (painting and product picture)" },
   );
-  await sleep(1200); // hydration sizes the product picture to its plate
+  // A FitBox sizes its product picture once React has hydrated the page, by setting --fit.
+  await p.waitFor(`[...${hero}.querySelectorAll(".s-fit")].every((el) => el.style.getPropertyValue("--fit"))`, { label: "the product picture sized to its plate (hydration)", timeout: 60_000 });
+  await sleep(1200); // the sized picture settles
 }
 
 // ---------------------------------------------------------------------------------------------------

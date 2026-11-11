@@ -100,6 +100,8 @@ Exhibit against the five equally weighted criteria, with the evidence for each.
 
 ## Run it with no keys
 
+**No install:** the [hosted demo](https://app.exhibit.9to5code.com/app) runs the same no-key demo in your browser. The first visit can take up to a minute to wake.
+
 **Offline judge mode: no keys, accounts or credentials.** You need Node.js 24 or newer (the version is in [`.nvmrc`](.nvmrc)) and npm, on macOS, Linux or Windows.
 
 ```bash

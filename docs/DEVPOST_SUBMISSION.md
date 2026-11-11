@@ -50,7 +50,7 @@ Exhibit is a dispute agent for PayPal merchants. It reads each dispute and charg
 - **Design.** A complete product: a command center, an inbox with saved views, a case page with a live evidence graph, lifecycle stepper, cited letter and evidence packet, a prevention radar, an Autopilot simulation, agent approvals, a PayPal API inspector and a ⌘K "Ask Exhibit" palette. See the gallery.
 - **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback. Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes labelled before the run, Exhibit's decision matched the label in all 30, it refunded all 9 cases where the buyer was right instead of fighting them, and it made 0 false fights out of 18, in a median of 29 s per case. The builder wrote the cases and labels, with Claude, so this shows Exhibit applies its rules consistently, not real-world accuracy ([evaluation](https://github.com/exhibitlabs/exhibit/blob/main/eval/RESULTS.md)).
 - **Innovation/Idea.** PayPal's agent tools can list, read and accept a dispute. Exhibit adds the investigation, the evidence and the filing, as an MCP server where agents request and merchants approve, the rule PayPal applies to its own MCP gateway ([MCP run](https://github.com/exhibitlabs/exhibit/blob/main/docs/MCP_DEMO.md)).
-- **Presentation.** The demo video: [[VIDEO: YouTube URL]]. The repo runs with `npm install` and `npm run dev`, with no keys, and the proof page lists every live PayPal call.
+- **Presentation.** The demo video: [[VIDEO: YouTube URL]]. The [hosted demo](https://app.exhibit.9to5code.com/app) runs in a browser with no install or keys. The repo runs with `npm install` and `npm run dev`, also with no keys, and the proof page lists every live PayPal call.
 
 **Verified live on the PayPal sandbox**
 
@@ -112,7 +112,7 @@ The hard part of an agent that touches money isn't the model call. It's the cont
 
 ## What's next for Exhibit
 
-- A hosted demo, and live webhooks once there is a public URL.
+- Live PayPal webhooks, from a public deployment in sandbox mode. The hosted demo runs on the simulator only.
 - Store and carrier connectors (Shopify, WooCommerce, carrier proof-of-delivery) in place of the demo store.
 - `make-offer` and `send-message` on live inquiry-stage cases.
 - A pilot with PayPal merchants to measure win rate by reason code.
@@ -128,23 +128,31 @@ Exhibit is an independent project. It is not affiliated with or endorsed by PayP
 
 ---
 
-### Built with (25 tags max; 23 used)
+### Built with (25 tags max; 24 used)
 
 ```
-paypal, paypal-disputes-api, paypal-orders-api, paypal-payments-api, paypal-webhooks, paypal-sandbox, claude, claude-opus-5.5, anthropic, claude-agent-sdk, claude-code, model-context-protocol, next.js, react, typescript, node.js, tailwindcss, sqlite, ag-grid, ag-charts, react-pdf, zod, vitest
+paypal, paypal-disputes-api, paypal-orders-api, paypal-payments-api, paypal-webhooks, paypal-sandbox, claude, claude-opus-5.5, anthropic, claude-agent-sdk, claude-code, model-context-protocol, next.js, react, typescript, node.js, tailwindcss, sqlite, ag-grid, ag-charts, react-pdf, zod, vitest, render
 ```
 
-Every tag is in the code: the PayPal APIs in `src/lib/paypal/client.ts`, Claude through the Anthropic SDK and the Claude Agent SDK (which runs on the Claude Code CLI login), the MCP SDK in `mcp/server.ts`, and the rest in `package.json`.
+Every tag is in the code: the PayPal APIs in `src/lib/paypal/client.ts`, Claude through the Anthropic SDK and the Claude Agent SDK (which runs on the Claude Code CLI login), the MCP SDK in `mcp/server.ts`, Render in `render.yaml` (it hosts the demo), and the rest in `package.json`.
 
 ### Try it out (links)
+
+Add three links, in this order: the hosted demo, the website and the code.
+
+```
+https://app.exhibit.9to5code.com/app
+```
+
+```
+https://exhibit.9to5code.com
+```
 
 ```
 https://github.com/exhibitlabs/exhibit
 ```
 
-```
-[[HOSTED DEMO: the deployed URL, once it exists. Until then, leave only the GitHub link; the README's Quick start is the run path.]]
-```
+The hosted demo is the app in demo mode, on the PayPal simulator and recorded Claude runs, with no keys. It sleeps when no one is using it, so the first visit can take up to a minute to wake.
 
 ### Image gallery
 
@@ -164,7 +172,7 @@ Upload in this order (2880 x 1800 PNGs, captured at 1440 x 900 by [`docs/submiss
 ### Video demo link
 
 ```
-[[VIDEO: YouTube URL of the v5 cut. Public (not unlisted), marked Not made for kids, under 3:00.]]
+[[VIDEO: YouTube URL of the v6 cut. Public (not unlisted), marked Not made for kids, under 3:00.]]
 ```
 
 ---
@@ -178,19 +186,23 @@ These fields vary by hackathon; paste each answer where the form asks for it.
 ```
 No keys, accounts or credentials are needed.
 
+The quickest way in is the hosted demo: https://app.exhibit.9to5code.com/app
+There is nothing to install. It runs on a free server that sleeps when no one is using it, so the first visit can take up to a minute to wake. Everyone using it shares one demo store, which resets itself after 20 quiet minutes.
+
+It opens in demo mode, the offline judge mode: a fictional store (Kora Atelier) on a built-in PayPal simulator with the real API's request and response shapes, error codes and file limits. The banner's "What's real?" link says exactly what is real, simulated or recorded. The demo guide (**Guide** in the top bar, also shown on the overview) walks you through six steps: run Exhibit on a case, review the evidence packet, file with PayPal, prevent a dispute, ask a question, and approve an agent request. The hosted demo replays recorded Claude runs: the reasoning is a recording, and every tool call, check and filing still runs live.
+
+To run it on your own machine:
 1. Install Node.js 24 or newer.
 2. git clone https://github.com/exhibitlabs/exhibit && cd exhibit
 3. npm install
 4. npm run dev
 5. Open http://localhost:3000/app
 
-You start in demo mode, the offline judge mode: a fictional store (Kora Atelier) on a built-in PayPal simulator with the real API's request and response shapes, error codes and file limits. The banner's "What's real?" link says exactly what is real, simulated or recorded. The demo guide (**Guide** in the top bar, also shown on the overview) walks you through six steps: run Exhibit on a case, review the evidence packet, file with PayPal, prevent a dispute, ask a question, and approve an agent request.
-
-The AI: if you are signed in to the Claude CLI on your machine, the agent runs live on Claude Opus 5.5 automatically. Set ANTHROPIC_API_KEY in .env.local to use the Claude API instead. With neither, Exhibit replays recorded Claude runs, and every tool call, check and filing still runs live.
+On your machine the AI runs live if it can. If you are signed in to the Claude CLI, the agent runs on Claude Opus 5.5 automatically. Set ANTHROPIC_API_KEY in .env.local to use the Claude API instead. With neither, Exhibit replays recorded Claude runs, as the hosted demo does.
 
 To use your own PayPal sandbox: create a REST app under Apps & Credentials (Sandbox) at developer.paypal.com, copy .env.example to .env.local, set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET, and restart. Settings > Test connection checks OAuth and the Disputes API. Settings > Seed the sandbox opens real sandbox chargebacks in three steps; the README explains each one.
 
-The live sandbox record (244 calls with PayPal debug ids) is at /proof in the running app and in docs/SANDBOX_E2E.md. Tests: npm test (359 tests, no keys, no network).
+The live sandbox record (244 calls with PayPal debug ids) is at https://exhibit.9to5code.com/proof and in docs/SANDBOX_E2E.md. Tests: npm test (359 tests, no keys, no network).
 ```
 
 ### Tools used (required)
@@ -207,10 +219,11 @@ PayPal developer platform
 
 Other tools
 - AG Grid and AG Charts Community for the tables and charts; react-pdf for the evidence packet.
+- Render hosts the live demo (render.yaml). The website is static files on Cloudflare.
 
 How it was built
 - Exhibit was built by its co-founders, Shivansh Dwivedi and Someet Shende, with help from Claude Code as a coding assistant.
-- [[VIDEO TOOLS: name any AI voice, music or image tools used in the v5 video, or delete this line]]
+- The demo video's voiceover is Kokoro TTS, generated through HyperFrames.
 ```
 
 ### URL to your code repository
@@ -225,12 +238,13 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 
 - **Grand prizes and the main awards** (1st, 2nd and 3rd place, Most Creative, Most Impactful, Best Demo Delivery, Best Use of PayPal + AI, Best Use of Agentic Commerce) are judged across all eligible projects. Nothing to tick.
 - **Tick: Best Use of AG Grid.** Exhibit uses AG Grid Community for the disputes inbox, the command center's "Needs you" grid and the watched-orders table, and AG Charts Community for the command center and Ask Exhibit charts. Be aware that the sponsor page asks for more: "custom widgets, theming, and layout tools, not just AG Grid or AG Charts on their own," and it suggests AG Studio and its Studio Agent Framework, which Exhibit does not use.
-- **Don't tick** Render, Bryntum, APIMatic or Channel3. Exhibit doesn't use them.
+- **Your call: Best Use of Render.** The hosted demo runs on Render (`render.yaml`), so ticking it is honest. The sponsor page also asks for Render Workflows, which Exhibit doesn't use. The FAQ says a project is considered for the prize of each sponsor tool it uses, and wins at most one sponsor prize.
+- **Don't tick** Bryntum, APIMatic or Channel3. Exhibit doesn't use them.
 
 ### Other fields
 
-- **Submitter type:** [[FOUNDER: Individual, or Organization. Prize payment needs identity forms and, for an individual outside the US, a W-8BEN, so decide before submitting.]]
-- **Country of residence:** [[FOUNDER: India]]
+- **Submitter type:** Individual entrant, as a team: Shivansh Dwivedi is the Representative and Someet Shende is a teammate. Prize payment needs identity forms and, for an individual outside the US, a W-8BEN.
+- **Country of residence:** India
 - **If asked how the project was improved during the hackathon:** "Built from scratch during the submission period. The first commit is Oct 20, 2026, and the whole history is public on GitHub."
 - **If asked for a PayPal developer account or app id:** [[FOUNDER: only if the form asks]]
 
@@ -239,10 +253,11 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 ## Before you press submit
 
 - [ ] Commit and push, so GitHub matches this copy and the video.
-- [ ] Add Someet Shende as a teammate on the Devpost project (Manage team → invite; he needs a Devpost account and must accept), so the entry is credited to both co-founders. Both must meet the eligibility rules.
-- [ ] Fill every `[[` slot: `VIDEO` (twice), `HOSTED DEMO`, `VIDEO TOOLS`, submitter type and country.
+- [ ] Make the repo public (github.com/exhibitlabs/exhibit). The copy links to files on GitHub, and judges must be able to read the code.
+- [ ] Turn private vulnerability reporting back on in the repo's security settings. `SECURITY.md` asks reporters to use it.
+- [ ] Someet Shende registers for the hackathon on Devpost, then is added in the project's team section and accepts the invite, so the entry is credited to both co-founders. Both must meet the eligibility rules.
+- [ ] Fill the `[[` slots: both `VIDEO` slots with the YouTube URL of the v6 cut, and the PayPal developer account line only if the form asks.
 - [ ] The YouTube video is Public, marked Not made for kids and under 3:00. Ideally PayPal and Claude are both on screen in the first 25 seconds.
 - [ ] Upload the thumbnail and the eight gallery images, with the captions above.
-- [ ] On GitHub, set the repo's About website and topics.
-- [ ] GitHub Actions is locked by a billing issue on the account, so CI cannot run. Unlock billing, re-run the workflow, and only then mention a CI badge. Until then the copy points to `npm test`.
+- [ ] Check the hosted demo is awake: open https://app.exhibit.9to5code.com/app and wait for the command center. A free Render instance sleeps after 15 minutes without visitors and takes about a minute to wake.
 - [ ] Open the submitted page while logged out and click every link.

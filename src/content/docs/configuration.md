@@ -83,6 +83,7 @@ Ask Exhibit uses the same provider, with two differences. `replay` becomes offli
 | `EXHIBIT_APP_URL` | `http://localhost:3000` | The app's public URL. Sandbox seeding uses it for the PayPal checkout return and cancel links (`/app/settings?seed=approved` and `?seed=cancelled`). Settings shows it under **Webhooks** when it differs from the address you opened the app on. |
 | `EXHIBIT_DATA_DIR` | `.data` in the working folder | Where the SQLite files go. |
 | `EXHIBIT_DIST_DIR` | `.next` | The Next.js build folder, so a second dev server can run beside the first. |
+| `EXHIBIT_APP_HOST_ONLY` | unset | `1` builds a host that serves the app alone, like the hosted demo (`render.yaml`): `/` redirects to `/app`, and the site's paintings are served as they are. `next build` reads it. |
 | `EXHIBIT_RECORD_REPLAYS` | unset | Development: `1` saves each live run on a demo case to `replays/`, to refresh the recorded runs. |
 
 ### MCP server and scripts

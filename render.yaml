@@ -1,0 +1,38 @@
+# Render Blueprint for the hosted demo at https://app.exhibit.9to5code.com: the app in demo mode, with no keys.
+# PayPal runs on the built-in simulator and the agent replays recorded Claude runs, so nothing is sent to PayPal
+# or Anthropic. The demo merchant is shared and resets itself after 20 quiet minutes (src/lib/demo.ts). A free
+# instance sleeps after 15 minutes without traffic, takes about a minute to wake, and wakes with a fresh demo.
+#
+# The website (exhibit.9to5code.com) is a separate static deploy: scripts/build-site.mjs and deploy/site.
+# DNS for the custom domain: in the 9to5code.com zone, a CNAME named "app.exhibit" to this service's onrender.com host,
+# DNS only (not proxied).
+services:
+  - type: web
+    name: exhibit-demo
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci --include=dev && npm run build
+    # next start listens on $PORT, which Render sets, on 0.0.0.0.
+    startCommand: npm start
+    healthCheckPath: /api/status
+    domains:
+      - app.exhibit.9to5code.com
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      # Demo mode and recorded runs only, even if PayPal or Anthropic credentials are ever added here.
+      - key: EXHIBIT_PAYPAL_MODE
+        value: demo
+      - key: EXHIBIT_AI_PROVIDER
+        value: replay
+      - key: EXHIBIT_ALLOW_CLAUDE_CODE
+        value: "0"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: EXHIBIT_APP_URL
+        value: https://app.exhibit.9to5code.com
+      # next.config.ts: / redirects to /app, and the site's paintings skip the image optimizer to save memory.
+      # next build reads it, so a change needs a new build.
+      - key: EXHIBIT_APP_HOST_ONLY
+        value: "1"

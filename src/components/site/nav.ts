@@ -31,7 +31,7 @@ export const ROUTES = {
     privacy: "/legal/privacy",
     terms: "/legal/terms",
   },
-  /** The product. Sign in and the primary "Try the live demo" both go here. */
+  /** The product: /app, or the hosted demo on the static website. Sign in and the primary "Try the live demo" both go here. */
   app: DEMO_URL,
   github: GITHUB_URL,
 } as const;
@@ -88,11 +88,12 @@ export const NAV: { label: string; href?: string; children?: NavLink[]; overview
 ];
 
 /**
- * Whether this build serves the app at /app. The static website deploy has no server, so no app: it is built with
- * NEXT_PUBLIC_EXHIBIT_SITE_ONLY=1 (scripts/build-site.mjs), which turns every "Try the live demo" into "Book a demo"
- * and hides Sign in.
+ * Whether this build links to a running app: its own /app, or the hosted demo. The static website deploy has no
+ * server. It is built with NEXT_PUBLIC_EXHIBIT_SITE_ONLY=1 and links to the hosted demo, NEXT_PUBLIC_EXHIBIT_DEMO_URL
+ * (scripts/build-site.mjs). Built without a demo URL, every "Try the live demo" becomes "Book a demo" and Sign in is
+ * hidden.
  */
-export const HAS_APP = process.env.NEXT_PUBLIC_EXHIBIT_SITE_ONLY !== "1";
+export const HAS_APP = process.env.NEXT_PUBLIC_EXHIBIT_SITE_ONLY !== "1" || DEMO_URL !== "/app";
 
 /** The site's two calls to action. Without the app, booking a demo leads and the sandbox record follows. */
 export const CTA = {

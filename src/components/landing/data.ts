@@ -4,7 +4,13 @@
 export const SITE_URL = "https://exhibit.9to5code.com";
 export const GITHUB_URL = "https://github.com/exhibitlabs/exhibit";
 export const FOUNDER_GITHUB_URL = "https://github.com/shvuuuu";
-export const DEMO_URL = "/app";
+/** The hosted demo (render.yaml): the app in demo mode, on the PayPal simulator and recorded Claude runs. */
+export const HOSTED_DEMO_URL = "https://app.exhibit.9to5code.com/app";
+/**
+ * Where "Try the live demo" and Sign in go. The app's own build serves the app at /app. The static website has no
+ * app, so scripts/build-site.mjs points these links at the hosted demo with NEXT_PUBLIC_EXHIBIT_DEMO_URL.
+ */
+export const DEMO_URL = process.env.NEXT_PUBLIC_EXHIBIT_DEMO_URL || "/app";
 
 /**
  * The demo video (YouTube). Leave empty and the "Watch the demo" button is hidden.
