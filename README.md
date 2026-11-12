@@ -443,6 +443,11 @@ Everything is optional. Copy [`.env.example`](.env.example) to `.env.local`.
 
 </details>
 
+## Sponsor tools
+
+- **AG Grid and AG Charts (Community).** The disputes inbox with its saved views ([`InboxGrid.tsx`](src/components/app/InboxGrid.tsx)), the command center's "Needs you" grid ([`NeedsYouGrid.tsx`](src/components/app/overview/NeedsYouGrid.tsx)) and the prevention radar's watched-orders table ([`PreventionGrid.tsx`](src/components/app/PreventionGrid.tsx)) are AG Grid, themed to Exhibit's design with `themeQuartz.withParams`. The command center's charts ([`Charts.tsx`](src/components/app/overview/Charts.tsx)) and Ask Exhibit's answer charts ([`AskChart.tsx`](src/components/app/ask/AskChart.tsx)) are AG Charts.
+- **Render.** The [hosted demo](https://app.exhibit.9to5code.com/app) runs on Render from [`render.yaml`](render.yaml): a free web service in demo mode (the PayPal simulator and recorded Claude runs, so no keys), built with `npm ci && npm run build`, started with `npm start`, with a health check on `/api/status`.
+
 ## Team
 
 Exhibit is built by **Exhibit Labs**, founded by **[Shivansh Dwivedi](https://github.com/shvuuuu)** and **[Someet Shende](https://github.com/someetshende)**. They built it for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). The website is at [exhibit.9to5code.com](https://exhibit.9to5code.com), and `npm run dev` serves the same site at http://localhost:3000. Write to [contact@exhibit.9to5code.com](mailto:contact@exhibit.9to5code.com). Contributions follow [`CONTRIBUTING.md`](CONTRIBUTING.md).
