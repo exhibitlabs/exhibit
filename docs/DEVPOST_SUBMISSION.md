@@ -172,7 +172,7 @@ Upload in this order (2880 x 1800 PNGs, captured at 1440 x 900 by [`docs/submiss
 ### Video demo link
 
 ```
-[[VIDEO: YouTube URL of the v6 cut. Public (not unlisted), marked Not made for kids, under 3:00.]]
+[[VIDEO: YouTube URL of the v7 film (Exhibit-v7.mp4, 2:52). Public (not unlisted), marked Not made for kids, under 3:00.]]
 ```
 
 ---
@@ -223,7 +223,7 @@ Other tools
 
 How it was built
 - Exhibit was built by its co-founders, Shivansh Dwivedi and Someet Shende, with help from Claude Code as a coding assistant.
-- The demo video's voiceover is Kokoro TTS, generated through HyperFrames.
+- The demo video's voiceover is Kokoro TTS, rendered with HyperFrames. Music: "Your Breath" by Eugenio Mininni (Mixkit, free licence).
 ```
 
 ### URL to your code repository
@@ -243,7 +243,7 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 
 ### Other fields
 
-- **Submitter type:** Individual entrant, as a team: Shivansh Dwivedi is the Representative and Someet Shende is a teammate. Prize payment needs identity forms and, for an individual outside the US, a W-8BEN.
+- **Submitter type:** Individual entrant, as a team: Shivansh Dwivedi is the Representative and Someet Shende (Devpost username `someet345`) is a teammate. Prize payment needs identity forms and, for an individual outside the US, a W-8BEN.
 - **Country of residence:** India
 - **If asked how the project was improved during the hackathon:** "Built from scratch during the submission period. The first commit is Oct 20, 2026, and the whole history is public on GitHub."
 - **If asked for a PayPal developer account or app id:** [[FOUNDER: only if the form asks]]
@@ -255,9 +255,9 @@ Public, MIT licensed. GitHub shows the license in the repo's About section.
 - [ ] Commit and push, so GitHub matches this copy and the video.
 - [ ] Make the repo public (github.com/exhibitlabs/exhibit). The copy links to files on GitHub, and judges must be able to read the code.
 - [ ] Turn private vulnerability reporting back on in the repo's security settings. `SECURITY.md` asks reporters to use it.
-- [ ] Someet Shende registers for the hackathon on Devpost, then is added in the project's team section and accepts the invite, so the entry is credited to both co-founders. Both must meet the eligibility rules.
-- [ ] Fill the `[[` slots: both `VIDEO` slots with the YouTube URL of the v6 cut, and the PayPal developer account line only if the form asks.
-- [ ] The YouTube video is Public, marked Not made for kids and under 3:00. Ideally PayPal and Claude are both on screen in the first 25 seconds.
+- [ ] Someet Shende (Devpost `someet345`) registers for the hackathon on Devpost, then is added in the project's team section and accepts the invite, so the entry is credited to both co-founders. Both must meet the eligibility rules.
+- [ ] Fill the `[[` slots: both `VIDEO` slots with the YouTube URL of the v7 film, and the PayPal developer account line only if the form asks.
+- [ ] The YouTube video is Public, marked Not made for kids and under 3:00 (v7 is 2:52).
 - [ ] Upload the thumbnail and the eight gallery images, with the captions above.
 - [ ] Check the hosted demo is awake: open https://app.exhibit.9to5code.com/app and wait for the command center. A free Render instance sleeps after 15 minutes without visitors and takes about a minute to wake.
 - [ ] Open the submitted page while logged out and click every link.
