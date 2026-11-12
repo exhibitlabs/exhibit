@@ -4151,6 +4151,19 @@
       flex: 1;
     }
   }
+  .s-hero__video {
+    display: flex;
+    width: fit-content;
+    margin-top: 18px;
+  }
+  .s-hero__video .s-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .s-hero__video-len {
+    color: var(--s-muted);
+    font-variant-numeric: tabular-nums;
+  }
   @media (min-width: 1024px) {
     .s-hero__top {
       grid-template-columns: repeat(12, minmax(0, 1fr));

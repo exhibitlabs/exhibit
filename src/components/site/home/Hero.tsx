@@ -1,4 +1,6 @@
+import { CirclePlay } from "lucide-react";
 import Link from "next/link";
+import { DEMO_VIDEO_LENGTH, DEMO_VIDEO_URL } from "@/components/landing/data";
 import { ButtonLink } from "../actions";
 import { fmtDay, RECORD, REYES } from "../facts";
 import { FitBox } from "../FitBox";
@@ -29,6 +31,13 @@ export function Hero() {
                 {CTA.secondary.label}
               </ButtonLink>
             </div>
+            {DEMO_VIDEO_URL ? (
+              <a href={DEMO_VIDEO_URL} className="s-link s-hero__video" target="_blank" rel="noopener noreferrer">
+                <CirclePlay className="s-icon" aria-hidden />
+                Watch the demo video <span className="s-hero__video-len">{DEMO_VIDEO_LENGTH}</span>
+                <span className="s-sr-only"> (opens in a new tab)</span>
+              </a>
+            ) : null}
           </div>
         </div>
       </Container>

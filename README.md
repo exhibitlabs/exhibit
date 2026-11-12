@@ -11,12 +11,13 @@
 </p>
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=lyszhLggWDc"><b>Demo video (2:52)</b></a> ·
+  <a href="https://app.exhibit.9to5code.com/app"><b>Live demo</b></a> ·
   <a href="#verified-live-on-the-paypal-sandbox">Sandbox proof</a> ·
   <a href="#run-it-with-no-keys">Run it</a> ·
   <a href="#for-judges">For judges</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#architecture">Architecture</a>
-  <!-- VIDEO_URL -->
 </p>
 
 <p align="center">
@@ -87,7 +88,7 @@ Exhibit against the five equally weighted criteria, with the evidence for each.
 - **Design.** A complete product: a command center, an inbox with saved views, a case page with a live evidence graph and a cited letter, the evidence packet PDF, prevention, Autopilot, agent approvals, a PayPal API inspector and a ⌘K question palette ([how it works](#how-it-works)). The website and docs run in the same app.
 - **Potential Impact.** Every dispute can carry a PayPal fee: $15, $30 for high-volume sellers, $20 per card chargeback ([PayPal's fees](https://www.paypal.com/us/business/paypal-business-fees)). Exhibit fights what the records support, refunds what they don't, and stops disputes before they are filed. On 30 synthetic disputes, its decision matched the label 30 of 30 times, to be read with its caveat ([evaluation](#evaluation)).
 - **Innovation/Idea.** PayPal's agent tools can read a dispute or concede it. Exhibit adds the investigation, the evidence and the filing, and lets other agents use them under the rule PayPal applies to its own MCP gateway: agents request, merchants approve ([the toolkit gap](#paypals-agent-toolkit-and-exhibit), [MCP](#use-exhibit-from-any-ai-agent-mcp)).
-- **Presentation.** The demo video<!-- VIDEO_URL -->, this page, and a repository that runs with no keys ([run it](#run-it-with-no-keys), [what the video shows](#what-the-demo-video-shows)).
+- **Presentation.** [The demo video](https://www.youtube.com/watch?v=lyszhLggWDc) (2:52), [the live demo](https://app.exhibit.9to5code.com/app), this page, and a repository that runs with no keys ([run it](#run-it-with-no-keys), [what the video shows](#what-the-demo-video-shows)).
 
 <br>
 
@@ -148,17 +149,22 @@ Everyone on the same server shares the demo merchant. It resets itself after 20 
 
 ## What the demo video shows
 
-<!-- VIDEO_URL -->Each part of the demo video maps to code in this repository.
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=lyszhLggWDc"><img src="docs/submission/video-thumbnail.png" width="100%" alt="Watch the Exhibit demo video on YouTube (2:52). Stop losing PayPal disputes: Exhibit's evidence graph on a $420 unauthorized chargeback, Fight, 88% likely to win."></a>
+</p>
+<p align="center"><sub><a href="https://www.youtube.com/watch?v=lyszhLggWDc">Watch the demo on YouTube</a> (2:52)</sub></p>
 
-- **A live sandbox chargeback**, read from PayPal's Disputes API, with its lifecycle and evidence graph: [`src/lib/paypal/client.ts`](src/lib/paypal/client.ts), [`src/components/app/case/`](src/components/app/case)
-- **Claude investigates the case** and decides to fight, citing every claim: [`src/lib/agent/`](src/lib/agent) ([`tools.ts`](src/lib/agent/tools.ts), [`prompt.ts`](src/lib/agent/prompt.ts), [`run.ts`](src/lib/agent/run.ts) and the three [`providers`](src/lib/agent/providers))
-- **Hovering a claim lights the record it cites**: [`brief.ts`](src/lib/agent/brief.ts) (citation checks), [`CitedText.tsx`](src/components/app/case/CitedText.tsx), [`EvidenceGraph.tsx`](src/components/app/case/EvidenceGraph.tsx)
-- **An outside AI agent asks over MCP** to file the evidence: [`mcp/server.ts`](mcp/server.ts), [`mcp/agent-demo.ts`](mcp/agent-demo.ts), [`src/lib/approvals.ts`](src/lib/approvals.ts)
-- **The merchant approves, and Exhibit files with PayPal**, with HTTP 200 and a debug id: [`src/lib/actions.ts`](src/lib/actions.ts), [`AgentApprovals.tsx`](src/components/app/AgentApprovals.tsx), [`ApiInspector.tsx`](src/components/app/ApiInspector.tsx)
-- **A case where the buyer is right**, and Exhibit accepts the claim: [`src/lib/agent/playbook.ts`](src/lib/agent/playbook.ts)
+Each part of the film, in the order it appears, maps to code in this repository.
+
+- **The command center**, a demo merchant's last 90 days, with the dispute rate tracked against Visa's and Mastercard's monitoring lines: [`CommandCenter.tsx`](src/components/app/overview/CommandCenter.tsx), [`overview.ts`](src/lib/overview.ts)
 - **Prevention**, a reply in German before the buyer files: [`src/lib/prevention.ts`](src/lib/prevention.ts), [`PreventionView.tsx`](src/components/app/PreventionView.tsx)
+- **A live sandbox chargeback**, read from PayPal's Disputes API, with its evidence graph: [`src/lib/paypal/client.ts`](src/lib/paypal/client.ts), [`src/components/app/case/`](src/components/app/case)
+- **Claude investigates the case** and decides to fight, every reason linked to the record it cites: [`src/lib/agent/`](src/lib/agent) ([`tools.ts`](src/lib/agent/tools.ts), [`prompt.ts`](src/lib/agent/prompt.ts), [`run.ts`](src/lib/agent/run.ts) and the three [`providers`](src/lib/agent/providers)), with the citation checks in [`brief.ts`](src/lib/agent/brief.ts), [`CitedText.tsx`](src/components/app/case/CitedText.tsx) and [`EvidenceGraph.tsx`](src/components/app/case/EvidenceGraph.tsx)
+- **The evidence packet**, a cover letter and lettered exhibits rendered from the merchant's records, never from the model's text: [`src/lib/packet/`](src/lib/packet)
+- **Filing with PayPal**, a single Disputes API call, with every call on the record: [`src/lib/actions.ts`](src/lib/actions.ts), [`ApiInspector.tsx`](src/components/app/ApiInspector.tsx)
+- **A case where the buyer is right**: the wallet came back to the store undelivered, so Exhibit refunds instead of fighting: [`src/lib/agent/playbook.ts`](src/lib/agent/playbook.ts)
 - **Ask Exhibit** answers about the whole dispute book, with a chart: [`src/lib/ask/`](src/lib/ask), [`AskPalette.tsx`](src/components/app/ask/AskPalette.tsx)
-- **The evaluation**, with its caveat: [`eval/`](eval)
+- **An outside AI agent asks over MCP**, and nothing is filed until the merchant approves: [`mcp/server.ts`](mcp/server.ts), [`mcp/agent-demo.ts`](mcp/agent-demo.ts), [`src/lib/approvals.ts`](src/lib/approvals.ts), [`AgentApprovals.tsx`](src/components/app/AgentApprovals.tsx)
 
 <br>
 

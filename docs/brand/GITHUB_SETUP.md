@@ -61,7 +61,7 @@ paypal paypal-api paypal-ai-hackathon disputes chargebacks merchants ecommerce f
 
 ## Later
 
-- **When the video is on YouTube:** replace every `<!-- VIDEO_URL -->` with a link, for example `<a href="https://www.youtube.com/watch?v=…">Demo video</a> ·`. There are three in `README.md` (the link row, the "For judges" list and the top of "What the demo video shows") and one in `profile/README.md` of `exhibitlabs/.github` (the link row).
+- **The video (done Nov 12, 2026):** the demo film is at https://www.youtube.com/watch?v=lyszhLggWDc, linked from `README.md` (the link row, the "For judges" list and "What the demo video shows"), both organisation profiles, the website hero (`DEMO_VIDEO_URL` in `src/components/landing/data.ts`) and the Devpost project page.
 - **When a CI run on `main` is green:** add the CI badge to the badge row of `README.md`; the line is in a comment under "Tests and CI".
 - **Optional, a "Verified" badge:** Settings → **Verified and approved domains** → **Add a domain** → `exhibit.9to5code.com`, then add the TXT record GitHub shows in Cloudflare DNS and press **Verify**. GitHub shows the badge only when the profile's website and email are both on the verified domain, so do this once the Website field is set, and only if the option appears for the organisation's plan.
 

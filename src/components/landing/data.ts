@@ -13,10 +13,12 @@ export const HOSTED_DEMO_URL = "https://app.exhibit.9to5code.com/app";
 export const DEMO_URL = process.env.NEXT_PUBLIC_EXHIBIT_DEMO_URL || "/app";
 
 /**
- * The demo video (YouTube). Leave empty and the "Watch the demo" button is hidden.
- * Example: "https://www.youtube.com/watch?v=XXXXXXXXXXX"
+ * The demo video on YouTube. The homepage hero links to it under its buttons; leave it empty and the link is
+ * hidden.
  */
-export const DEMO_VIDEO_URL = "";
+export const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=lyszhLggWDc";
+/** The video's running time, as YouTube shows it. */
+export const DEMO_VIDEO_LENGTH = "2:52";
 
 /**
  * Evaluation on labelled cases. Leave null until it has been measured; the block renders only

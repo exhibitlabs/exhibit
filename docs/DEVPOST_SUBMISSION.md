@@ -172,7 +172,7 @@ Upload in this order (2880 x 1800 PNGs, captured at 1440 x 900 by [`docs/submiss
 ### Video demo link
 
 ```
-[[VIDEO: YouTube URL of the v7 film (Exhibit-v7.mp4, 2:52). Public (not unlisted), marked Not made for kids, under 3:00.]]
+https://www.youtube.com/watch?v=lyszhLggWDc
 ```
 
 ---
